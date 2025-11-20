@@ -1,13 +1,8 @@
-import { createClient } from '@/utils/supabase/server'; // or @/lib/supabase/server depending on your folder structure
+import { createClient } from '@/utils/supabase/server' // Note: check your path, it might be @/lib/supabase/server depending on your starter
 
-export default async function Notes() {
-  const supabase = await createClient();
-  const { data: notes } = await supabase.from("notes").select();
+export default async function Page() {
+  const supabase = await createClient()
+  const { data: notes } = await supabase.from('notes').select()
 
-  return (
-    <div style={{ padding: '50px' }}>
-      <h1>My Notes</h1>
-      <pre>{JSON.stringify(notes, null, 2)}</pre>
-    </div>
-  );
+  return <pre>{JSON.stringify(notes, null, 2)}</pre>
 }
