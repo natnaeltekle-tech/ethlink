@@ -1,14 +1,8 @@
-export const dynamic = "force-dynamic";
-
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 
-export default async function Index() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export default function Index() {
+  // We removed the server-side auth check here to prevent build errors.
+  // The /protected page handles the redirection logic automatically.
 
   return (
     <div className="flex-1 w-full flex flex-col gap-20 items-center justify-center p-10">
@@ -21,32 +15,24 @@ export default async function Index() {
         </p>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Button */}
       <div className="flex gap-4">
-        {user ? (
-          // If logged in, show button to go to Dashboard
-          <Link
-            href="/protected"
-            className="py-3 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
-          >
-            Go to Dashboard
-          </Link>
-        ) : (
-          // If NOT logged in, show Login button
-          <Link
-            href="/sign-in"
-            className="py-3 px-6 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors font-semibold"
-          >
-            Get Started
-          </Link>
-        )}
+        {/* We point straight to /protected. 
+            If logged in -> They see Dashboard.
+            If logged out -> They get redirected to Login automatically. */}
+        <Link
+          href="/protected"
+          className="py-3 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
+        >
+          Go to Dashboard
+        </Link>
       </div>
 
       <footer className="w-full border-t border-t-foreground/10 p-8 flex justify-center text-center text-xs">
         <p>
           Powered by{" "}
           <a
-            href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
+            href="https://supabase.com"
             target="_blank"
             className="font-bold hover:underline"
             rel="noreferrer"
