@@ -20,9 +20,14 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const [role, setRole] = useState<"user" | "provider">("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [businessCategory, setBusinessCategory] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -44,7 +49,14 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            role,
+            full_name: fullName,
+            phone_number: phoneNumber,
+            business_name: role === "provider" ? businessName : null,
+            business_category: role === "provider" ? businessCategory : null,
+          },
         },
       });
       if (error) throw error;
@@ -64,8 +76,38 @@ export function SignUpForm({
           <CardDescription>Create a new account</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex gap-4 mb-6">
+            <Button
+              type="button"
+              variant={role === "user" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setRole("user")}
+            >
+              I am a User
+            </Button>
+            <Button
+              type="button"
+              variant={role === "provider" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setRole("provider")}
+            >
+              I am a Provider
+            </Button>
+          </div>
+
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="full-name">Full Name</Label>
+                <Input
+                  id="full-name"
+                  placeholder="John Doe"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -77,6 +119,44 @@ export function SignUpForm({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+251..."
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+
+              {role === "provider" && (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="business-name">Business Name</Label>
+                    <Input
+                      id="business-name"
+                      placeholder="My Service Business"
+                      required
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="business-category">Category</Label>
+                    <Input
+                      id="business-category"
+                      placeholder="e.g., Plumbing, Cleaning"
+                      required
+                      value={businessCategory}
+                      onChange={(e) => setBusinessCategory(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>

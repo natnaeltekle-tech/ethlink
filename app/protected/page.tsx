@@ -11,7 +11,7 @@ export default async function ProtectedPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return redirect('/sign-in')
+    return redirect('/auth/login')
   }
 
   return (
@@ -23,20 +23,20 @@ export default async function ProtectedPage() {
         </p>
 
         <div className="grid gap-4 md:grid-cols-2">
-            {/* Card 1: Go to Notes */}
-            <Link 
-              href="/notes"
-              className="p-6 border rounded-lg hover:bg-accent transition-colors text-left"
-            >
-              <h3 className="font-bold text-lg mb-2">📝 My Notes</h3>
-              <p className="text-sm text-gray-500">View and manage your database data.</p>
-            </Link>
+          {/* Card 1: Go to Notes */}
+          <Link
+            href="/notes"
+            className="p-6 border rounded-lg hover:bg-accent transition-colors text-left"
+          >
+            <h3 className="font-bold text-lg mb-2">📝 My Notes</h3>
+            <p className="text-sm text-gray-500">View and manage your database data.</p>
+          </Link>
 
-            {/* Card 2: Placeholder for future features */}
-            <div className="p-6 border rounded-lg border-dashed text-left opacity-60">
-              <h3 className="font-bold text-lg mb-2">🚀 New Feature</h3>
-              <p className="text-sm text-gray-500">Coming soon...</p>
-            </div>
+          {/* Card 2: Placeholder for future features */}
+          <div className="p-6 border rounded-lg border-dashed text-left opacity-60">
+            <h3 className="font-bold text-lg mb-2">🚀 New Feature</h3>
+            <p className="text-sm text-gray-500">Coming soon...</p>
+          </div>
         </div>
       </div>
     </div>
