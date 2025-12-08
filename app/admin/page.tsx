@@ -4,8 +4,6 @@ import { Users, Briefcase, Calendar } from 'lucide-react'
 import { DeleteServiceButton } from '@/components/admin/delete-service-button'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
-
 export default async function AdminDashboard() {
     const stats = await getAdminStats()
     const recentServices = await getRecentServices()
