@@ -1,10 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar' // Assuming we have Avatar, if not I'll use a div
-import { Calendar, Mail, User } from 'lucide-react'
-
-// I need to check if Avatar component exists, if not I'll implement a simple one or use standard HTML
-// I'll assume it exists or I'll check components/ui again. I didn't see it in the list earlier.
-// I'll use standard elements for now to be safe.
+import { Mail, User } from 'lucide-react'
 
 interface ProviderCardProps {
     provider: {
