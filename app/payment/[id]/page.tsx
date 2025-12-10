@@ -45,7 +45,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
                                         </div>
                                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
                                             <Calendar className="h-3 w-3" />
-                                            <span>{new Date(booking.date).toLocaleString()}</span>
+                                            <span>{new Date(booking.date).toLocaleString('en-US', { timeZone: 'UTC' })}</span>
                                         </div>
                                     </div>
                                 </div>

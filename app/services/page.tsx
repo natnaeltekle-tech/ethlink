@@ -11,12 +11,17 @@ export default async function ServicesPage({
 }) {
     const resolvedSearchParams = await searchParams;
     const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
+    const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : '';
 
     const supabase = await createClient();
 
-    let query = supabase.from('services').select('*');
+    let query = supabase.from('services').select('*').eq('is_active', true);
 
-    if (search) {
+    if (category) {
+        // Strict category filtering
+        query = query.eq('category', category);
+    } else if (search) {
+        // Fuzzy search across fields
         query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,category.ilike.%${search}%`);
     }
 
@@ -31,9 +36,12 @@ export default async function ServicesPage({
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <h1 className="text-3xl font-bold">Services</h1>
+                <h1 className="text-3xl font-bold">
+                    {category ? `Browsing: ${category}` : 'All Services'}
+                </h1>
                 <div className="w-full md:w-1/3">
                     <form action="/services" method="get" className="flex gap-2">
+                        {category && <input type="hidden" name="category" value={category} />}
                         <Input
                             type="text"
                             name="search"

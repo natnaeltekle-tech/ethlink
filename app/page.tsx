@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { SearchBar } from '@/components/search-bar'
-import { Search, Building2, Bus, Car, Plus, Handshake, CalendarCheck, CheckCircle2, User } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Search, Handshake, CalendarCheck, CheckCircle2, User } from 'lucide-react'
+import { getServicesByCategory, getLatestServices } from '@/lib/actions'
+import { ServiceCard } from '@/components/service-card'
+import { CategoryCarousel } from '@/components/category-carousel'
 
 export default async function Index() {
   const supabase = await createClient()
@@ -78,41 +79,15 @@ export default async function Index() {
           </div>
         </section>
 
-        {/* Featured Services */}
-        <section className="py-16 md:py-24">
+        {/* Category Navigation */}
+        <section className="py-8 md:py-12">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Featured Services</h2>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Featured Services</h2>
               <p className="text-muted-foreground">Explore top-rated services trusted by our community.</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { icon: Building2, label: "Hotels" },
-                { icon: Bus, label: "Buses" },
-                { icon: Car, label: "Transportation" },
-                { icon: Plus, label: "More", isAction: true },
-              ].map((service, i) => (
-                <Link
-                  key={i}
-                  href={service.isAction ? '/services/new' : `/listings?category=${service.label}`}
-                  className="block"
-                >
-                  <Card className={`aspect-square flex flex-col items-center justify-center hover:shadow-lg transition-all cursor-pointer border-2 ${service.isAction ? 'border-dashed' : 'border-transparent bg-slate-50/50'}`}>
-                    <CardContent className="p-6 flex flex-col items-center gap-4">
-                      <service.icon className={`h-10 w-10 ${service.isAction ? 'text-blue-600' : 'text-blue-600'}`} />
-                      <span className="font-semibold text-lg">{service.label}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex justify-center mt-12">
-              <Link href="/services">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">View All Services</Button>
-              </Link>
-            </div>
+            <CategoryCarousel />
           </div>
         </section>
 
@@ -151,3 +126,6 @@ export default async function Index() {
     </div>
   )
 }
+
+
+

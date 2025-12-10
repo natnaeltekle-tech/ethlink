@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getServiceDetails, getReviews, getMessages } from '@/lib/actions'
+import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
 import { ServiceHeader } from '@/components/service/ServiceHeader'
 import { ServiceGallery } from '@/components/service/ServiceGallery'
 import { ProviderCard } from '@/components/service/ProviderCard'
@@ -23,10 +23,10 @@ export default async function ServicePage({ params }: ServicePageProps) {
         notFound()
     }
 
-    // Fetch reviews and messages in parallel
-    const [reviews, messages] = await Promise.all([
+    // Fetch reviews and favorite status in parallel
+    const [reviews, isFavorite] = await Promise.all([
         getReviews(id),
-        getMessages(id)
+        getFavoriteStatus(id)
     ])
 
     // For provider info, we might need to fetch it if it's not fully in service object
@@ -47,6 +47,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
         provider = providerData
     }
 
+    const reviewCount = reviews.length
+    const averageRating = reviewCount > 0
+        ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviewCount
+        : 0
+
     return (
         <div className="container mx-auto px-4 py-8">
             <ServiceHeader
@@ -54,6 +59,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
                 price={service.price}
                 location={service.location || 'Location not specified'}
                 category={service.category}
+                serviceId={service.id}
+                isFavorite={isFavorite}
+                isLoggedIn={!!user}
+                rating={averageRating}
+                reviewCount={reviewCount}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -91,7 +101,6 @@ export default async function ServicePage({ params }: ServicePageProps) {
                     <ChatBox
                         serviceId={service.id}
                         providerId={service.user_id}
-                        initialMessages={messages}
                         currentUserId={user?.id || null}
                     />
                 </div>

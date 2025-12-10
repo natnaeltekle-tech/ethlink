@@ -49,7 +49,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
-                        <BookingForm serviceId={service.id} price={service.price} />
+                        <BookingForm serviceId={service.id} price={service.price} category={service.category} />
                     </div>
                 </div>
             </div>

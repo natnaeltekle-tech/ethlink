@@ -12,6 +12,7 @@ export async function searchServices(query: string) {
     const { data, error } = await supabase
         .from('services')
         .select('*')
+        .eq('is_active', true)
         .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
 
     if (error) {
@@ -25,7 +26,7 @@ export async function searchServices(query: string) {
 export async function searchServicesAdvanced(query: string, location?: string, maxPrice?: number) {
     const supabase = await createClient()
 
-    let queryBuilder = supabase.from('services').select('*');
+    let queryBuilder = supabase.from('services').select('*').eq('is_active', true);
 
     if (query) {
         queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`);
@@ -52,7 +53,7 @@ export async function searchServicesAdvanced(query: string, location?: string, m
 export async function searchServicesGreedy(keyword: string, maxPrice?: number) {
     const supabase = await createClient()
 
-    let queryBuilder = supabase.from('services').select('*');
+    let queryBuilder = supabase.from('services').select('*').eq('is_active', true);
 
     if (maxPrice) {
         queryBuilder = queryBuilder.lte('price', maxPrice);
@@ -248,12 +249,27 @@ export async function createBooking(formData: FormData) {
         throw new Error('Missing required fields')
     }
 
+    // Check availability
+    const { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('service_id', serviceId)
+        .eq('date', date)
+        .eq('status', 'confirmed')
+        .single()
+
+    if (existingBooking) {
+        throw new Error('This slot is already booked. Please pick another time.')
+    }
+
     const { data, error } = await supabase
         .from('bookings')
         .insert({
             service_id: serviceId,
             user_id: user.id,
-            date,
+            // Ensure we save the literal time as UTC to avoid shifts
+            // Input is usually YYYY-MM-DDTHH:mm
+            date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
             status: 'pending'
         })
         .select()
@@ -277,9 +293,23 @@ export async function createBookingJson(formData: FormData) {
 
     const serviceId = formData.get('serviceId') as string
     const date = formData.get('date') as string
+    const guests = parseInt(formData.get('guests') as string) || 1
 
     if (!serviceId || !date) {
         return { error: 'Missing required fields' }
+    }
+
+    // Check availability
+    const { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('service_id', serviceId)
+        .eq('date', date)
+        .eq('status', 'confirmed')
+        .single()
+
+    if (existingBooking) {
+        return { error: 'This slot is already booked. Please pick another time.' }
     }
 
     const { data, error } = await supabase
@@ -287,7 +317,9 @@ export async function createBookingJson(formData: FormData) {
         .insert({
             service_id: serviceId,
             user_id: user.id,
-            date,
+            // Ensure we save the literal time as UTC to avoid shifts
+            date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
+            guests,
             status: 'pending'
         })
         .select()
@@ -344,16 +376,359 @@ export async function processPayment(bookingId: string) {
         throw new Error('Booking not found')
     }
 
-    // Update status to confirmed
+    // Update status to paid
     const { error: updateError } = await supabase
         .from('bookings')
-        .update({ status: 'confirmed' })
+        .update({ status: 'paid' })
         .eq('id', bookingId)
 
     if (updateError) {
         console.error('Error processing payment:', updateError)
-        throw new Error('Payment failed')
+        throw new Error(`Payment failed: ${updateError.message || JSON.stringify(updateError)}`)
     }
 
-    redirect('/dashboard?payment=success')
+    revalidatePath('/dashboard')
+    redirect(`/book/success?bookingId=${bookingId}`)
+}
+
+export async function getUserBookings() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    const { data: bookings, error } = await supabase
+        .from('bookings')
+        .select('*, services(title, price)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching user bookings:', error)
+        return []
+    }
+
+    return bookings
+}
+
+export async function toggleFavorite(serviceId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        throw new Error('Not authenticated')
+    }
+
+    // Check if already favorited
+    const { data: existing } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('service_id', serviceId)
+        .single()
+
+    if (existing) {
+        // Remove from favorites
+        await supabase
+            .from('favorites')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('service_id', serviceId)
+
+        revalidatePath(`/services/${serviceId}`)
+        return { isFavorite: false }
+    } else {
+        // Add to favorites
+        await supabase
+            .from('favorites')
+            .insert({
+                user_id: user.id,
+                service_id: serviceId
+            })
+
+        revalidatePath(`/services/${serviceId}`)
+        return { isFavorite: true }
+    }
+}
+
+export async function getFavoriteStatus(serviceId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return false
+
+    const { data } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('service_id', serviceId)
+        .single()
+
+    return !!data
+}
+
+export async function getProviderStats() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    // Get all services owned by user
+    const { data: services } = await supabase
+        .from('services')
+        .select('id')
+        .eq('user_id', user.id)
+
+    if (!services || services.length === 0) return null
+
+    const serviceIds = services.map(s => s.id)
+
+    // Get bookings for these services
+    const { data: bookings } = await supabase
+        .from('bookings')
+        .select('*, services(title, price)')
+        .in('service_id', serviceIds)
+        .order('created_at', { ascending: false })
+
+    if (!bookings) return { earnings: 0, pendingBookings: [], services: [] }
+
+    const earnings = bookings
+        .filter(b => b.status === 'paid' || b.status === 'confirmed')
+        .reduce((sum, b) => sum + (b.services?.price || 0), 0)
+
+    const pendingBookings = bookings.filter(b => b.status === 'pending')
+
+    return {
+        earnings,
+        pendingBookings,
+        allBookings: bookings
+    }
+}
+
+export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled') {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    // Verify ownership of the service linked to this booking
+    // We need to join bookings -> services and check services.user_id
+    const { data: booking } = await supabase
+        .from('bookings')
+        .select('*, services(user_id)')
+        .eq('id', bookingId)
+        .single()
+
+    if (!booking || booking.services.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', bookingId)
+
+    if (error) throw new Error('Failed to update booking')
+
+    // Auto-Message on Accept
+    if (status === 'confirmed') {
+        const { error: msgError } = await supabase
+            .from('messages')
+            .insert({
+                service_id: booking.service_id,
+                sender_id: user.id, // Provider (Current User)
+                receiver_id: booking.user_id, // Customer (Booking Owner)
+                content: '✅ I have accepted your booking! Please proceed to payment.'
+            })
+
+        if (msgError) {
+            console.error('Failed to send auto-accept message:', msgError);
+            // Non-blocking error, we don't throw here to preserve the status update
+        }
+    }
+
+    revalidatePath('/dashboard')
+}
+
+export async function getProviderServices() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return []
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    return services || []
+}
+
+export async function toggleServiceStatus(serviceId: string, isActive: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const { error } = await supabase
+        .from('services')
+        .update({ is_active: isActive })
+        .eq('id', serviceId)
+        .eq('user_id', user.id)
+
+    if (error) throw new Error('Failed to update service status')
+
+    revalidatePath(`/services/${serviceId}`)
+}
+
+export async function getServicesByCategory(category: string, limit: number = 4) {
+    const supabase = await createClient()
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .ilike('category', `%${category}%`)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+    return services || []
+}
+
+export async function getLatestServices(limit: number = 4) {
+    const supabase = await createClient()
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+    return services || []
+}
+
+export async function getServicesByCategoryStrict(category: string, limit: number = 24) {
+    const supabase = await createClient()
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .eq('category', category) // STRICT filtering
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+    return services || []
+}
+
+export async function getBuses(limit: number = 24) {
+    const supabase = await createClient()
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .eq('category', 'Transport')
+        .ilike('title', '%bus%')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+    return services || []
+}
+
+export async function deleteService(serviceId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    // Verify ownership
+    const { data: service } = await supabase
+        .from('services')
+        .select('user_id')
+        .eq('id', serviceId)
+        .single()
+
+    if (!service || service.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', serviceId)
+
+    if (error) throw new Error('Failed to delete service')
+
+    revalidatePath('/dashboard')
+}
+
+export async function updateProfile(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const fullName = formData.get('fullName') as string
+
+    // Note: avatarUrl not implemented yet as we need file upload logic
+    // For now we just update metadata
+
+    const { error } = await supabase.auth.updateUser({
+        data: { full_name: fullName }
+    })
+
+    if (error) throw new Error('Failed to update profile')
+
+    revalidatePath('/dashboard')
+}
+
+export async function getProfile() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return null
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+    return profile
+}
+
+export async function updateProviderProfile(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const firstName = formData.get('firstName') as string
+    const lastName = formData.get('lastName') as string
+    const phoneNumber = formData.get('phoneNumber') as string
+    const idCardLink = formData.get('idCardLink') as string
+
+    if (!firstName || !lastName || !phoneNumber || !idCardLink) {
+        throw new Error('All fields are required')
+    }
+
+    const { error } = await supabase
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            full_name: `${firstName} ${lastName}`,
+            phone_number: phoneNumber,
+            id_card_link: idCardLink,
+            role: 'provider'
+        })
+
+    if (error) {
+        console.error('Error updating provider profile:', error)
+        throw new Error('Failed to update profile')
+    }
+
+    revalidatePath('/services/new')
 }

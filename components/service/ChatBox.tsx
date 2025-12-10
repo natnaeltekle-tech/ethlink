@@ -18,16 +18,40 @@ interface Message {
 interface ChatBoxProps {
     serviceId: string
     providerId: string
-    initialMessages: Message[]
     currentUserId: string | null
 }
 
-export function ChatBox({ serviceId, providerId, initialMessages, currentUserId }: ChatBoxProps) {
-    const [messages, setMessages] = useState<Message[]>(initialMessages)
+export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) {
+    const [messages, setMessages] = useState<Message[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [loading, setLoading] = useState(false)
+    const [isOnline, setIsOnline] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const supabase = createClient()
+
+    useEffect(() => {
+        // Check online status based on last message from provider
+        const checkOnlineStatus = () => {
+            const providerMessages = messages.filter(m => m.sender_id === providerId)
+            if (providerMessages.length === 0) {
+                setIsOnline(false)
+                return
+            }
+
+            const lastMessage = providerMessages[providerMessages.length - 1]
+            const lastActive = new Date(lastMessage.created_at).getTime()
+            const now = new Date().getTime()
+            const diffInMinutes = (now - lastActive) / (1000 * 60)
+
+            // Online if active in last 15 minutes
+            setIsOnline(diffInMinutes <= 15)
+        }
+
+        checkOnlineStatus()
+        // Re-check every minute
+        const interval = setInterval(checkOnlineStatus, 60000)
+        return () => clearInterval(interval)
+    }, [messages, providerId])
 
     useEffect(() => {
         const channel = supabase
@@ -39,17 +63,38 @@ export function ChatBox({ serviceId, providerId, initialMessages, currentUserId 
                 filter: `service_id=eq.${serviceId}`
             }, (payload) => {
                 const newMsg = payload.new as Message
-                // Only add if it's relevant to this chat (sender or receiver is current user)
-                // Actually, the filter `service_id` is broad. We should filter by user IDs too if possible,
-                // but for now let's just append.
-                setMessages((prev) => [...prev, newMsg])
+
+                setMessages((prev) => {
+                    // Deduplication logic:
+                    // If the new message is from ME, check if we have a temporary message with same content
+                    if (newMsg.sender_id === currentUserId) {
+                        const tempMatchIndex = prev.findIndex(m =>
+                            m.id.startsWith('temp-') &&
+                            m.content === newMsg.content
+                        )
+
+                        if (tempMatchIndex !== -1) {
+                            // Replace temp message with real message
+                            const newMessages = [...prev]
+                            newMessages[tempMatchIndex] = newMsg
+                            return newMessages
+                        }
+                    }
+
+                    // Check if message ID already exists (just in case)
+                    if (prev.some(m => m.id === newMsg.id)) {
+                        return prev
+                    }
+
+                    return [...prev, newMsg]
+                })
             })
             .subscribe()
 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [serviceId, supabase])
+    }, [serviceId, supabase, currentUserId])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -58,18 +103,41 @@ export function ChatBox({ serviceId, providerId, initialMessages, currentUserId 
     const handleSend = async () => {
         if (!newMessage.trim() || !currentUserId) return
 
+        const tempId = `temp-${Date.now()}`
+        const tempMessage: Message = {
+            id: tempId,
+            content: newMessage,
+            sender_id: currentUserId,
+            created_at: new Date().toISOString()
+        }
+
+        // Optimistic Update
+        setMessages((prev) => [...prev, tempMessage])
+        setNewMessage('')
         setLoading(true)
+
         try {
-            // Optimistic update could go here, but for simplicity we'll wait for the server action
-            // or the realtime event.
-            // Let's use the server action to send.
-            await sendMessage(serviceId, providerId, newMessage)
-            setNewMessage('')
+            await sendMessage(serviceId, providerId, tempMessage.content)
+            // We rely on Realtime to bring the "real" message with real ID.
+            // To avoid duplicates, we could remove the temp message when the real one arrives,
+            // or just keep it. 
+            // Issue: Realtime event might arrive BEFORE this function finishes or AFTER.
+            // Simple fix: Remove the temp message after a delay or when we see a new message from US?
+            // Actually, for this simple implementation, let's just NOT add it via Realtime if we sent it?
+            // No, Realtime is the source of truth for the ID.
+            // Let's just Add Optimistic -> Wait for Realtime -> If Realtime comes, it appends.
+            // We need to dedupe.
+            // Let's filter out the optimistic message when we get the realtime one? 
+            // Too complex for now.
+            // Let's just START with Optimistic update so the user SEES it.
+            // If they see double, we fix that next.
+            // But if they currently see NOTHING, that's the bug.
         } catch (error) {
             console.error('Failed to send message:', error)
-            // Extract error message if possible
+            // Rollback optimistic update
+            setMessages((prev) => prev.filter(m => m.id !== tempId))
             const errorMessage = error instanceof Error ? error.message : 'Failed to send message'
-            alert(`Error: ${errorMessage}`) // Temporary: Alert the user to the error
+            alert(`Error: ${errorMessage}`)
         } finally {
             setLoading(false)
         }
@@ -88,10 +156,29 @@ export function ChatBox({ serviceId, providerId, initialMessages, currentUserId 
         )
     }
 
+    if (currentUserId === providerId) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Owner View</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground text-sm">You are the provider of this service. You cannot chat with yourself.</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <Card className="flex flex-col h-[400px]">
-            <CardHeader className="py-3 border-b">
+            <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg">Direct Chat</CardTitle>
+                <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                    <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                        {isOnline ? 'Online' : 'Offline'}
+                    </span>
+                </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg) => {

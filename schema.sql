@@ -53,3 +53,37 @@ create policy "Users can insert their own messages."
 -- Add location and images to services if they don't exist
 alter table services add column if not exists location text;
 alter table services add column if not exists images text[];
+
+-- Add guests column to bookings if it doesn't exist
+alter table bookings add column if not exists guests integer default 1;
+
+-- Add is_active column to services if it doesn't exist
+alter table services add column if not exists is_active boolean default true;
+
+-- Create favorites table
+create table if not exists favorites (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  service_id uuid references services(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id, service_id)
+);
+
+-- Enable RLS for favorites
+alter table favorites enable row level security;
+
+-- Policies for favorites
+drop policy if exists "Users can view their own favorites." on favorites;
+create policy "Users can view their own favorites."
+  on favorites for select
+  using ( auth.uid() = user_id );
+
+drop policy if exists "Users can insert their own favorites." on favorites;
+create policy "Users can insert their own favorites."
+  on favorites for insert
+  with check ( auth.uid() = user_id );
+
+drop policy if exists "Users can delete their own favorites." on favorites;
+create policy "Users can delete their own favorites."
+  on favorites for delete
+  using ( auth.uid() = user_id );

@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Shield, Handshake } from "lucide-react";
+import { Link as UserLink, Handshake } from "lucide-react";
+import { getUserBookings, getProviderStats, getProviderServices } from "@/lib/actions";
+import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -15,6 +17,10 @@ export default async function DashboardPage() {
     if (!user) {
         return redirect("/auth/login");
     }
+
+    const bookings = await getUserBookings();
+    const providerStats = await getProviderStats();
+    const providerServices = await getProviderServices();
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -34,59 +40,22 @@ export default async function DashboardPage() {
             <main className="container mx-auto px-4 py-8 max-w-3xl">
                 <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-                <div className="grid gap-6">
-                    {/* User Details Card */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5" />
-                                User Details
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
-                                    {user.email?.[0].toUpperCase()}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Email</p>
-                                    <p className="text-lg font-medium">{user.email}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                                    <Shield className="h-6 w-6" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Role</p>
-                                    <p className="text-lg font-medium">User</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <DashboardTabs
+                    user={user}
+                    bookings={bookings}
+                    providerStats={providerStats}
+                    providerServices={providerServices}
+                />
 
-                    {/* My Activity Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>My Activity</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-center py-8 text-gray-500 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed">
-                                <p>You haven't requested any services yet.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Log Out Button */}
-                    <div className="flex justify-end">
-                        <form action="/auth/signout" method="post">
-                            <Button variant="destructive" size="lg">
-                                Log Out
-                            </Button>
-                        </form>
-                    </div>
+                {/* Log Out Button */}
+                <div className="flex justify-end mt-8">
+                    <form action="/auth/signout" method="post">
+                        <Button variant="destructive" size="lg">
+                            Log Out
+                        </Button>
+                    </form>
                 </div>
             </main>
-        </div>
+        </div >
     );
 }
