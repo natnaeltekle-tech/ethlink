@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Send } from 'lucide-react'
-import { sendMessage } from '@/lib/actions'
+import { getMessages, sendMessage } from '@/lib/actions'
 
 interface Message {
     id: string
@@ -27,7 +27,23 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     const [loading, setLoading] = useState(false)
     const [isOnline, setIsOnline] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    const supabase = createClient()
+
+    // Stable client instance
+    const [supabase] = useState(() => createClient())
+
+    // Initial Fetch
+    useEffect(() => {
+        const fetchMessages = async () => {
+            const initialMessages = await getMessages(serviceId)
+            if (initialMessages) {
+                setMessages(initialMessages as Message[])
+            }
+        }
+
+        if (currentUserId) {
+            fetchMessages()
+        }
+    }, [serviceId, currentUserId])
 
     useEffect(() => {
         // Check online status based on last message from provider
@@ -54,8 +70,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     }, [messages, providerId])
 
     useEffect(() => {
+        if (!serviceId) return
+
         const channel = supabase
-            .channel('realtime messages')
+            .channel(`room-${serviceId}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -119,19 +137,6 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
         try {
             await sendMessage(serviceId, providerId, tempMessage.content)
             // We rely on Realtime to bring the "real" message with real ID.
-            // To avoid duplicates, we could remove the temp message when the real one arrives,
-            // or just keep it. 
-            // Issue: Realtime event might arrive BEFORE this function finishes or AFTER.
-            // Simple fix: Remove the temp message after a delay or when we see a new message from US?
-            // Actually, for this simple implementation, let's just NOT add it via Realtime if we sent it?
-            // No, Realtime is the source of truth for the ID.
-            // Let's just Add Optimistic -> Wait for Realtime -> If Realtime comes, it appends.
-            // We need to dedupe.
-            // Let's filter out the optimistic message when we get the realtime one? 
-            // Too complex for now.
-            // Let's just START with Optimistic update so the user SEES it.
-            // If they see double, we fix that next.
-            // But if they currently see NOTHING, that's the bug.
         } catch (error) {
             console.error('Failed to send message:', error)
             // Rollback optimistic update

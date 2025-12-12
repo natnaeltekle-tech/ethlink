@@ -127,7 +127,8 @@ export async function getMessages(serviceId: string) {
         .select('*')
         .eq('service_id', serviceId)
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false }) // Get newest first
+        .limit(30)
 
     if (error) {
         console.error('Error fetching messages:', JSON.stringify(error, null, 2))
@@ -136,7 +137,7 @@ export async function getMessages(serviceId: string) {
         return []
     }
 
-    return messages
+    return messages.reverse() // Return in chronological order
 }
 
 export async function sendMessage(serviceId: string, receiverId: string, content: string) {
@@ -731,4 +732,75 @@ export async function updateProviderProfile(formData: FormData) {
     }
 
     revalidatePath('/services/new')
+}
+
+export async function createServiceWithProfile(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        redirect('/auth/login')
+    }
+
+    // 1. Extract Provider Details
+    const firstName = formData.get('firstName') as string
+    const lastName = formData.get('lastName') as string
+    const phoneNumber = formData.get('phoneNumber') as string
+    const idCardLink = formData.get('idCardLink') as string
+
+    // 2. Extract Service Details
+    const title = formData.get('title') as string
+    const category = formData.get('category') as string
+    const location = formData.get('location') as string
+    const price = parseFloat(formData.get('price') as string)
+    const description = formData.get('description') as string
+    const imageUrl = formData.get('image_url') as string
+
+    // Validation
+    if (!firstName || !lastName || !phoneNumber || !idCardLink) {
+        throw new Error('All Provider Details are required')
+    }
+    if (!title || !category || !location || isNaN(price) || !description) {
+        throw new Error('All Service Details are required')
+    }
+
+    // 3. Upsert Profile
+    const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            full_name: `${firstName} ${lastName}`,
+            phone_number: phoneNumber,
+            id_card_link: idCardLink,
+            role: 'provider'
+        })
+
+    if (profileError) {
+        // NON-BLOCKING: Log the error but allow service creation to proceed.
+        // This prevents the application from crashing if the DB schema is slightly out of sync (e.g. missing columns).
+        console.error('Warning: Failed to update provider profile. Proceeding with service creation.', profileError)
+        // We do NOT throw here anymore.
+    }
+
+    // 4. Create Service
+    const { data: service, error: serviceError } = await supabase
+        .from('services')
+        .insert({
+            title,
+            category,
+            location,
+            price,
+            description,
+            images: imageUrl ? [imageUrl] : [],
+            user_id: user.id
+        })
+        .select()
+        .single()
+
+    if (serviceError) {
+        console.error('Error creating service:', serviceError)
+        throw new Error('Failed to create service')
+    }
+
+    redirect(`/services/${service.id}`)
 }

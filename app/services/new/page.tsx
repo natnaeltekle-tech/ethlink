@@ -1,5 +1,6 @@
 
-import { createService, getProfile, updateProviderProfile } from '@/lib/actions'
+import { createServiceWithProfile, getProfile } from '@/lib/actions'
+import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,100 +9,106 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Shield, CheckCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
 
 export default async function NewServicePage() {
-    const profile = await getProfile()
+    // 1. Check Authentication First
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!profile) {
+    if (!user) {
         redirect('/auth/login')
     }
 
-    // Check if provider profile is complete
-    const isVerified = profile.full_name && profile.id_card_link
-
-    if (!isVerified) {
-        return (
-            <div className="min-h-screen bg-slate-50 py-12">
-                <div className="container mx-auto px-4 max-w-lg">
-                    <div className="mb-8 text-center">
-                        <div className="h-16 w-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Shield className="h-8 w-8" />
-                        </div>
-                        <h1 className="text-3xl font-bold text-slate-900">Become a Host</h1>
-                        <p className="text-muted-foreground mt-2">
-                            To ensure trust and safety, we need to verify your identity before you can list services.
-                        </p>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Complete your Provider Profile</CardTitle>
-                            <CardDescription>This information will be used for verification purposes.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form action={updateProviderProfile} className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="firstName">First Name</Label>
-                                        <Input id="firstName" name="firstName" placeholder="John" required />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="lastName">Last Name</Label>
-                                        <Input id="lastName" name="lastName" placeholder="Doe" required />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                                    <Input id="phoneNumber" name="phoneNumber" placeholder="+251 911 234 567" required />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="idCardLink">ID Card Image URL</Label>
-                                    <Input id="idCardLink" name="idCardLink" placeholder="https://..." required />
-                                    <p className="text-xs text-muted-foreground">
-                                        Please provide a link to a clear image of your ID card (Passport, Kebele ID, or Driver's License).
-                                    </p>
-                                </div>
-
-                                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
-                                    Register & Continue
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        )
-    }
+    // 2. Fetch Profile (for pre-filling)
+    const profile = await getProfile()
 
     return (
         <div className="min-h-screen bg-slate-50 py-12">
-            <div className="container mx-auto px-4 max-w-2xl">
+            <div className="container mx-auto px-4 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
                         <Button variant="ghost" className="mb-4">← Back to Home</Button>
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-slate-900">List a New Service</h1>
-                        <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                        <h1 className="text-3xl font-bold text-slate-900">List your Service</h1>
+                        <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                             <CheckCircle className="h-3 w-3" />
-                            Verified Provider
+                            Unified Listing
                         </div>
                     </div>
-                    <p className="text-muted-foreground">Share your service with thousands of potential customers.</p>
+                    <p className="text-muted-foreground">Complete your profile and list your service in one go.</p>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Service Details</CardTitle>
-                        <CardDescription>Provide key information about what you offer.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form action={createService} className="space-y-6">
+                <form action={createServiceWithProfile} className="space-y-8">
+                    {/* Section 1: Provider Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Provider Details</CardTitle>
+                            <CardDescription>Verify your personal information.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="firstName">First Name</Label>
+                                    <Input
+                                        id="firstName"
+                                        name="firstName"
+                                        placeholder="John"
+                                        defaultValue={profile?.full_name?.split(' ')[0] || ''}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <Input
+                                        id="lastName"
+                                        name="lastName"
+                                        placeholder="Doe"
+                                        defaultValue={profile?.full_name?.split(' ').slice(1).join(' ') || ''}
+                                        required
+                                    />
+                                </div>
+                            </div>
                             <div className="space-y-2">
-                                <Label htmlFor="title">Service Title</Label>
+                                <Label>Email</Label>
+                                <Input disabled value={user.email || ''} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                <Input
+                                    id="phoneNumber"
+                                    name="phoneNumber"
+                                    placeholder="+251 911 234 567"
+                                    defaultValue={profile?.phone_number || ''}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="idCardLink">ID Card Image URL</Label>
+                                <Input
+                                    id="idCardLink"
+                                    name="idCardLink"
+                                    placeholder="https://..."
+                                    defaultValue={profile?.id_card_link || ''}
+                                    required
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Link to your ID card (Passport, Kebele ID, or Driver's License).
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Section 2: Service Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Service Details</CardTitle>
+                            <CardDescription>Tell us about what you are listing.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="title">Service Name (Title)</Label>
                                 <Input id="title" name="title" placeholder="e.g. Luxurious Apartment in Bole" required />
                             </div>
 
@@ -149,15 +156,15 @@ export default async function NewServicePage() {
                                     required
                                 />
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            <div className="pt-4">
-                                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" size="lg">
-                                    Create Listing
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
+                    <div className="pt-4 pb-12">
+                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 shadow-lg">
+                            List Service
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
     )
