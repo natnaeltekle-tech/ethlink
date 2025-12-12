@@ -24,8 +24,8 @@ export default async function NewServicePage() {
     const profile = await getProfile()
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12">
-            <div className="container mx-auto px-4 max-w-3xl">
+        <div className="min-h-screen bg-slate-50 py-12 pb-20">
+            <div className="container w-full mx-auto px-4 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
                         <Button variant="ghost" className="mb-4">← Back to Home</Button>
@@ -109,14 +109,14 @@ export default async function NewServicePage() {
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="title">Service Name (Title)</Label>
-                                <Input id="title" name="title" placeholder="e.g. Luxurious Apartment in Bole" required />
+                                <Input id="title" name="title" className="w-full" placeholder="e.g. Luxurious Apartment in Bole" required />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Category</Label>
                                     <Select name="category" required>
-                                        <SelectTrigger>
+                                        <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -131,18 +131,18 @@ export default async function NewServicePage() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="price">Price (ETB)</Label>
-                                    <Input id="price" name="price" type="number" min="0" step="0.01" placeholder="0.00" required />
+                                    <Input id="price" name="price" type="number" min="0" step="0.01" className="w-full" placeholder="0.00" required />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" placeholder="e.g. Addis Ababa, Bole" required />
+                                <Input id="location" name="location" className="w-full" placeholder="e.g. Addis Ababa, Bole" required />
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="image_url">Image URL</Label>
-                                <Input id="image_url" name="image_url" placeholder="https://..." />
+                                <Input id="image_url" name="image_url" className="w-full" placeholder="https://..." />
                                 <p className="text-xs text-muted-foreground">Provide a direct link to an image of your service.</p>
                             </div>
 
@@ -152,14 +152,14 @@ export default async function NewServicePage() {
                                     id="description"
                                     name="description"
                                     placeholder="Describe your service in detail..."
-                                    className="min-h-[150px]"
+                                    className="min-h-[150px] w-full"
                                     required
                                 />
                             </div>
                         </CardContent>
                     </Card>
 
-                    <div className="pt-4 pb-12">
+                    <div className="pt-4 pb-20">
                         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 shadow-lg">
                             List Service
                         </Button>
