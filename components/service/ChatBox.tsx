@@ -12,6 +12,7 @@ interface Message {
     id: string
     content: string
     sender_id: string
+    receiver_id: string
     created_at: string
 }
 
@@ -63,6 +64,13 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 filter: `service_id=eq.${serviceId}`
             }, (payload) => {
                 const newMsg = payload.new as Message
+                console.log('Realtime Event Received:', payload) // Keep debug log for now
+
+                // Privacy Check: Only show if I am the sender or receiver
+                if (newMsg.sender_id !== currentUserId && newMsg.receiver_id !== currentUserId) {
+                    return;
+                }
+
                 setMessages((prev) => {
                     // Deduplication: Check if we have a temp message from ourselves
                     if (newMsg.sender_id === currentUserId) {
@@ -127,6 +135,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
             id: tempId,
             content: newMessage,
             sender_id: currentUserId,
+            receiver_id: providerId,
             created_at: new Date().toISOString()
         }
 
