@@ -75,7 +75,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                     // Deduplication: Check if we have a temp message from ourselves
                     if (newMsg.sender_id === currentUserId) {
                         const tempMatchIndex = prev.findIndex(m =>
-                            m.id.startsWith('temp-') &&
+                            String(m.id).startsWith('temp-') &&
                             m.content === newMsg.content
                         )
                         if (tempMatchIndex !== -1) {
