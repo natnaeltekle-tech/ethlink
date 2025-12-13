@@ -126,7 +126,6 @@ export async function getMessages(serviceId: string) {
         .from('messages')
         .select('*')
         .eq('service_id', serviceId)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .order('created_at', { ascending: false }) // Get newest first
         .limit(30)
 
