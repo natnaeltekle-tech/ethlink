@@ -31,7 +31,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     // Stable client instance
     const [supabase] = useState(() => createClient())
 
-    // Initial Fetch
+    // Presence State
+    const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
+
+    // Initial Fetch (History)
     useEffect(() => {
         const fetchMessages = async () => {
             const initialMessages = await getMessages(serviceId)
@@ -45,35 +48,14 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
         }
     }, [serviceId, currentUserId])
 
+    // Realtime & Presence Subscription
     useEffect(() => {
-        // Check online status based on last message from provider
-        const checkOnlineStatus = () => {
-            const providerMessages = messages.filter(m => m.sender_id === providerId)
-            if (providerMessages.length === 0) {
-                setIsOnline(false)
-                return
-            }
+        if (!serviceId || !currentUserId) return
 
-            const lastMessage = providerMessages[providerMessages.length - 1]
-            const lastActive = new Date(lastMessage.created_at).getTime()
-            const now = new Date().getTime()
-            const diffInMinutes = (now - lastActive) / (1000 * 60)
+        const channel = supabase.channel(`room-${serviceId}`)
 
-            // Online if active in last 15 minutes
-            setIsOnline(diffInMinutes <= 15)
-        }
-
-        checkOnlineStatus()
-        // Re-check every minute
-        const interval = setInterval(checkOnlineStatus, 60000)
-        return () => clearInterval(interval)
-    }, [messages, providerId])
-
-    useEffect(() => {
-        if (!serviceId) return
-
-        const channel = supabase
-            .channel(`room-${serviceId}`)
+        channel
+            // 1. Listen for new messages
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -81,38 +63,57 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 filter: `service_id=eq.${serviceId}`
             }, (payload) => {
                 const newMsg = payload.new as Message
-
                 setMessages((prev) => {
-                    // Deduplication logic:
-                    // If the new message is from ME, check if we have a temporary message with same content
+                    // Deduplication: Check if we have a temp message from ourselves
                     if (newMsg.sender_id === currentUserId) {
                         const tempMatchIndex = prev.findIndex(m =>
                             m.id.startsWith('temp-') &&
                             m.content === newMsg.content
                         )
-
                         if (tempMatchIndex !== -1) {
-                            // Replace temp message with real message
                             const newMessages = [...prev]
-                            newMessages[tempMatchIndex] = newMsg
+                            newMessages[tempMatchIndex] = newMsg // Replace temp with real
                             return newMessages
                         }
                     }
-
-                    // Check if message ID already exists (just in case)
-                    if (prev.some(m => m.id === newMsg.id)) {
-                        return prev
-                    }
+                    // Standard Deduplication
+                    if (prev.some(m => m.id === newMsg.id)) return prev
 
                     return [...prev, newMsg]
                 })
             })
-            .subscribe()
+            // 2. Presence: Track who is online
+            .on('presence', { event: 'sync' }, () => {
+                const newState = channel.presenceState()
+                const onlineIds = new Set<string>()
+
+                for (const key in newState) {
+                    const users = newState[key] as any[]
+                    users.forEach(u => {
+                        if (u.user_id) onlineIds.add(u.user_id)
+                    })
+                }
+                setOnlineUsers(onlineIds)
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    // Announce my presence
+                    await channel.track({
+                        online_at: new Date().toISOString(),
+                        user_id: currentUserId,
+                    })
+                }
+            })
 
         return () => {
             supabase.removeChannel(channel)
         }
     }, [serviceId, supabase, currentUserId])
+
+    // Update isOnline based on Presence
+    useEffect(() => {
+        setIsOnline(onlineUsers.has(providerId))
+    }, [onlineUsers, providerId])
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -136,11 +137,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
 
         try {
             await sendMessage(serviceId, providerId, tempMessage.content)
-            // We rely on Realtime to bring the "real" message with real ID.
+            // Realtime listener will handle the success case (replacing temp msg)
         } catch (error) {
             console.error('Failed to send message:', error)
-            // Rollback optimistic update
-            setMessages((prev) => prev.filter(m => m.id !== tempId))
+            setMessages((prev) => prev.filter(m => m.id !== tempId)) // Rollback
             const errorMessage = error instanceof Error ? error.message : 'Failed to send message'
             alert(`Error: ${errorMessage}`)
         } finally {
