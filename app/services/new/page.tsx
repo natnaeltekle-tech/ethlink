@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
+import { ImageUploader } from '@/components/service/ImageUploader'
 
 export default async function NewServicePage() {
     // 1. Check Authentication First
@@ -141,9 +142,7 @@ export default async function NewServicePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="image_url">Image URL</Label>
-                                <Input id="image_url" name="image_url" className="w-full" placeholder="https://..." />
-                                <p className="text-xs text-muted-foreground">Provide a direct link to an image of your service.</p>
+                                <ImageUploader />
                             </div>
 
                             <div className="space-y-2">

@@ -97,16 +97,19 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Earnings Card */}
                 <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100 dark:border-blue-800">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                            <DollarSign className="h-5 w-5" />
-                            Total Earnings
-                        </CardTitle>
-                    </CardHeader>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Earnings (Net)</CardTitle>
+                            <span className="font-bold text-green-600">ETB</span>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-green-600">{stats.earnings}</div>
+                            <p className="text-xs text-muted-foreground">
+                                +0% from last month
+                            </p>
+                        </CardContent>
+                    </Card>
                     <CardContent>
-                        <div className="text-4xl font-bold text-blue-900 dark:text-blue-100">
-                            {stats.earnings.toLocaleString()} ETB
-                        </div>
                         <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                             From {stats.allBookings.filter((b: any) => b.status === 'confirmed').length} confirmed bookings
                         </p>

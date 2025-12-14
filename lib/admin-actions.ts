@@ -45,10 +45,24 @@ export async function getAdminStats() {
         usersCount = profilesCount || 0
     }
 
+    // Calculate Platform Revenue
+    // Sum commission_amount from bookings
+    const { data: revenueData, error: revenueError } = await supabase
+        .from('bookings')
+        .select('commission_amount')
+        .eq('status', 'paid')
+
+    let totalRevenue = 0
+    if (!revenueError && revenueData) {
+        // @ts-ignore - commission_amount might not be typed yet if types aren't updated, but it exists in DB
+        totalRevenue = revenueData.reduce((sum, booking) => sum + (booking.commission_amount || 0), 0)
+    }
+
     return {
         totalUsers: usersCount,
         totalServices: servicesCount || 0,
-        totalBookings: bookingsCount || 0
+        totalBookings: bookingsCount || 0,
+        totalRevenue
     }
 }
 

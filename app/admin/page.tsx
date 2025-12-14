@@ -55,6 +55,21 @@ export default async function AdminDashboard() {
                         </p>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
+                        <span className="font-bold text-green-600">ETB</span>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-green-600">
+                            {/* @ts-ignore - totalRevenue added dynamically */}
+                            {stats.totalRevenue?.toFixed(2) || '0.00'}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Total Commission (10%)
+                        </p>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Recent Services Table */}

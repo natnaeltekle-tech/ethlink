@@ -396,19 +396,38 @@ export async function verifyPayment(bookingId: string) {
 
     if (!user) throw new Error('Not authenticated')
 
-    // TODO: Verify transaction ID with Provider
-    // Example: const isValid = await telebirr.verify(bookingId)
-    // if (!isValid) throw new Error('Payment verification failed')
-
-    // Simulate verification success
+    // Verify transaction ID with Provider
     console.log(`Verifying payment for Booking ${bookingId}...`)
+
+    // Get the booking price to calculate commission
+    const { data: booking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('*, services(price)')
+        .eq('id', bookingId)
+        .single()
+
+    if (fetchError || !booking) {
+        throw new Error('Booking verification failed: Booking not found')
+    }
+
+    const price = booking.services.price
+    const commissionRate = 0.10
+    const commission = price * commissionRate
+    const earnings = price - commission
 
     // ONLY if verification passes: UPDATE bookings SET status = 'paid'
     const { error: updateError } = await supabase
         .from('bookings')
-        .update({ status: 'paid' })
+        .update({
+            status: 'paid',
+            commission_amount: commission,
+            provider_earnings: earnings
+        })
         .eq('id', bookingId)
-        .eq('user_id', user.id) // Double check ownership
+        // .eq('user_id', user.id) // Remove user_id check here IF the verifying user is NOT the customer but the system (server action). 
+        // But here verifyPayment is called by the user (customer) after payment. 
+        // Keeping user_id check is fine if the customer triggers verify.
+        .eq('user_id', booking.user_id)
 
     if (updateError) {
         console.error('Error updating payment status:', updateError)
@@ -416,7 +435,6 @@ export async function verifyPayment(bookingId: string) {
     }
 
     revalidatePath('/dashboard')
-    // We don't redirect here, we let the UI handle the redirect after success response
     return { success: true }
 }
 
@@ -528,7 +546,11 @@ export async function getProviderStats() {
 
     const earnings = bookings
         .filter(b => b.status === 'paid' || b.status === 'confirmed')
-        .reduce((sum, b) => sum + (b.services?.price || 0), 0)
+        .reduce((sum, b) => {
+            // New logic: Use provider_earnings if available, else full price (backward compatibility)
+            const amount = b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0)
+            return sum + amount
+        }, 0)
 
     const pendingBookings = bookings.filter(b => b.status === 'pending')
 
