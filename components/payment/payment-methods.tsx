@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CreditCard, Smartphone, Building2, Wallet } from 'lucide-react'
-import { processPayment } from '@/lib/actions'
+import { initiatePayment, verifyPayment } from '@/lib/actions'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +21,7 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [isProcessing, setIsProcessing] = useState(false)
     const [loadingMessage, setLoadingMessage] = useState('')
+    const router = useRouter()
 
     const handlePayment = async () => {
         if (!selectedMethod) return
@@ -42,10 +44,27 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
         }
 
         try {
-            // Call the server action to "complete" the payment
-            await processPayment(bookingId)
-            // The server action redirects, so we might not reach here, but just in case:
-            toast.success("Payment Successful!")
+            // Step 1: Initiate Payment
+            const initResult = await initiatePayment(bookingId, selectedMethod)
+            if (!initResult.success) {
+                throw new Error("Initialization failed")
+            }
+
+            // Step 2: Verify Payment
+            // In a real app, we would wait for a webhook or check status periodically.
+            // Here we just wait a bit as simulated above, then verify.
+
+            setLoadingMessage("Verifying payment...")
+            await new Promise(resolve => setTimeout(resolve, 1500)) // Extra fake delay for verification
+
+            const verifyResult = await verifyPayment(bookingId)
+
+            if (verifyResult.success) {
+                toast.success("Payment Successful!")
+                router.push(`/book/success?bookingId=${bookingId}`)
+            } else {
+                throw new Error("Verification failed")
+            }
         } catch (error) {
             console.error("Payment failed", error)
             toast.error("Payment failed. Please try again.")

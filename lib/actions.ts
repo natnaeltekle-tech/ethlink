@@ -358,37 +358,71 @@ export async function getBookingDetails(id: string) {
     return booking
 }
 
-export async function processPayment(bookingId: string) {
+export async function initiatePayment(bookingId: string, paymentMethod: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('Not authenticated')
 
-    // Verify booking exists and belongs to user
-    const { data: booking, error: fetchError } = await supabase
+    // 1. Fetch the booking to get the REAL price
+    const { data: booking, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, services(price)')
         .eq('id', bookingId)
-        .eq('user_id', user.id)
         .single()
 
-    if (fetchError || !booking) {
+    if (error || !booking) {
         throw new Error('Booking not found')
     }
 
-    // Update status to paid
+    // Security Check: Ensure the user owns this booking
+    if (booking.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    const price = booking.services.price
+
+    // TODO: Call Telebirr/Chapa API here to get payment URL
+    // Example: const response = await telebirr.init({ amount: price, ... })
+    // For now, we just log it and return success
+    console.log(`Initiating payment for Booking ${bookingId} via ${paymentMethod} for ${price} ETB`)
+
+    return { success: true, message: 'Payment initiated' }
+}
+
+export async function verifyPayment(bookingId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    // TODO: Verify transaction ID with Provider
+    // Example: const isValid = await telebirr.verify(bookingId)
+    // if (!isValid) throw new Error('Payment verification failed')
+
+    // Simulate verification success
+    console.log(`Verifying payment for Booking ${bookingId}...`)
+
+    // ONLY if verification passes: UPDATE bookings SET status = 'paid'
     const { error: updateError } = await supabase
         .from('bookings')
         .update({ status: 'paid' })
         .eq('id', bookingId)
+        .eq('user_id', user.id) // Double check ownership
 
     if (updateError) {
-        console.error('Error processing payment:', updateError)
-        throw new Error(`Payment failed: ${updateError.message || JSON.stringify(updateError)}`)
+        console.error('Error updating payment status:', updateError)
+        throw new Error('Failed to update booking status')
     }
 
     revalidatePath('/dashboard')
-    redirect(`/book/success?bookingId=${bookingId}`)
+    // We don't redirect here, we let the UI handle the redirect after success response
+    return { success: true }
+}
+
+// Deprecated: Use initiatePayment + verifyPayment instead
+export async function processPayment(bookingId: string) {
+    return verifyPayment(bookingId)
 }
 
 export async function getUserBookings() {
