@@ -54,16 +54,16 @@ export function SettingsTab({ services, user }: { services: any[], user: any }) 
                 </CardHeader>
                 <CardContent>
                     {services.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-slate-50">
+                        <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg bg-secondary/20">
                             You haven't posted any services yet.
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {services.map((service) => (
-                                <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                                <div key={service.id} className="flex items-center justify-between p-4 border border-border rounded-lg bg-card text-card-foreground">
                                     <div>
                                         <h4 className="font-semibold">{service.title}</h4>
-                                        <p className="text-sm text-green-600 font-bold">{service.price} ETB</p>
+                                        <p className="text-sm text-green-500 font-bold">{service.price} ETB</p>
                                     </div>
                                     <Button
                                         variant="destructive"

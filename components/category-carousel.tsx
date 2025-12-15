@@ -46,7 +46,7 @@ export function CategoryCarousel() {
             <Button
                 variant="outline"
                 size="icon"
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-sm border-slate-200 hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-sm border-border hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity hover:bg-secondary hover:text-primary"
                 onClick={() => scroll('left')}
             >
                 <ChevronLeft className="h-6 w-6" />
@@ -64,13 +64,13 @@ export function CategoryCarousel() {
                         href={cat.href}
                         className="flex-none w-[200px] md:w-[240px] snap-center"
                     >
-                        <Card className={`h-full hover:shadow-lg transition-all cursor-pointer border-2 group/card ${cat.isAction ? 'border-dashed border-blue-200 bg-blue-50/50' : 'border-transparent bg-white hover:border-blue-100'}`}>
+                        <Card className={`h-full hover:shadow-lg transition-all cursor-pointer border group/card ${cat.isAction ? 'border-dashed border-primary/50 bg-primary/5' : 'border-border bg-card hover:border-primary/50'}`}>
                             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
-                                <div className={`p-4 rounded-full ${cat.isAction ? 'bg-blue-100/50 text-blue-600' : 'bg-slate-100 text-slate-600 group-hover/card:bg-blue-50 group-hover/card:text-blue-600'} transition-colors`}>
+                                <div className={`p-4 rounded-full ${cat.isAction ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground group-hover/card:bg-primary/20 group-hover/card:text-primary'} transition-colors`}>
                                     <cat.icon className="h-8 w-8" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-lg">{cat.label}</h3>
+                                    <h3 className={`font-semibold text-lg ${cat.isAction ? 'text-primary' : 'text-foreground'}`}>{cat.label}</h3>
                                     <p className="text-xs text-muted-foreground mt-1">{cat.sub}</p>
                                 </div>
                             </CardContent>
@@ -83,7 +83,7 @@ export function CategoryCarousel() {
             <Button
                 variant="outline"
                 size="icon"
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-sm border-slate-200 hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 rounded-full h-12 w-12 shadow-lg bg-background/80 backdrop-blur-sm border-border hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity hover:bg-secondary hover:text-primary"
                 onClick={() => scroll('right')}
             >
                 <ChevronRight className="h-6 w-6" />

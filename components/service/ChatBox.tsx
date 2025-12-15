@@ -199,13 +199,13 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 <div className="flex items-center gap-2">
                     {currentUserId === providerId ? (
                         <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                            <span className="text-sm font-medium text-green-600">You (Online)</span>
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                            <span className="text-sm font-medium text-green-500">You (Online)</span>
                         </div>
                     ) : (
                         <>
-                            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                            <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
+                            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/50'}`} />
+                            <span className={`text-sm font-medium ${isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
                                 {isOnline ? 'Online' : 'Offline'}
                             </span>
                         </>

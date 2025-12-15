@@ -26,11 +26,11 @@ export function ProviderCard({ provider }: ProviderCardProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                    <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
                         {provider.avatar_url ? (
                             <img src={provider.avatar_url} alt={provider.full_name || 'Provider'} className="h-full w-full object-cover" />
                         ) : (
-                            <User className="h-6 w-6 text-gray-500" />
+                            <User className="h-6 w-6 text-primary" />
                         )}
                     </div>
                     <div>

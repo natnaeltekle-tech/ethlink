@@ -26,9 +26,9 @@ export function ServiceGallery({ imageUrl, title }: ServiceGalleryProps) {
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center bg-secondary text-muted-foreground/50">
                         <div className="flex flex-col items-center gap-2">
-                            <span className="text-4xl">📷</span>
+                            <span className="text-4xl opacity-50">📷</span>
                             <span>No Image Available</span>
                         </div>
                     </div>

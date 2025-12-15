@@ -23,11 +23,11 @@ export default async function DashboardPage() {
     const providerServices = await getProviderServices();
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-background text-foreground">
             {/* Simple Header */}
-            <header className="bg-white dark:bg-gray-950 border-b sticky top-0 z-10">
+            <header className="bg-card border-b border-border sticky top-0 z-10">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-600">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
                         <Handshake className="h-6 w-6" />
                         EthLink
                     </Link>

@@ -101,7 +101,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
 
                     <div className="prose dark:prose-invert max-w-none">
                         <h2 className="text-2xl font-bold mb-4">About this Service</h2>
-                        <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                        <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
                             {service.description}
                         </p>
                     </div>
@@ -111,11 +111,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
                     {user ? (
                         <ReviewForm serviceId={service.id} />
                     ) : (
-                        <div className="mt-8 p-6 border rounded-lg bg-gray-50 dark:bg-gray-900 text-center">
-                            <p className="text-gray-600 dark:text-gray-400 mb-2">
+                        <div className="mt-8 p-6 border border-dashed border-border rounded-lg bg-secondary/20 text-center">
+                            <p className="text-muted-foreground mb-2">
                                 Want to write a review?
                             </p>
-                            <a href={`/auth/login?next=/services/${service.id}`} className="text-primary hover:underline font-medium">
+                            <a href={`/auth/login?next=/services/${service.id}`} className="text-primary hover:text-primary/80 hover:underline font-medium">
                                 Log in to share your experience
                             </a>
                         </div>

@@ -14,17 +14,17 @@ export default async function Index() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-600">
+            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
               <Handshake className="h-6 w-6" />
               EthLink
             </Link>
             <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-              <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
-              <Link href="/about" className="hover:text-foreground transition-colors">About Us</Link>
-              <Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+              <Link href="/services" className="hover:text-primary transition-colors">Services</Link>
+              <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
+              <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
             </nav>
           </div>
 
@@ -33,12 +33,12 @@ export default async function Index() {
               <SearchBar
                 placeholder="Search services..."
                 className="w-full"
-                inputClassName="bg-muted/50 border-none focus-visible:ring-1"
+                inputClassName="bg-secondary/50 border-border focus-visible:ring-primary focus-visible:ring-1"
               />
             </div>
             {user ? (
               <Link href="/dashboard">
-                <Button className="gap-2">
+                <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                   <User className="h-4 w-4" />
                   Profile
                 </Button>
@@ -46,10 +46,10 @@ export default async function Index() {
             ) : (
               <div className="flex items-center gap-2">
                 <Link href="/auth/login">
-                  <Button variant="ghost">Log In</Button>
+                  <Button variant="ghost" className="hover:text-primary hover:bg-secondary">Log In</Button>
                 </Link>
                 <Link href="/auth/sign-up">
-                  <Button className="bg-blue-600 hover:bg-blue-700">Sign Up</Button>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">Sign Up</Button>
                 </Link>
               </div>
             )}
@@ -59,18 +59,21 @@ export default async function Index() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-12 md:py-24 lg:py-32 bg-gradient-to-b from-white to-blue-50/30">
+        <section className="py-12 md:py-24 lg:py-32 relative overflow-hidden">
+          {/* Background decorative elements */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background -z-10"></div>
+
           <div className="container mx-auto px-4 flex flex-col items-center text-center">
             <div className="space-y-6 max-w-3xl">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-gradient-gold pb-2">
                 EthLink
               </h1>
-              <p className="text-lg text-slate-600 max-w-lg mx-auto">
-                Connecting you with the best service providers in Ethiopia.
+              <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
+                Connecting you with the best service providers in Ethiopia. Experience premium service booking.
               </p>
               <div className="mt-8">
                 <Link href="/services">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 rounded-full shadow-[0_0_20px_rgba(245,197,24,0.3)]">
                     Explore Services
                   </Button>
                 </Link>
@@ -80,10 +83,10 @@ export default async function Index() {
         </section>
 
         {/* Category Navigation */}
-        <section className="py-8 md:py-12">
+        <section className="py-8 md:py-12 border-y border-border/50 bg-card/30">
           <div className="container mx-auto px-4">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Featured Services</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground mb-2">Featured Services</h2>
               <p className="text-muted-foreground">Explore top-rated services trusted by our community.</p>
             </div>
 
@@ -92,24 +95,24 @@ export default async function Index() {
         </section>
 
         {/* How It Works */}
-        <section className="py-16 md:py-24 bg-slate-50">
+        <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">Simple Steps to Success</h2>
+              <h2 className="text-3xl font-bold mb-4 text-foreground">Simple Steps to Success</h2>
               <p className="text-muted-foreground">We make finding and booking services effortless.</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 text-center">
               {[
-                { icon: Search, title: "1. Find Your Service", desc: "Use our smart search or AI recommendations to find the perfect service provider for your needs." },
-                { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Select your service, choose a date, and pay securely through our platform. All providers are verified." },
-                { icon: CheckCircle2, title: "3. Get It Done", desc: "Your chosen professional arrives and completes the job. Enjoy peace of mind with our satisfaction guarantee." },
+                { icon: Search, title: "1. Find Your Service", desc: "Use our smart search or AI recommendations to find the perfect service provider." },
+                { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Select your service, choose a date, and pay securely. All providers are verified." },
+                { icon: CheckCircle2, title: "3. Get It Done", desc: "Your chosen professional arrives and completes the job. Enjoy peace of mind." },
               ].map((step, i) => (
-                <div key={i} className="flex flex-col items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mb-4">
+                <div key={i} className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group">
+                  <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                     <step.icon className="h-8 w-8" />
                   </div>
-                  <h3 className="text-xl font-bold">{step.title}</h3>
+                  <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
                   <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">{step.desc}</p>
                 </div>
               ))}
@@ -118,7 +121,7 @@ export default async function Index() {
         </section>
       </main>
 
-      <footer className="border-t py-8 bg-slate-50">
+      <footer className="border-t border-border py-8 bg-card">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>&copy; 2024 EthLink. All rights reserved.</p>
         </div>

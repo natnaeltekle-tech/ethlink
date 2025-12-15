@@ -90,27 +90,27 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
     return (
         <div className="space-y-8 mt-12 border-t pt-8">
             <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Briefcase className="h-6 w-6 text-blue-600" />
+                <Briefcase className="h-6 w-6 text-primary" />
                 Provider Panel
             </h2>
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Earnings Card */}
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-100 dark:border-blue-800">
-                    <Card>
+                <Card className="bg-gradient-to-br from-primary/10 to-secondary/50 border-primary/20">
+                    <Card className="bg-background/50 backdrop-blur">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Earnings (Net)</CardTitle>
-                            <span className="font-bold text-green-600">ETB</span>
+                            <span className="font-bold text-green-500">ETB</span>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-600">{stats.earnings}</div>
+                            <div className="text-2xl font-bold text-green-500">{stats.earnings}</div>
                             <p className="text-xs text-muted-foreground">
                                 +0% from last month
                             </p>
                         </CardContent>
                     </Card>
                     <CardContent>
-                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                        <p className="text-sm text-primary mt-1">
                             From {stats.allBookings.filter((b: any) => b.status === 'confirmed').length} confirmed bookings
                         </p>
                     </CardContent>
@@ -127,10 +127,10 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                     <CardContent>
                         <div className="space-y-4">
                             {services.map((service) => (
-                                <div key={service.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                                <div key={service.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg border border-border">
                                     <div className="font-medium">{service.title}</div>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-xs ${service.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                                        <span className={`text-xs ${service.is_active ? 'text-green-500' : 'text-muted-foreground'}`}>
                                             {service.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                         <Switch
@@ -153,19 +153,19 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                 </CardHeader>
                 <CardContent>
                     {bookings.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-muted-foreground">
                             No pending requests at the moment.
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {bookings.map((booking: any) => (
-                                <div key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-950">
+                                <div key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-border rounded-lg bg-card text-card-foreground">
                                     <div className="mb-4 sm:mb-0">
                                         <div className="font-bold text-lg">{booking.services?.title}</div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-muted-foreground">
                                             {new Date(booking.date).toLocaleString()} • {booking.guests || 1} Guest(s)
                                         </div>
-                                        <div className="text-sm font-medium text-blue-600 mt-1">
+                                        <div className="text-sm font-medium text-primary mt-1">
                                             Potential Earnings: {booking.services?.price} ETB
                                         </div>
                                     </div>
@@ -173,7 +173,7 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="flex-1 sm:flex-none text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                            className="flex-1 sm:flex-none text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
                                             onClick={() => handleBookingAction(booking.id, 'cancelled')}
                                             disabled={isUpdating === booking.id}
                                         >
@@ -199,41 +199,41 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
 
 
             {/* Upcoming Jobs */}
-            <Card className="border-blue-100 dark:border-blue-900">
-                <CardHeader className="bg-blue-50/50 dark:bg-blue-900/10">
-                    <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+            <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="bg-transparent border-b border-primary/10">
+                    <CardTitle className="flex items-center gap-2 text-primary">
                         <Calendar className="h-5 w-5" />
                         Upcoming Jobs
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                     {upcomingJobs.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-muted-foreground">
                             No upcoming jobs scheduled.
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {upcomingJobs.map((booking: any) => (
-                                <div key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-950">
+                                <div key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-border rounded-lg bg-card text-card-foreground">
                                     <div className="mb-4 sm:mb-0">
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className="font-bold text-lg">{booking.services?.title}</div>
                                             <Badge variant={booking.status === 'paid' ? 'default' : 'secondary'}
-                                                className={booking.status === 'paid' ? 'bg-green-100 text-green-700 hover:bg-green-100' : 'bg-blue-100 text-blue-700 hover:bg-blue-100'}>
+                                                className={booking.status === 'paid' ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20'}>
                                                 {booking.status === 'paid' ? 'Paid' : 'Confirmed'}
                                             </Badge>
                                         </div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-sm text-muted-foreground">
                                             {new Date(booking.date).toLocaleString()} • {booking.guests || 1} Guest(s)
                                         </div>
-                                        <div className="text-sm font-medium text-blue-600 mt-1">
+                                        <div className="text-sm font-medium text-primary mt-1">
                                             Earnings: {booking.services?.price} ETB
                                         </div>
                                     </div>
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                        className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
                                         onClick={() => handleCancelUpcoming(booking.id)}
                                         disabled={isUpdating === booking.id}
                                     >

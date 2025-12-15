@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/server';
 import { ArrowRight } from 'lucide-react';
+import { ServiceCard } from '@/components/service-card';
 
 export default async function ServicesPage({
     searchParams,
@@ -56,7 +57,7 @@ export default async function ServicesPage({
 
             {filteredServices.length === 0 ? (
                 <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No services found matching "{search}".</p>
+                    <p className="text-muted-foreground text-lg">No services found matching "{search}".</p>
                     <Button asChild className="mt-4" variant="outline">
                         <Link href="/services">Clear Search</Link>
                     </Button>
@@ -64,23 +65,7 @@ export default async function ServicesPage({
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredServices.map((service) => (
-                        <div key={service.id} className="border rounded-lg p-6 hover:shadow-lg transition-shadow bg-white dark:bg-gray-950">
-                            <div className="flex justify-between items-start mb-2">
-                                <h2 className="text-xl font-semibold">{service.title}</h2>
-                                <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400">
-                                    {service.category}
-                                </span>
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4">{service.description}</p>
-                            <div className="flex justify-between items-center mt-4">
-                                <span className="font-bold text-lg">{service.price ? `$${service.price}` : 'Negotiable'}</span>
-                                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                                    <Link href={`/services/${service.id}`} className="flex items-center gap-2">
-                                        View Details <ArrowRight className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </div>
-                        </div>
+                        <ServiceCard key={service.id} service={service} />
                     ))}
                 </div>
             )}

@@ -54,12 +54,12 @@ export function ServiceHeader({
 
                 {reviewCount > 0 ? (
                     <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-4 h-4 fill-primary text-primary" />
                         <span>{rating.toFixed(1)} ({reviewCount} reviews)</span>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-1 text-gray-400">
-                        <Star className="w-4 h-4 text-gray-300" />
+                    <div className="flex items-center gap-1 text-muted-foreground/60">
+                        <Star className="w-4 h-4 text-muted-foreground/40" />
                         <span>No ratings yet</span>
                     </div>
                 )}
