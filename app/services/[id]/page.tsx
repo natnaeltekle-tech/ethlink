@@ -97,7 +97,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Description and Images */}
                 <div className="lg:col-span-2 space-y-8">
-                    <ServiceGallery images={service.images} title={service.title} />
+                    <ServiceGallery imageUrl={service.image_url} title={service.title} />
 
                     <div className="prose dark:prose-invert max-w-none">
                         <h2 className="text-2xl font-bold mb-4">About this Service</h2>

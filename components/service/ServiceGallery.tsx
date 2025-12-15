@@ -1,33 +1,39 @@
 import Image from 'next/image'
 
 interface ServiceGalleryProps {
-    images: string[] | null
+    imageUrl: string | null
     title: string
 }
 
-export function ServiceGallery({ images, title }: ServiceGalleryProps) {
-    // Placeholder images if none provided
-    const displayImages = images && images.length > 0
-        ? images
-        : ['/placeholder-service.jpg'] // We might need a real placeholder or handle this better
+export function ServiceGallery({ imageUrl, title }: ServiceGalleryProps) {
+    // Construct full URL: if not http/https, assume it's a filename in Supabase storage
+    const fullImageUrl = imageUrl?.startsWith('http')
+        ? imageUrl
+        : imageUrl
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${imageUrl}`
+            : null
 
     return (
         <div className="space-y-4">
-            <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
-                {/* Main Image */}
-                {displayImages[0] ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                        {/* Using a div placeholder if no actual image URL is valid or available for now to avoid next/image errors with external domains if not configured */}
-                        {/* In a real app, we'd use next/image with a valid src */}
-                        <span className="text-lg">Image for {title}</span>
-                    </div>
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted group">
+                {fullImageUrl ? (
+                    <Image
+                        src={fullImageUrl}
+                        alt={title}
+                        fill
+                        className="object-cover transition-transform group-hover:scale-105"
+                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
-                        No Image Available
+                        <div className="flex flex-col items-center gap-2">
+                            <span className="text-4xl">📷</span>
+                            <span>No Image Available</span>
+                        </div>
                     </div>
                 )}
             </div>
-            {/* Thumbnails could go here */}
         </div>
     )
 }

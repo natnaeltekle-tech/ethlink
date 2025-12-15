@@ -189,7 +189,7 @@ export async function createService(formData: FormData) {
             location,
             price,
             description,
-            images: imageUrl ? [imageUrl] : [],
+            image_url: imageUrl,
             user_id: user.id
         })
         .select()
@@ -846,7 +846,7 @@ export async function createServiceWithProfile(formData: FormData) {
             location,
             price,
             description,
-            images: imageUrl ? [imageUrl] : [],
+            image_url: imageUrl,
             user_id: user.id
         })
         .select()
