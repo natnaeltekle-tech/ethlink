@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/search-bar'
-import { Search, Handshake, CalendarCheck, CheckCircle2, User } from 'lucide-react'
+import { Search, Handshake, CalendarCheck, User } from 'lucide-react'
 import { getServicesByCategory, getLatestServices } from '@/lib/actions'
 import { ServiceCard } from '@/components/service-card'
 import { CategoryCarousel } from '@/components/category-carousel'
@@ -38,7 +38,7 @@ export default async function Index() {
             </div>
             {user ? (
               <Link href="/dashboard">
-                <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button className="w-[100px] h-10 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-0">
                   <User className="h-4 w-4" />
                   Profile
                 </Button>
@@ -91,6 +91,14 @@ export default async function Index() {
             </div>
 
             <CategoryCarousel />
+
+            <div className="flex justify-center mt-12">
+              <Link href="/services">
+                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 py-6 rounded-full shadow-[0_0_20px_rgba(245,197,24,0.3)]">
+                  View All Services
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -106,7 +114,7 @@ export default async function Index() {
               {[
                 { icon: Search, title: "1. Find Your Service", desc: "Use our smart search or AI recommendations to find the perfect service provider." },
                 { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Select your service, choose a date, and pay securely. All providers are verified." },
-                { icon: CheckCircle2, title: "3. Get It Done", desc: "Your chosen professional arrives and completes the job. Enjoy peace of mind." },
+                { icon: Handshake, title: "3. Get It Done", desc: "Your chosen professional arrives and completes the job. Enjoy peace of mind." },
               ].map((step, i) => (
                 <div key={i} className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group">
                   <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">

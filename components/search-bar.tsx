@@ -37,7 +37,7 @@ export function SearchBar({ className, inputClassName, placeholder = "Search ser
                     onChange={(e) => setQuery(e.target.value)}
                 />
             </div>
-            <Button type="submit" className={cn(inputClassName ? "h-12 px-8" : "")}>Search</Button>
+            <Button type="submit" className={cn("w-[100px] h-10 px-0", inputClassName ? "border-0" : "")}>Search</Button>
         </form>
     );
 }
