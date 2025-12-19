@@ -1,11 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { SearchBar } from '@/components/search-bar'
 import { Search, Handshake, CalendarCheck, User } from 'lucide-react'
 import { getServicesByCategory, getLatestServices } from '@/lib/actions'
 import { ServiceCard } from '@/components/service-card'
 import { CategoryCarousel } from '@/components/category-carousel'
+import { Navbar } from '@/components/navbar'
 
 export default async function Index() {
   const supabase = await createClient()
@@ -14,48 +14,8 @@ export default async function Index() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-              <Handshake className="h-6 w-6" />
-              EthLink
-            </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-              <Link href="/services" className="hover:text-primary transition-colors">Services</Link>
-              <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
-              <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-4 flex-1 max-w-md ml-auto md:ml-0">
-            <div className="relative flex-1 hidden sm:block">
-              <SearchBar
-                placeholder="Search services..."
-                className="w-full"
-                inputClassName="bg-secondary/50 border-border focus-visible:ring-primary focus-visible:ring-1"
-              />
-            </div>
-            {user ? (
-              <Link href="/dashboard">
-                <Button className="w-[100px] h-10 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 px-0">
-                  <User className="h-4 w-4" />
-                  Profile
-                </Button>
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/auth/login">
-                  <Button variant="ghost" className="hover:text-primary hover:bg-secondary">Log In</Button>
-                </Link>
-                <Link href="/auth/sign-up">
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">Sign Up</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Header */}
+      <Navbar />
 
       <main className="flex-1">
         {/* Hero Section */}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link as UserLink, Handshake } from "lucide-react";
 import { getUserBookings, getProviderStats, getProviderServices } from "@/lib/actions";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { Navbar } from "@/components/navbar";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -25,17 +26,8 @@ export default async function DashboardPage() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             {/* Simple Header */}
-            <header className="bg-card border-b border-border sticky top-0 z-10">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-                        <Handshake className="h-6 w-6" />
-                        EthLink
-                    </Link>
-                    <Link href="/">
-                        <Button variant="ghost">Back to Home</Button>
-                    </Link>
-                </div>
-            </header>
+            {/* Simple Header */}
+            <Navbar hideSearch />
 
             <main className="container mx-auto px-4 py-8 max-w-3xl">
                 <h1 className="text-3xl font-bold mb-8">My Profile</h1>

@@ -158,6 +158,14 @@ export async function sendMessage(serviceId: string, receiverId: string, content
         console.error('Error sending message:', JSON.stringify(error, null, 2))
         throw new Error(`Database Error: ${error.message || error.details || 'Unknown error'}`)
     }
+
+    // Trigger Notification for Receiver
+    await supabase.from('notifications').insert({
+        user_id: receiverId,
+        content: `New message from ${user.email?.split('@')[0] || 'User'}`,
+        link: `/services/${serviceId}`, // Or chat link? The chat component is on service page.
+        type: 'message'
+    })
 }
 
 import { redirect } from 'next/navigation'
@@ -282,6 +290,16 @@ export async function createBooking(formData: FormData) {
 
     redirect(`/payment/${data.id}`)
 }
+// Note: We need to inject provider notification logic here, but we redirected.
+// Ideally, we should fetch provider ID and insert notification BEFORE redirect.
+// Or do it in createBookingJson if that's what's used. 
+// Assuming createBooking (Form Action) is used:
+// We can't easily insert after redirect. Let's modify slightly.
+// Wait, createBooking redirects to payment. The notification forPROVIDER should happen when booking is requested?
+// Yes. But we need provider ID.
+// Let's look at createBooking implementation again. It doesn't fetch service/provider details yet.
+// I'll add the fetch logic.
+
 
 export async function createBookingJson(formData: FormData) {
     const supabase = await createClient()
@@ -328,6 +346,19 @@ export async function createBookingJson(formData: FormData) {
     if (error) {
         console.error('Error creating booking:', error)
         return { error: 'Failed to create booking' }
+    }
+
+    // Trigger Notification for Provider
+    // 1. Get Provider ID
+    const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
+
+    if (service && service.user_id !== user.id) {
+        await supabase.from('notifications').insert({
+            user_id: service.user_id,
+            content: `New booking request for ${service.title}`,
+            link: '/dashboard',
+            type: 'booking'
+        })
     }
 
     return { success: true, bookingId: data.id }
@@ -435,7 +466,27 @@ export async function verifyPayment(bookingId: string) {
     }
 
     revalidatePath('/dashboard')
+
+    // Trigger Notification for User (Payer)
+    await supabase.from('notifications').insert({
+        user_id: booking.user_id,
+        content: `Payment successful for ${booking.services?.title || 'service'}!`,
+        link: `/services/${booking.service_id}`, // or /dashboard
+        type: 'payment'
+    })
+
+    // Also Notify Provider about Payment?
+    if (booking.services?.user_id) {
+        await supabase.from('notifications').insert({
+            user_id: booking.services.user_id,
+            content: `Payment received for ${booking.services.title}`,
+            link: '/dashboard',
+            type: 'payment'
+        })
+    }
+
     return { success: true }
+
 }
 
 // Deprecated: Use initiatePayment + verifyPayment instead
