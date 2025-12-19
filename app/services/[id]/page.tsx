@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
 import { getProviderInfo } from '@/lib/admin-actions'
@@ -11,6 +12,27 @@ import { ReviewForm } from '@/components/review-form'
 
 interface ServicePageProps {
     params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {
+    const { id } = await params
+    const service = await getServiceDetails(id)
+
+    if (!service) {
+        return {
+            title: 'Service Not Found',
+        }
+    }
+
+    return {
+        title: `${service.title} | EthLink`,
+        description: `Check out this service in ${service.location} for ${service.price} ETB.`,
+        openGraph: {
+            title: `${service.title} | EthLink`,
+            description: `Check out this service in ${service.location} for ${service.price} ETB.`,
+            images: service.image_url ? [{ url: service.image_url }] : [],
+        },
+    }
 }
 
 export default async function ServicePage({ params }: ServicePageProps) {
