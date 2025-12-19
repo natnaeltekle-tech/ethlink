@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { getProviderInfo } from '@/lib/admin-actions'
 import { ServiceHeader } from '@/components/service/ServiceHeader'
 import { ServiceGallery } from '@/components/service/ServiceGallery'
 import { ProviderCard } from '@/components/service/ProviderCard'
@@ -38,42 +38,8 @@ export default async function ServicePage({ params }: ServicePageProps) {
     // Let's try to fetch the provider's public profile here if possible.
 
     // Fetch provider info using Admin Client to bypass RLS
-    let provider = null
-    const adminSupabase = createAdminClient()
-
-    // 1. Try Profiles Table
-    const { data: profileData } = await adminSupabase
-        .from('profiles')
-        .select('*')
-        .eq('id', service.user_id)
-        .single()
-
-    if (profileData && profileData.full_name) {
-        provider = profileData
-    } else {
-        // 2. Fallback: Try Auth Admin to get metadata/email
-        // This only works if SUPABASE_SERVICE_ROLE_KEY is set.
-        try {
-            const { data: { user: authUser }, error: authError } = await adminSupabase.auth.admin.getUserById(service.user_id)
-
-            if (authUser) {
-                // Construct a profile-like object from auth data
-                provider = {
-                    id: authUser.id,
-                    full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Unknown Provider',
-                    email: authUser.email,
-                    avatar_url: authUser.user_metadata?.avatar_url,
-                    created_at: authUser.created_at
-                }
-            } else if (profileData) {
-                // If auth fetch failed but we have a profile (even without name), use it
-                provider = profileData
-            }
-        } catch (e) {
-            console.error('Failed to fetch provider details via Admin API:', e)
-            if (profileData) provider = profileData
-        }
-    }
+    // Fetch provider info using our robust fallback logic
+    const provider = await getProviderInfo(service.user_id)
 
     const reviewCount = reviews.length
     const averageRating = reviewCount > 0

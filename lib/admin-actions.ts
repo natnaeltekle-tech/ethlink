@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const ADMIN_EMAIL = 'natnaeltekle236@gmail.com'
 
@@ -113,4 +114,45 @@ export async function adminDeleteService(id: string) {
 
     revalidatePath('/admin')
     revalidatePath('/services')
+}
+
+/**
+ * Fetches provider information, falling back to Auth Admin API if profile is missing or incomplete.
+ * This is used to display user details like "User (email@email.com)" when they haven't set up a profile.
+ */
+export async function getProviderInfo(userId: string) {
+    const adminSupabase = createAdminClient()
+
+    // 1. Try Profiles Table
+    const { data: profileData } = await adminSupabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+    
+    // Check if we have a valid profile with a name
+    if (profileData && profileData.full_name) {
+        return profileData
+    }
+
+    // 2. Fallback: Try Auth Admin to get metadata/email
+    try {
+        const { data: { user: authUser }, error: authError } = await adminSupabase.auth.admin.getUserById(userId)
+
+        if (authUser) {
+            // Construct a profile-like object from auth data
+            return {
+                id: authUser.id,
+                full_name: authUser.user_metadata?.full_name || '', // Leave empty to let UI decide display
+                email: authUser.email,
+                avatar_url: authUser.user_metadata?.avatar_url,
+                created_at: authUser.created_at
+            }
+        } 
+    } catch (e) {
+        console.error('Failed to fetch provider details via Admin API:', e)
+    }
+
+    // 3. Last resort: Return whatever profile data we had (even if empty name) or null
+    return profileData || null
 }

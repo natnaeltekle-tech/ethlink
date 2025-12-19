@@ -1,10 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar' // Assuming we have Avatar, if not I'll use a div
-import { Calendar, Mail, User } from 'lucide-react'
-
-// I need to check if Avatar component exists, if not I'll implement a simple one or use standard HTML
-// I'll assume it exists or I'll check components/ui again. I didn't see it in the list earlier.
-// I'll use standard elements for now to be safe.
+import { User, Mail } from 'lucide-react'
 
 interface ProviderCardProps {
     provider: {
@@ -19,6 +14,14 @@ interface ProviderCardProps {
 export function ProviderCard({ provider }: ProviderCardProps) {
     if (!provider) return null
 
+    // Fallback Logic
+    let displayName = 'Unknown Provider'
+    if (provider.full_name) {
+        displayName = provider.full_name
+    } else if (provider.email) {
+        displayName = `User (${provider.email})`
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -28,13 +31,13 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                 <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
                         {provider.avatar_url ? (
-                            <img src={provider.avatar_url} alt={provider.full_name || 'Provider'} className="h-full w-full object-cover" />
+                            <img src={provider.avatar_url} alt={displayName} className="h-full w-full object-cover" />
                         ) : (
                             <User className="h-6 w-6 text-primary" />
                         )}
                     </div>
                     <div>
-                        <div className="font-semibold">{provider.full_name || 'Unknown Provider'}</div>
+                        <div className="font-semibold">{displayName}</div>
                         <div className="text-sm text-muted-foreground">Joined {new Date(provider.created_at || Date.now()).toLocaleDateString()}</div>
                     </div>
                 </div>
