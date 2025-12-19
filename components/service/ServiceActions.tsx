@@ -9,20 +9,38 @@ import { cn } from '@/lib/utils'
 
 interface ServiceActionsProps {
     serviceId: string
+    title: string
     initialIsFavorite: boolean
     isLoggedIn: boolean
 }
 
-export function ServiceActions({ serviceId, initialIsFavorite, isLoggedIn }: ServiceActionsProps) {
+export function ServiceActions({ serviceId, title, initialIsFavorite, isLoggedIn }: ServiceActionsProps) {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite)
     const [isPending, startTransition] = useTransition()
 
     const handleShare = async () => {
+        const shareData = {
+            title: title,
+            text: 'Check out this service on EthLink!',
+            url: window.location.href,
+        }
+
         try {
-            await navigator.clipboard.writeText(window.location.href)
-            toast.success('Link copied to clipboard!')
+            if (navigator.share) {
+                await navigator.share(shareData)
+            } else {
+                await navigator.clipboard.writeText(window.location.href)
+                toast.success('Link copied to clipboard!')
+            }
         } catch (err) {
-            toast.error('Failed to copy link')
+            if ((err as Error).name !== 'AbortError') {
+                try {
+                    await navigator.clipboard.writeText(window.location.href)
+                    toast.success('Link copied to clipboard!')
+                } catch (copyErr) {
+                    toast.error('Failed to share or copy link')
+                }
+            }
         }
     }
 

@@ -37,6 +37,7 @@ export function ServiceHeader({
                     </div>
                     <ServiceActions
                         serviceId={serviceId}
+                        title={title}
                         initialIsFavorite={isFavorite}
                         isLoggedIn={isLoggedIn}
                     />
