@@ -162,7 +162,7 @@ export async function sendMessage(serviceId: string, receiverId: string, content
     // Trigger Notification for Receiver
     await supabase.from('notifications').insert({
         user_id: receiverId,
-        content: `New message from ${user.email?.split('@')[0] || 'User'}`,
+        content: 'New Message',
         link: `/services/${serviceId}`, // Or chat link? The chat component is on service page.
         type: 'message'
     })
@@ -286,6 +286,23 @@ export async function createBooking(formData: FormData) {
     if (error) {
         console.error('Error creating booking:', error)
         throw new Error('Failed to create booking')
+    }
+
+    // Fetch Service Owner's ID for notification
+    const { data: service } = await supabase
+        .from('services')
+        .select('user_id')
+        .eq('id', serviceId)
+        .single()
+
+    if (service && service.user_id) {
+        // Insert a row into notifications for the Provider
+        await supabase.from('notifications').insert({
+            user_id: service.user_id,
+            content: 'New Booking Request',
+            type: 'booking',
+            link: '/dashboard'
+        })
     }
 
     redirect(`/payment/${data.id}`)
@@ -470,7 +487,7 @@ export async function verifyPayment(bookingId: string) {
     // Trigger Notification for User (Payer)
     await supabase.from('notifications').insert({
         user_id: booking.user_id,
-        content: `Payment successful for ${booking.services?.title || 'service'}!`,
+        content: 'Payment Successful',
         link: `/services/${booking.service_id}`, // or /dashboard
         type: 'payment'
     })
