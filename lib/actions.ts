@@ -799,16 +799,24 @@ export async function updateProfile(formData: FormData) {
 
     if (!user) throw new Error('Not authenticated')
 
-    const fullName = formData.get('fullName') as string
+    const firstName = formData.get('firstName') as string
+    const lastName = formData.get('lastName') as string
+    const phoneNumber = formData.get('phoneNumber') as string
 
-    // Note: avatarUrl not implemented yet as we need file upload logic
-    // For now we just update metadata
+    const { error } = await supabase
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            first_name: firstName,
+            last_name: lastName,
+            phone: phoneNumber,
+            updated_at: new Date().toISOString(),
+        })
 
-    const { error } = await supabase.auth.updateUser({
-        data: { full_name: fullName }
-    })
-
-    if (error) throw new Error('Failed to update profile')
+    if (error) {
+        console.error('Error updating profile:', error)
+        throw new Error('Failed to update profile')
+    }
 
     revalidatePath('/dashboard')
 }

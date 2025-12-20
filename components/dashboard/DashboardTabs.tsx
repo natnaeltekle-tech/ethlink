@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { User, Shield, Handshake } from "lucide-react"
 import Link from "next/link"
 
-export function DashboardTabs({ user, bookings, providerStats, providerServices }: { user: any, bookings: any[], providerStats: any, providerServices: any[] }) {
+export function DashboardTabs({ user, bookings, providerStats, providerServices, profile }: { user: any, bookings: any[], providerStats: any, providerServices: any[], profile: any }) {
     const [activeTab, setActiveTab] = useState<'overview' | 'provider' | 'settings'>('overview')
 
     return (
@@ -144,7 +144,7 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices 
                 )}
 
                 {activeTab === 'settings' && (
-                    <SettingsTab services={providerServices} user={user} />
+                    <SettingsTab services={providerServices} user={user} profile={profile} />
                 )}
             </div>
         </div>

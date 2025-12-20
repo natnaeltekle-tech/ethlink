@@ -9,9 +9,32 @@ import { Trash2, UserCog, AlertCircle } from 'lucide-react'
 import { deleteService, updateProfile } from '@/lib/actions'
 import { toast } from 'sonner'
 
-export function SettingsTab({ services, user }: { services: any[], user: any }) {
+export function SettingsTab({ services, user, profile }: { services: any[], user: any, profile: any }) {
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [isUpdating, setIsUpdating] = useState(false)
+
+    // Pre-fill logic helpers
+    const getFirstName = () => {
+        if (profile?.first_name) return profile.first_name
+        if (user.user_metadata?.full_name) {
+            return user.user_metadata.full_name.split(' ')[0] || ''
+        }
+        return ''
+    }
+
+    const getLastName = () => {
+        if (profile?.last_name) return profile.last_name
+        if (user.user_metadata?.full_name) {
+            const parts = user.user_metadata.full_name.split(' ')
+            return parts.length > 1 ? parts.slice(1).join(' ') : ''
+        }
+        return ''
+    }
+
+    const getPhone = () => {
+        return profile?.phone_number || ''
+    }
+
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) return
@@ -90,16 +113,42 @@ export function SettingsTab({ services, user }: { services: any[], user: any }) 
                 </CardHeader>
                 <CardContent>
                     <form action={handleUpdateProfile} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="firstName">First Name</Label>
+                                <Input
+                                    id="firstName"
+                                    name="firstName"
+                                    defaultValue={getFirstName()}
+                                    placeholder="First Name"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lastName">Last Name</Label>
+                                <Input
+                                    id="lastName"
+                                    name="lastName"
+                                    defaultValue={getLastName()}
+                                    placeholder="Last Name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <Label htmlFor="fullName">Full Name</Label>
+                            <Label htmlFor="phoneNumber">Phone Number</Label>
                             <Input
-                                id="fullName"
-                                name="fullName"
-                                defaultValue={user.user_metadata?.full_name || ''}
-                                placeholder="Enter your full name"
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                type="tel"
+                                defaultValue={getPhone()}
+                                placeholder="+251 ..."
+                                required
                             />
                         </div>
-                        <Button type="submit" disabled={isUpdating}>
+
+                        <Button type="submit" disabled={isUpdating} className="w-full sm:w-auto">
                             {isUpdating ? 'Saving...' : 'Save Changes'}
                         </Button>
                     </form>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link as UserLink, Handshake } from "lucide-react";
-import { getUserBookings, getProviderStats, getProviderServices } from "@/lib/actions";
+import { getUserBookings, getProviderStats, getProviderServices, getProfile } from "@/lib/actions";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { Navbar } from "@/components/navbar";
 
@@ -22,6 +22,7 @@ export default async function DashboardPage() {
     const bookings = await getUserBookings();
     const providerStats = await getProviderStats();
     const providerServices = await getProviderServices();
+    const profile = await getProfile();
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
                     bookings={bookings}
                     providerStats={providerStats}
                     providerServices={providerServices}
+                    profile={profile}
                 />
 
                 {/* Log Out Button */}
