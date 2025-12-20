@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function searchServices(query: string) {
     const supabase = await createClient()
@@ -160,10 +161,11 @@ export async function sendMessage(serviceId: string, receiverId: string, content
     }
 
     // Trigger Notification for Receiver
-    await supabase.from('notifications').insert({
+    const adminSupabase = createAdminClient()
+    await adminSupabase.from('notifications').insert({
         user_id: receiverId,
         content: 'New Message',
-        link: `/services/${serviceId}`, // Or chat link? The chat component is on service page.
+        link: `/services/${serviceId}`,
         type: 'message'
     })
 }
@@ -296,8 +298,10 @@ export async function createBooking(formData: FormData) {
         .single()
 
     if (service && service.user_id) {
+        // Use admin client for notifications to bypass RLS
+        const adminSupabase = createAdminClient()
         // Insert a row into notifications for the Provider
-        await supabase.from('notifications').insert({
+        await adminSupabase.from('notifications').insert({
             user_id: service.user_id,
             content: 'New Booking Request',
             type: 'booking',
@@ -307,8 +311,6 @@ export async function createBooking(formData: FormData) {
 
     redirect(`/payment/${data.id}`)
 }
-// Note: We need to inject provider notification logic here, but we redirected.
-// Ideally, we should fetch provider ID and insert notification BEFORE redirect.
 // Or do it in createBookingJson if that's what's used. 
 // Assuming createBooking (Form Action) is used:
 // We can't easily insert after redirect. Let's modify slightly.
@@ -450,7 +452,7 @@ export async function verifyPayment(bookingId: string) {
     // Get the booking price to calculate commission
     const { data: booking, error: fetchError } = await supabase
         .from('bookings')
-        .select('*, services(price)')
+        .select('*, services(price, user_id, title)')
         .eq('id', bookingId)
         .single()
 
@@ -485,7 +487,8 @@ export async function verifyPayment(bookingId: string) {
     revalidatePath('/dashboard')
 
     // Trigger Notification for User (Payer)
-    await supabase.from('notifications').insert({
+    const adminSupabase = createAdminClient()
+    await adminSupabase.from('notifications').insert({
         user_id: booking.user_id,
         content: 'Payment Successful',
         link: `/services/${booking.service_id}`, // or /dashboard
@@ -494,7 +497,8 @@ export async function verifyPayment(bookingId: string) {
 
     // Also Notify Provider about Payment?
     if (booking.services?.user_id) {
-        await supabase.from('notifications').insert({
+        const adminSupabase = createAdminClient()
+        await adminSupabase.from('notifications').insert({
             user_id: booking.services.user_id,
             content: `Payment received for ${booking.services.title}`,
             link: '/dashboard',
