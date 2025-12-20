@@ -12,7 +12,7 @@ interface ProviderCardProps {
     } | null
 }
 
-export default function ProviderCard({ provider }: ProviderCardProps) {
+export function ProviderCard({ provider }: ProviderCardProps) {
     // If no provider data at all, return null
     if (!provider) return null
 
