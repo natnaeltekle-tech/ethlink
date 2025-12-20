@@ -28,7 +28,7 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
                     </nav>
                 </div>
 
-                <div className="flex items-center gap-4 flex-1 max-w-md ml-auto md:ml-0">
+                <div className="flex items-center gap-4 flex-1 max-w-md ml-auto justify-end">
                     {!hideSearch && (
                         <div className="relative flex-1 hidden sm:block">
                             <SearchBar
