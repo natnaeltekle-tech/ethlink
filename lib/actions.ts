@@ -298,16 +298,20 @@ export async function createBooking(formData: FormData) {
         .single()
 
     if (service && service.user_id) {
-        console.log('Notifying Provider:', service.user_id)
-        // Use admin client for notifications to bypass RLS
-        const adminSupabase = createAdminClient()
-        // Insert a row into notifications for the Provider
-        await adminSupabase.from('notifications').insert({
+        console.log('Provider ID found:', service.user_id)
+
+        const { error: notifError } = await supabase.from('notifications').insert({
             user_id: service.user_id,
             content: 'New Booking Request',
             type: 'booking',
             link: '/dashboard'
         })
+
+        if (notifError) {
+            console.error('Error inserting notification:', notifError)
+        } else {
+            console.log('Notification inserted successfully for provider:', service.user_id)
+        }
     }
 
     redirect(`/payment/${data.id}`)
@@ -373,12 +377,19 @@ export async function createBookingJson(formData: FormData) {
     const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
 
     if (service && service.user_id !== user.id) {
-        await supabase.from('notifications').insert({
+        console.log('Provider ID found (Json):', service.user_id)
+        const { error: notifError } = await supabase.from('notifications').insert({
             user_id: service.user_id,
             content: `New booking request for ${service.title}`,
             link: '/dashboard',
             type: 'booking'
         })
+
+        if (notifError) {
+            console.error('Error inserting notification (Json):', notifError)
+        } else {
+            console.log('Notification inserted successfully for provider (Json):', service.user_id)
+        }
     }
 
     return { success: true, bookingId: data.id }
@@ -487,25 +498,7 @@ export async function verifyPayment(bookingId: string) {
 
     revalidatePath('/dashboard')
 
-    // Trigger Notification for User (Payer)
-    const adminSupabase = createAdminClient()
-    await adminSupabase.from('notifications').insert({
-        user_id: booking.user_id,
-        content: 'Payment Successful',
-        link: `/services/${booking.service_id}`, // or /dashboard
-        type: 'payment'
-    })
-
-    // Also Notify Provider about Payment?
-    if (booking.services?.user_id) {
-        const adminSupabase = createAdminClient()
-        await adminSupabase.from('notifications').insert({
-            user_id: booking.services.user_id,
-            content: `Payment received for ${booking.services.title}`,
-            link: '/dashboard',
-            type: 'payment'
-        })
-    }
+    // Notifications removed as per requirement (Receipt is enough)
 
     return { success: true }
 

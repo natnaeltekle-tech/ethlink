@@ -43,7 +43,6 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
-                .limit(10)
 
             if (data) {
                 setNotifications(data)
@@ -55,29 +54,21 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
         // Subscribe to realtime updates
         const channel = supabase
-            .channel('notifications-all')
+            .channel('bell')
             .on(
                 'postgres_changes',
                 {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'notifications'
+                    table: 'notifications',
+                    filter: `user_id=eq.${userId}`
                 },
                 (payload) => {
-                    console.log('New Notification!', payload)
+                    console.log('New Notification Event Received:', payload)
                     const newNotification = payload.new as Notification
-
-                    // Client-side filtering since we removed the subscription filter
-                    if (newNotification.user_id === userId || !newNotification.user_id) {
-                        // Note: !newNotification.user_id check is just for safety/broadcasts if any
-                        setNotifications(prev => [newNotification, ...prev])
-                        setUnreadCount(prev => prev + 1)
-                        toast.info(newNotification.content)
-                    }
-
-                    // Optional: Play a sound
-                    // const audio = new Audio('/notification.mp3')
-                    // audio.play().catch(e => console.log('Audio play failed', e))
+                    setNotifications(prev => [newNotification, ...prev])
+                    setUnreadCount(prev => prev + 1)
+                    toast.info(newNotification.content)
                 }
             )
             .subscribe()
