@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 
 interface Notification {
     id: string
+    user_id?: string // Added for client-side filtering
     content: string
     link?: string
     type: 'booking' | 'payment' | 'message' | 'info'
@@ -65,9 +66,14 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                 (payload) => {
                     console.log('New Notification!', payload)
                     const newNotification = payload.new as Notification
-                    setNotifications(prev => [newNotification, ...prev])
-                    setUnreadCount(prev => prev + 1)
-                    toast.info(newNotification.content)
+
+                    // Client-side filtering since we removed the subscription filter
+                    if (newNotification.user_id === userId || !newNotification.user_id) {
+                        // Note: !newNotification.user_id check is just for safety/broadcasts if any
+                        setNotifications(prev => [newNotification, ...prev])
+                        setUnreadCount(prev => prev + 1)
+                        toast.info(newNotification.content)
+                    }
 
                     // Optional: Play a sound
                     // const audio = new Audio('/notification.mp3')

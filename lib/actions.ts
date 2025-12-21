@@ -298,6 +298,7 @@ export async function createBooking(formData: FormData) {
         .single()
 
     if (service && service.user_id) {
+        console.log('Notifying Provider:', service.user_id)
         // Use admin client for notifications to bypass RLS
         const adminSupabase = createAdminClient()
         // Insert a row into notifications for the Provider
