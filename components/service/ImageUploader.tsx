@@ -111,8 +111,8 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
             {!imageUrl ? (
                 <div
                     className={cn(
-                        "border-2 border-dashed rounded-xl p-8 transition-all text-center cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50",
-                        dragActive ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10" : "border-slate-300 dark:border-slate-700",
+                        "border-2 border-dashed rounded-xl p-8 transition-all text-center cursor-pointer hover:bg-muted/50",
+                        dragActive ? "border-primary bg-primary/5" : "border-border",
                         isUploading ? "opacity-50 pointer-events-none" : ""
                     )}
                     onDragEnter={handleDrag}
@@ -121,26 +121,26 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <div className="flex flex-col items-center gap-2 text-slate-500">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         {isUploading ? (
                             <>
-                                <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-                                <p className="text-sm font-medium text-slate-900">Uploading...</p>
+                                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                <p className="text-sm font-medium text-foreground">Uploading...</p>
                             </>
                         ) : (
                             <>
-                                <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2">
+                                <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center mb-2">
                                     <UploadCloud className="h-6 w-6" />
                                 </div>
-                                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">Click to upload photo</p>
+                                <p className="text-lg font-semibold text-foreground">Click to upload photo</p>
                                 <p className="text-sm">or drag and drop</p>
-                                <p className="text-xs text-slate-400 mt-2">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                                <p className="text-xs text-muted-foreground mt-2">SVG, PNG, JPG or GIF (max. 5MB)</p>
                             </>
                         )}
                     </div>
                 </div>
             ) : (
-                <div className="relative rounded-xl overflow-hidden aspect-video border bg-slate-100 group">
+                <div className="relative rounded-xl overflow-hidden aspect-video border bg-muted group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={imageUrl}

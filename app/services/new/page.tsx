@@ -25,15 +25,15 @@ export default async function NewServicePage() {
     const profile = await getProfile()
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 pb-20">
+        <div className="min-h-screen bg-background pt-4 md:pt-10 pb-20">
             <div className="container w-full mx-auto px-4 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
-                        <Button variant="ghost" className="mb-4">← Back to Home</Button>
+                        <Button variant="ghost" className="hidden md:inline-flex mb-4">← Back to Home</Button>
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
-                        <h1 className="text-3xl font-bold text-slate-900">List your Service</h1>
-                        <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                        <h1 className="text-3xl font-bold text-foreground">List your Service</h1>
+                        <div className="bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-blue-500/20">
                             <CheckCircle className="h-3 w-3" />
                             Unified Listing
                         </div>
