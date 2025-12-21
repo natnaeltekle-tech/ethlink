@@ -54,16 +54,16 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
         // Subscribe to realtime updates
         const channel = supabase
-            .channel(`notifications-${userId}`)
+            .channel('notifications-all')
             .on(
                 'postgres_changes',
                 {
                     event: 'INSERT',
                     schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${userId}`
+                    table: 'notifications'
                 },
                 (payload) => {
+                    console.log('New Notification!', payload)
                     const newNotification = payload.new as Notification
                     setNotifications(prev => [newNotification, ...prev])
                     setUnreadCount(prev => prev + 1)
