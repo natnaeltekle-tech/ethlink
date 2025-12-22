@@ -150,7 +150,7 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
                         placeholder="+251 9..."
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="h-12 text-lg"
+                        className="h-14 text-xl px-4 rounded-xl"
                     />
                 </div>
             )}

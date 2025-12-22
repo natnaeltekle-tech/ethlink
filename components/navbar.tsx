@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { Handshake, User, LayoutDashboard, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { NotificationBell } from '@/components/notification-bell'
 import { createClient } from '@/lib/supabase/server'
 import { SearchBar } from '@/components/search-bar'
 
@@ -41,9 +40,6 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
 
                     {user ? (
                         <div className="flex items-center gap-2">
-                            {/* Realtime Notification Bell */}
-                            <NotificationBell userId={user.id} />
-
                             <Link href="/dashboard">
                                 <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                                     <LayoutDashboard className="h-4 w-4" />

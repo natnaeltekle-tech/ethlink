@@ -15,15 +15,15 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
     const service = booking.services;
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md mx-auto">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:p-6 lg:p-8 flex items-center justify-center">
+            <div className="w-full max-w-md mx-auto">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
                     <div className="bg-blue-600 p-6 text-white text-center">
                         <h1 className="text-2xl font-bold">Complete Your Payment</h1>
                         <p className="text-blue-100 mt-2">Secure checkout for your booking</p>
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-6 sm:p-8">
                         <div className="mb-8">
                             {/* Service Details */}
                             <div className="flex gap-4 mb-4 items-center justify-center">
