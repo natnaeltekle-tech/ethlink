@@ -293,25 +293,34 @@ export async function createBooking(formData: FormData) {
     // Fetch Service Owner's ID for notification
     const { data: service } = await supabase
         .from('services')
-        .select('user_id')
+        .select('user_id, title')
         .eq('id', serviceId)
         .single()
 
     if (service && service.user_id) {
-        console.log('Provider ID found:', service.user_id)
+        console.log('✅ Provider ID found:', service.user_id)
+        console.log('📦 Service Title:', service.title)
 
-        const { error: notifError } = await supabase.from('notifications').insert({
-            user_id: service.user_id,
-            content: 'New Booking Request',
-            type: 'booking',
-            link: '/dashboard'
-        })
+        // Use admin client to bypass RLS and insert notification for provider
+        const adminSupabase = createAdminClient()
+        const { data: notifData, error: notifError } = await adminSupabase
+            .from('notifications')
+            .insert({
+                user_id: service.user_id,
+                content: `New booking request for ${service.title}`,
+                type: 'booking',
+                link: '/dashboard'
+            })
+            .select()
 
         if (notifError) {
-            console.error('Error inserting notification:', notifError)
+            console.error('❌ Error inserting notification:', notifError)
         } else {
-            console.log('Notification inserted successfully for provider:', service.user_id)
+            console.log('✅ Notification inserted successfully!')
+            console.log('📬 Notification data:', notifData)
         }
+    } else {
+        console.warn('⚠️ Service or service owner not found for notification')
     }
 
     redirect(`/payment/${data.id}`)
@@ -377,19 +386,31 @@ export async function createBookingJson(formData: FormData) {
     const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
 
     if (service && service.user_id !== user.id) {
-        console.log('Provider ID found (Json):', service.user_id)
-        const { error: notifError } = await supabase.from('notifications').insert({
-            user_id: service.user_id,
-            content: `New booking request for ${service.title}`,
-            link: '/dashboard',
-            type: 'booking'
-        })
+        console.log('✅ Provider ID found (Json):', service.user_id)
+        console.log('📦 Service Title:', service.title)
+
+        // Use admin client to bypass RLS and insert notification for provider
+        const adminSupabase = createAdminClient()
+        const { data: notifData, error: notifError } = await adminSupabase
+            .from('notifications')
+            .insert({
+                user_id: service.user_id,
+                content: `New booking request for ${service.title}`,
+                link: '/dashboard',
+                type: 'booking'
+            })
+            .select()
 
         if (notifError) {
-            console.error('Error inserting notification (Json):', notifError)
+            console.error('❌ Error inserting notification (Json):', notifError)
         } else {
-            console.log('Notification inserted successfully for provider (Json):', service.user_id)
+            console.log('✅ Notification inserted successfully (Json)!')
+            console.log('📬 Notification data:', notifData)
         }
+    } else if (service) {
+        console.warn('⚠️ Skipping notification - user is booking their own service')
+    } else {
+        console.warn('⚠️ Service not found for notification (Json)')
     }
 
     return { success: true, bookingId: data.id }
