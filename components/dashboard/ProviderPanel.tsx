@@ -100,10 +100,11 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                     <Card className="bg-background/50 backdrop-blur">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Earnings (Net)</CardTitle>
-                            <span className="font-bold text-green-500">ETB</span>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-green-500">{stats.earnings}</div>
+                            <div className="text-2xl font-bold text-green-500">
+                                {new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(stats.earnings)}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                                 +0% from last month
                             </p>

@@ -632,7 +632,7 @@ export async function getProviderStats() {
     if (!bookings) return { earnings: 0, pendingBookings: [], services: [] }
 
     const earnings = bookings
-        .filter(b => b.status === 'paid' || b.status === 'confirmed')
+        .filter(b => b.status === 'paid')
         .reduce((sum, b) => {
             // New logic: Use provider_earnings if available, else full price (backward compatibility)
             const amount = b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0)
