@@ -119,7 +119,7 @@ export function FloatingChat() {
                 className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4"
             >
                 {isOpen && (
-                    <div className="w-[300px] h-[450px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
+                    <div className="w-[300px] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
                         {/* Header */}
                         <div className="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
                             <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export function FloatingChat() {
                         ) : (
                             <>
                                 {/* Messages */}
-                                <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-950/50">
+                                <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-secondary/30">
                                     {messages.map((msg) => (
                                         <div
                                             key={msg.id}
@@ -156,10 +156,10 @@ export function FloatingChat() {
                                         >
                                             <div
                                                 className={cn(
-                                                    "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                                                    "max-w-[85%] px-4 py-2.5 text-sm",
                                                     msg.role === 'user'
-                                                        ? "bg-blue-600 text-white rounded-br-none"
-                                                        : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-none shadow-sm"
+                                                        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none"
+                                                        : "bg-muted text-foreground rounded-2xl rounded-tl-none"
                                                 )}
                                             >
                                                 <ReactMarkdown
@@ -174,7 +174,7 @@ export function FloatingChat() {
                                                                             const id = href.split('/book/')[1];
                                                                             setBookingServiceId(id);
                                                                         }}
-                                                                        className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer"
+                                                                        className="inline-block mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold text-xs transition-colors cursor-pointer"
                                                                     >
                                                                         {children}
                                                                     </button>
@@ -184,7 +184,7 @@ export function FloatingChat() {
                                                                 <a
                                                                     href={href}
                                                                     {...props}
-                                                                    className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                                                                    className="inline-block mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold text-xs transition-colors"
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                 >
@@ -193,7 +193,7 @@ export function FloatingChat() {
                                                             );
                                                         },
                                                         p: (props: any) => (
-                                                            <p {...props} className="mb-1 last:mb-0 leading-relaxed" />
+                                                            <p {...props} className="leading-relaxed" />
                                                         )
                                                     }}
                                                 >
@@ -204,7 +204,7 @@ export function FloatingChat() {
                                     ))}
                                     {isTyping && (
                                         <div className="flex justify-start w-full">
-                                            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-bl-none px-3 py-2 shadow-sm">
+                                            <div className="bg-muted text-foreground rounded-2xl rounded-tl-none px-4 py-2.5">
                                                 <div className="flex gap-1">
                                                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                                                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
@@ -216,13 +216,13 @@ export function FloatingChat() {
                                 </div>
 
                                 {/* Input */}
-                                <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shrink-0">
+                                <div className="p-3 bg-card border-t border-border shrink-0">
                                     <form onSubmit={handleSend} className="flex gap-2">
                                         <Input
                                             value={input}
                                             onChange={(e) => setInput(e.target.value)}
                                             placeholder="Ask for a service..."
-                                            className="flex-1 h-9 text-sm"
+                                            className="flex-1 h-9 text-sm bg-secondary border-border"
                                         />
                                         <Button type="submit" size="icon" className="h-9 w-9 bg-blue-600 hover:bg-blue-700">
                                             <Send className="h-4 w-4" />

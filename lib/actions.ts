@@ -825,15 +825,15 @@ export async function updateProfile(formData: FormData) {
             first_name: firstName,
             last_name: lastName,
             phone: phoneNumber,
-            updated_at: new Date().toISOString(),
         })
 
     if (error) {
         console.error('Error updating profile:', error)
-        throw new Error('Failed to update profile')
+        throw new Error(`Failed to update profile: ${error.message}`)
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/services/[id]')
 }
 
 export async function getProfile() {
