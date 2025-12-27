@@ -100,48 +100,25 @@ export async function getServiceDetails(id: string) {
 export async function getReviews(serviceId: string) {
     const supabase = await createClient()
 
-    // Fetch reviews
     const { data: reviews, error } = await supabase
         .from('reviews')
-        .select('*')
+        .select(`
+            *,
+            profiles (
+                first_name,
+                last_name,
+                avatar_url
+            )
+        `)
         .eq('service_id', serviceId)
         .order('created_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching reviews:', JSON.stringify(error, null, 2))
+        console.error('Error fetching reviews:', error)
         return []
     }
 
-    if (!reviews || reviews.length === 0) return []
-
-    // Manually fetch profiles for these reviews
-    const userIds = Array.from(new Set(reviews.map(r => r.user_id)))
-
-    const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, avatar_url')
-        .in('id', userIds)
-
-    if (profilesError) {
-        console.error('Error fetching reviewer profiles:', JSON.stringify(profilesError, null, 2))
-        // Return reviews without profile info as fallback
-        return reviews
-    }
-
-    // Map profiles to reviews
-    const reviewsWithProfiles = reviews.map(review => {
-        const profile = profiles?.find(p => p.id === review.user_id)
-        return {
-            ...review,
-            profiles: profile ? {
-                first_name: profile.first_name,
-                last_name: profile.last_name,
-                avatar_url: profile.avatar_url
-            } : null
-        }
-    })
-
-    return reviewsWithProfiles
+    return reviews
 }
 
 export async function getMessages(serviceId: string) {
