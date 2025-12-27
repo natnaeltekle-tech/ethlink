@@ -59,16 +59,24 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
     }
 
     const handleCancelUpcoming = async (bookingId: string) => {
-        if (!confirm("Are you sure you want to cancel this job? This action cannot be undone.")) return
+        console.log('Cancel button clicked for booking:', bookingId)
+
+        if (!confirm("Are you sure you want to cancel this job? This action cannot be undone.")) {
+            console.log('Cancellation aborted by user')
+            return
+        }
 
         setIsUpdating(bookingId)
         try {
+            console.log('Calling updateBookingStatus with cancelled status...')
             await updateBookingStatus(bookingId, 'cancelled')
-            router.refresh()
             // Optimistic update: Remove from upcoming list
             setUpcomingJobs(prev => prev.filter(b => b.id !== bookingId))
             toast.success("Job cancelled successfully")
+            console.log('✅ Calling router.refresh()...')
+            router.refresh()
         } catch (error) {
+            console.error('❌ Error cancelling job:', error)
             toast.error("Failed to cancel job")
         } finally {
             setIsUpdating(null)
@@ -164,7 +172,10 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                     <div className="mb-4 sm:mb-0">
                                         <div className="font-bold text-lg">{booking.services?.title}</div>
                                         <div className="text-sm text-muted-foreground">
-                                            {new Date(booking.date).toLocaleString()} • {booking.guests || 1} Guest(s)
+                                            {new Date(booking.date).toLocaleString()}
+                                            {['Hospitality', 'Transport', 'Events'].includes(booking.services?.category) && (
+                                                <> • {booking.guests || 1} Guest(s)</>
+                                            )}
                                         </div>
                                         <div className="text-sm font-medium text-primary mt-1">
                                             Potential Earnings: {booking.services?.price} ETB
@@ -225,22 +236,27 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                             </Badge>
                                         </div>
                                         <div className="text-sm text-muted-foreground">
-                                            {new Date(booking.date).toLocaleString()} • {booking.guests || 1} Guest(s)
+                                            {new Date(booking.date).toLocaleString()}
+                                            {['Hospitality', 'Transport', 'Events'].includes(booking.services?.category) && (
+                                                <> • {booking.guests || 1} Guest(s)</>
+                                            )}
                                         </div>
                                         <div className="text-sm font-medium text-primary mt-1">
                                             Earnings: {booking.services?.price} ETB
                                         </div>
                                     </div>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
-                                        onClick={() => handleCancelUpcoming(booking.id)}
-                                        disabled={isUpdating === booking.id}
-                                    >
-                                        {isUpdating === booking.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4 mr-1" />}
-                                        Cancel Job
-                                    </Button>
+                                    {booking.status === 'confirmed' && (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="w-full sm:w-auto text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
+                                            onClick={() => handleCancelUpcoming(booking.id)}
+                                            disabled={isUpdating === booking.id}
+                                        >
+                                            {isUpdating === booking.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4 mr-1" />}
+                                            Cancel Job
+                                        </Button>
+                                    )}
                                 </div>
                             ))}
                         </div>

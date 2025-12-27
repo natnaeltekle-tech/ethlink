@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/server';
 import { ArrowRight } from 'lucide-react';
-import { ServiceCard } from '@/components/service-card';
+import { ServiceCard } from '@/components/service/ServiceCard';
 
 export default async function ServicesPage({
     searchParams,

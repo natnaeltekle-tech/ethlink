@@ -100,7 +100,7 @@ export async function getServiceDetails(id: string) {
 export async function getReviews(serviceId: string) {
     const supabase = await createClient()
 
-    // First try to fetch reviews without the join to see if the table exists and works
+    // Fetch reviews
     const { data: reviews, error } = await supabase
         .from('reviews')
         .select('*')
@@ -108,13 +108,40 @@ export async function getReviews(serviceId: string) {
         .order('created_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching reviews (simple query):', error)
+        console.error('Error fetching reviews:', JSON.stringify(error, null, 2))
         return []
     }
 
-    // If we have reviews, we might want to fetch user details manually if the join failed previously
-    // For now, let's just return the reviews. The UI handles missing profile info.
-    return reviews
+    if (!reviews || reviews.length === 0) return []
+
+    // Manually fetch profiles for these reviews
+    const userIds = Array.from(new Set(reviews.map(r => r.user_id)))
+
+    const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, avatar_url')
+        .in('id', userIds)
+
+    if (profilesError) {
+        console.error('Error fetching reviewer profiles:', JSON.stringify(profilesError, null, 2))
+        // Return reviews without profile info as fallback
+        return reviews
+    }
+
+    // Map profiles to reviews
+    const reviewsWithProfiles = reviews.map(review => {
+        const profile = profiles?.find(p => p.id === review.user_id)
+        return {
+            ...review,
+            profiles: profile ? {
+                first_name: profile.first_name,
+                last_name: profile.last_name,
+                avatar_url: profile.avatar_url
+            } : null
+        }
+    })
+
+    return reviewsWithProfiles
 }
 
 export async function getMessages(serviceId: string) {
@@ -649,6 +676,8 @@ export async function getProviderStats() {
 }
 
 export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled') {
+    console.log('updateBookingStatus called:', { bookingId, status })
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -666,12 +695,24 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         throw new Error('Unauthorized')
     }
 
-    const { error } = await supabase
+    // Debug logging for cancel action
+    if (status === 'cancelled') {
+        console.log('Cancelling booking:', bookingId)
+    }
+
+    // Use admin client to bypass RLS for status update
+    const adminSupabase = createAdminClient()
+    const { error } = await adminSupabase
         .from('bookings')
         .update({ status })
         .eq('id', bookingId)
 
-    if (error) throw new Error('Failed to update booking')
+    if (error) {
+        console.error('Failed to update booking status:', error)
+        throw new Error('Failed to update booking')
+    }
+
+    console.log('✅ Booking status updated successfully:', { bookingId, status })
 
     // Auto-Message on Accept
     if (status === 'confirmed') {

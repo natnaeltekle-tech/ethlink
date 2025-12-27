@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Search, Handshake, CalendarCheck, User } from 'lucide-react'
 import { getServicesByCategory, getLatestServices } from '@/lib/actions'
-import { ServiceCard } from '@/components/service-card'
+import { ServiceCard } from '@/components/service/ServiceCard'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
 

@@ -1,5 +1,5 @@
 import { getBuses } from '@/lib/actions'
-import { ServiceCard } from '@/components/service-card'
+import { ServiceCard } from '@/components/service/ServiceCard'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
