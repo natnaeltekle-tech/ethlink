@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/server';
 import { ArrowRight } from 'lucide-react';
-import { ServiceCard } from '@/components/service/ServiceCard';
+import ServiceListing from '@/components/service/ServiceListing';
 
 export default async function ServicesPage({
     searchParams,
@@ -63,11 +63,7 @@ export default async function ServicesPage({
                     </Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredServices.map((service) => (
-                        <ServiceCard key={service.id} service={service} />
-                    ))}
-                </div>
+                <ServiceListing services={filteredServices} />
             )}
         </div>
     );
