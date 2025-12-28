@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, Building2, Star } from 'lucide-react'
 
-export function ServiceCard({ service }: { service: any }) {
+export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
     return (
         <Link href={`/services/${service.id}`} className="group block">
             <Card className="h-full overflow-hidden border-border bg-card transition-all hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/50 relative">
@@ -41,7 +41,14 @@ export function ServiceCard({ service }: { service: any }) {
 
                     <div className="flex items-center text-muted-foreground text-sm mb-3">
                         <MapPin className="h-3.5 w-3.5 mr-1" />
-                        <span className="line-clamp-1">{service.location}</span>
+                        <span className="line-clamp-1">
+                            {service.location}
+                            {distance !== undefined && (
+                                <span className="text-green-600 font-medium ml-1">
+                                    • {distance.toFixed(1)} km away
+                                </span>
+                            )}
+                        </span>
                     </div>
 
                     <div className="text-green-600 text-xl font-bold">

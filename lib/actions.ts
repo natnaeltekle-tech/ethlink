@@ -191,6 +191,12 @@ export async function createService(formData: FormData) {
     const description = formData.get('description') as string
     const imageUrl = formData.get('image_url') as string
 
+    // Extract coordinates if available
+    const latitudeStr = formData.get('latitude') as string
+    const longitudeStr = formData.get('longitude') as string
+    const latitude = latitudeStr ? parseFloat(latitudeStr) : null
+    const longitude = longitudeStr ? parseFloat(longitudeStr) : null
+
     if (!title || !category || !location || isNaN(price) || !description) {
         throw new Error('Missing required fields')
     }
@@ -204,7 +210,9 @@ export async function createService(formData: FormData) {
             price,
             description,
             image_url: imageUrl,
-            user_id: user.id
+            user_id: user.id,
+            latitude,
+            longitude
         })
         .select()
         .single()

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { ServiceCard } from '@/components/service/ServiceCard';
 import { Button } from '@/components/ui/button';
-import { Map, List } from 'lucide-react';
+import { Map, List, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 // Dynamic import for the Map component with SSR disabled
 const ServiceMap = dynamic(() => import('@/components/map/ServiceMap'), {
@@ -17,12 +19,83 @@ const ServiceMap = dynamic(() => import('@/components/map/ServiceMap'), {
     ),
 });
 
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    var dLon = deg2rad(lon2 - lon1);
+    var a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        ;
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c; // Distance in km
+    return d;
+}
+
+function deg2rad(deg: number) {
+    return deg * (Math.PI / 180)
+}
+
 export default function ServiceListing({ services }: { services: any[] }) {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [sortedServices, setSortedServices] = useState<any[]>(services);
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    setUserLocation({ lat: userLat, lng: userLng });
+
+                    // Check if we are in/near Addis Ababa to apply logic (optional based on prompt, but keeping simple for now)
+                    // Logic: Calculate distance for each service
+                    const servicesWithDistance = services.map(service => {
+                        if (service.latitude && service.longitude) {
+                            return {
+                                ...service,
+                                distance: getDistanceFromLatLonInKm(userLat, userLng, service.latitude, service.longitude)
+                            };
+                        }
+                        return service;
+                    });
+
+                    // Sort by distance (nearest first)
+                    // Push those without distance to the end
+                    const sorted = [...servicesWithDistance].sort((a, b) => {
+                        if (a.distance !== undefined && b.distance !== undefined) {
+                            return a.distance - b.distance;
+                        }
+                        if (a.distance !== undefined) return -1;
+                        if (b.distance !== undefined) return 1;
+                        return 0;
+                    });
+
+                    setSortedServices(sorted);
+                },
+                (error) => {
+                    console.error("Error getting location", error);
+                    // toast("Could not get your location to sort by distance.");
+                }
+            );
+        }
+    }, [services]);
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex justify-end border-b pb-4">
+            <div className="flex justify-between items-end border-b pb-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {userLocation ? (
+                        <>
+                            <MapPin className="h-4 w-4 text-green-600" />
+                            <span>Sorted by distance from your location</span>
+                        </>
+                    ) : (
+                        <span>Enable location to sort by distance</span>
+                    )}
+                </div>
                 <div className="flex bg-secondary/50 p-1 rounded-lg border border-border/50">
                     <Button
                         variant="ghost"
@@ -57,14 +130,14 @@ export default function ServiceListing({ services }: { services: any[] }) {
 
             {viewMode === 'map' ? (
                 <div className="w-full animate-in fade-in duration-300">
-                    <ServiceMap services={services} />
+                    <ServiceMap services={sortedServices} userLocation={userLocation} />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-                    {services.map((service) => (
-                        <ServiceCard key={service.id} service={service} />
+                    {sortedServices.map((service) => (
+                        <ServiceCard key={service.id} service={service} distance={service.distance} />
                     ))}
-                    {services.length === 0 && (
+                    {sortedServices.length === 0 && (
                         <p className="col-span-full text-center py-10 text-muted-foreground">
                             No services found.
                         </p>

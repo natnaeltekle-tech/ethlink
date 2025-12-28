@@ -24,9 +24,10 @@ interface Service {
 
 interface ServiceMapProps {
     services: Service[];
+    userLocation?: { lat: number; lng: number } | null;
 }
 
-export default function ServiceMap({ services }: ServiceMapProps) {
+export default function ServiceMap({ services, userLocation }: ServiceMapProps) {
     useEffect(() => {
         // This effect runs only once on client-side mount to fix the icons
         (async function init() {
@@ -98,6 +99,20 @@ export default function ServiceMap({ services }: ServiceMapProps) {
                         </Popup>
                     </Marker>
                 ))}
+
+                {userLocation && (
+                    <Marker
+                        position={[userLocation.lat, userLocation.lng]}
+                        icon={new L.DivIcon({
+                            className: 'bg-transparent border-none',
+                            html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`
+                        })}
+                    >
+                        <Popup>
+                            <span className="font-bold">You are Here</span>
+                        </Popup>
+                    </Marker>
+                )}
             </MapContainer>
         </div>
     );

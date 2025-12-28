@@ -1,6 +1,8 @@
 
+'use client';
+
 import { createServiceWithProfile, getProfile } from '@/lib/actions'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,21 +10,57 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { CheckCircle } from 'lucide-react'
 import { ImageUploader } from '@/components/service/ImageUploader'
+import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 
-export default async function NewServicePage() {
-    // 1. Check Authentication First
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/auth/login')
+
+// Dynamic import for LocationPicker
+const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), {
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-secondary/20 animate-pulse rounded-md" />
+});
+
+export default function NewServicePage() {
+    const [userAuth, setUserAuth] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [locationName, setLocationName] = useState('');
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const supabase = createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                setUserAuth(user);
+
+                // Fetch profile
+                const p = await getProfile();
+                setProfile(p);
+            } catch (e) {
+                console.error("Error loading data", e);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadData();
+    }, []);
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>; // Or a proper skeleton
     }
 
-    // 2. Fetch Profile (for pre-filling)
-    const profile = await getProfile()
+    if (!userAuth) return null; // Logic handled in useEffect
 
     return (
         <div className="min-h-screen bg-background pt-4 md:pt-10 pb-20">
@@ -42,6 +80,10 @@ export default async function NewServicePage() {
                 </div>
 
                 <form action={createServiceWithProfile} className="space-y-8">
+                    {/* Hidden inputs for coordinates */}
+                    <input type="hidden" name="latitude" value={coordinates?.lat || ''} />
+                    <input type="hidden" name="longitude" value={coordinates?.lng || ''} />
+
                     {/* Section 1: Provider Details */}
                     <Card>
                         <CardHeader>
@@ -73,7 +115,7 @@ export default async function NewServicePage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Email</Label>
-                                <Input disabled value={user.email || ''} />
+                                <Input disabled value={userAuth.email || ''} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -137,8 +179,27 @@ export default async function NewServicePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="location">Location</Label>
-                                <Input id="location" name="location" className="w-full" placeholder="e.g. Addis Ababa, Bole" required />
+                                <Label htmlFor="location">Location Name</Label>
+                                <Input
+                                    id="location"
+                                    name="location"
+                                    className="w-full"
+                                    placeholder="e.g. Addis Ababa, Bole"
+                                    required
+                                    value={locationName}
+                                    onChange={(e) => setLocationName(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Pin Location on Map</Label>
+                                <LocationPicker
+                                    onLocationSelect={(lat, lng, address) => {
+                                        setCoordinates({ lat, lng });
+                                        if (address) setLocationName(address);
+                                    }}
+                                />
+                                <p className="text-xs text-muted-foreground">Click on the map to set the exact location.</p>
                             </div>
 
                             <div className="space-y-2">
