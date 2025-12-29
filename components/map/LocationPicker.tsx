@@ -13,7 +13,7 @@ const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/m
 export default function LocationPicker({
     onLocationSelect
 }: {
-    onLocationSelect: (lat: number, lng: number) => void
+    onLocationSelect: (lat: number, lng: number, address?: string) => void;
 }) {
     // Default: Addis Ababa
     const [position, setPosition] = useState<L.LatLng | null>(null);
