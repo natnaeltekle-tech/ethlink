@@ -9,6 +9,18 @@ import { Trash2, UserCog, AlertCircle } from 'lucide-react'
 import { deleteService, updateProfile } from '@/lib/actions'
 import { toast } from 'sonner'
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 export function SettingsTab({ services, user, profile }: { services: any[], user: any, profile: any }) {
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [isUpdating, setIsUpdating] = useState(false)
@@ -37,7 +49,7 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
 
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this service? This action cannot be undone.')) return
+        // Confirmation is handled by AlertDialog now
 
         setIsDeleting(id)
         try {
@@ -88,16 +100,37 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                                         <h4 className="font-semibold">{service.title}</h4>
                                         <p className="text-sm text-green-500 font-bold">{service.price} ETB</p>
                                     </div>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        className="gap-2"
-                                        disabled={isDeleting === service.id}
-                                        onClick={() => handleDelete(service.id)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                        {isDeleting === service.id ? 'Deleting...' : 'Delete'}
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                className="gap-2"
+                                                disabled={isDeleting === service.id}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                {isDeleting === service.id ? 'Deleting...' : 'Delete'}
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete your service
+                                                    "{service.title}" and remove it from our servers.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    onClick={() => handleDelete(service.id)}
+                                                >
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             ))}
                         </div>

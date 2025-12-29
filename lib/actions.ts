@@ -644,19 +644,35 @@ export async function getProviderStats() {
     if (!bookings) return { earnings: 0, pendingBookings: [], services: [] }
 
     const earnings = bookings
-        .filter(b => b.status === 'paid')
+        .filter(b => b.status === 'paid' || b.status === 'confirmed')
         .reduce((sum, b) => {
-            // New logic: Use provider_earnings if available, else full price (backward compatibility)
-            const amount = b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0)
-            return sum + amount
+            // For paid bookings, use the stored provider_earnings
+            if (b.status === 'paid' && b.provider_earnings !== null) {
+                return sum + b.provider_earnings;
+            }
+
+            // For confirmed bookings (or legacy paid without stored earnings), calculate 10% commission
+            // effective earnings = price * 0.9
+            const price = b.services?.price || 0;
+            return sum + (price * 0.9);
         }, 0)
 
     const pendingBookings = bookings.filter(b => b.status === 'pending')
 
+    const completedJobs = bookings
+        .filter(b => b.status === 'paid')
+        .map(b => ({
+            id: b.id,
+            service_title: b.services?.title,
+            booking_date: b.date,
+            amount: b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0) * 0.9
+        }))
+
     return {
         earnings,
         pendingBookings,
-        allBookings: bookings
+        allBookings: bookings,
+        completedJobs
     }
 }
 

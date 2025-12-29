@@ -15,6 +15,12 @@ interface ProviderPanelProps {
         earnings: number
         pendingBookings: any[]
         allBookings: any[]
+        completedJobs?: {
+            id: string
+            service_title: string
+            booking_date: string
+            amount: number
+        }[]
     }
     services: any[]
 }
@@ -120,7 +126,7 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                     </Card>
                     <CardContent>
                         <p className="text-sm text-primary mt-1">
-                            From {stats.allBookings.filter((b: any) => b.status === 'confirmed').length} confirmed bookings
+                            From {stats.allBookings.filter((b: any) => b.status === 'paid' || b.status === 'confirmed').length} bookings (Confirmed + Paid)
                         </p>
                     </CardContent>
                 </Card>
@@ -263,6 +269,38 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Completed Jobs */}
+            {stats.completedJobs && stats.completedJobs.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Check className="h-5 w-5 text-green-500" />
+                            Completed Jobs
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {stats.completedJobs.map((job) => (
+                                <div key={job.id} className="flex items-center justify-between p-4 border border-border rounded-lg bg-card">
+                                    <div>
+                                        <div className="font-bold">{job.service_title}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                            {new Date(job.booking_date).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="font-bold text-green-500">
+                                            +{new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(job.amount)}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">Net Earned</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div >
     )
 }
