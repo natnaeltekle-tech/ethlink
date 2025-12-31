@@ -641,26 +641,42 @@ export async function getProviderStats() {
         .in('service_id', serviceIds)
         .order('created_at', { ascending: false })
 
-    if (!bookings) return { earnings: 0, pendingBookings: [], services: [] }
+    if (!bookings) return {
+        escrow_balance: 0,
+        available_balance: 0,
+        pendingBookings: [],
+        services: []
+    }
 
-    const earnings = bookings
-        .filter(b => b.status === 'paid' || b.status === 'confirmed')
+    // Calculate escrow balance (paid but not completed)
+    const escrow_balance = bookings
+        .filter(b => b.status === 'paid')
         .reduce((sum, b) => {
-            // For paid bookings, use the stored provider_earnings
-            if (b.status === 'paid' && b.provider_earnings !== null) {
+            if (b.provider_earnings !== null) {
                 return sum + b.provider_earnings;
             }
-
-            // For confirmed bookings (or legacy paid without stored earnings), calculate 10% commission
-            // effective earnings = price * 0.9
             const price = b.services?.price || 0;
             return sum + (price * 0.9);
         }, 0)
 
+    // Calculate available balance (completed jobs ready for payout)
+    const available_balance = bookings
+        .filter(b => b.status === 'completed')
+        .reduce((sum, b) => {
+            if (b.provider_earnings !== null) {
+                return sum + b.provider_earnings;
+            }
+            const price = b.services?.price || 0;
+            return sum + (price * 0.9);
+        }, 0)
+
+    // Legacy earnings calculation (for backwards compatibility)
+    const earnings = escrow_balance + available_balance
+
     const pendingBookings = bookings.filter(b => b.status === 'pending')
 
     const completedJobs = bookings
-        .filter(b => b.status === 'paid')
+        .filter(b => b.status === 'completed')
         .map(b => ({
             id: b.id,
             service_title: b.services?.title,
@@ -670,6 +686,8 @@ export async function getProviderStats() {
 
     return {
         earnings,
+        escrow_balance,
+        available_balance,
         pendingBookings,
         allBookings: bookings,
         completedJobs
@@ -730,6 +748,41 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
             console.error('Failed to send auto-accept message:', msgError);
             // Non-blocking error, we don't throw here to preserve the status update
         }
+    }
+
+    revalidatePath('/dashboard')
+}
+
+export async function completeJob(bookingId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    // Verify the user is the customer who made the booking
+    const { data: booking } = await supabase
+        .from('bookings')
+        .select('user_id, status')
+        .eq('id', bookingId)
+        .single()
+
+    if (!booking || booking.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    if (booking.status !== 'paid') {
+        throw new Error('Only paid bookings can be marked as completed')
+    }
+
+    // Update status to completed
+    const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'completed' })
+        .eq('id', bookingId)
+
+    if (error) {
+        console.error('Failed to complete job:', error)
+        throw new Error('Failed to complete job')
     }
 
     revalidatePath('/dashboard')

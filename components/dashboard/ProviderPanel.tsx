@@ -13,6 +13,8 @@ import { Loader2, Check, X, DollarSign, Briefcase, Settings, Calendar, AlertTria
 interface ProviderPanelProps {
     stats: {
         earnings: number
+        escrow_balance?: number
+        available_balance?: number
         pendingBookings: any[]
         allBookings: any[]
         completedJobs?: {
@@ -109,28 +111,38 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
             </h2>
 
             <div className="grid gap-6 md:grid-cols-2">
-                {/* Earnings Card */}
-                <Card className="bg-gradient-to-br from-primary/10 to-secondary/50 border-primary/20">
-                    <Card className="bg-background/50 backdrop-blur">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Earnings (Net)</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-green-500">
-                                {new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(stats.earnings)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                +0% from last month
-                            </p>
-                        </CardContent>
-                    </Card>
+                {/* Escrow Balance Card */}
+                <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/20 border-blue-500/20">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">🔵 Pending Clearance</CardTitle>
+                    </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-primary mt-1">
-                            From {stats.allBookings.filter((b: any) => b.status === 'paid' || b.status === 'confirmed').length} bookings (Confirmed + Paid)
+                        <div className="text-2xl font-bold text-blue-500">
+                            {new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(stats.escrow_balance || 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Held in escrow until customer confirms
                         </p>
                     </CardContent>
                 </Card>
 
+                {/* Available Balance Card */}
+                <Card className="bg-gradient-to-br from-green-500/10 to-green-600/20 border-green-500/20">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">🟢 Available for Payout</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-green-500">
+                            {new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(stats.available_balance || 0)}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Ready to withdraw
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-1">
                 {/* Manage Services Card */}
                 <Card>
                     <CardHeader>

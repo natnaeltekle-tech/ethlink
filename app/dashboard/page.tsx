@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link as UserLink, Handshake } from "lucide-react";
-import { getUserBookings, getProviderStats, getProviderServices, getProfile } from "@/lib/actions";
+import { getUserBookings, getProviderStats, getProviderServices, getProfile, completeJob } from "@/lib/actions";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { Navbar } from "@/components/navbar";
 

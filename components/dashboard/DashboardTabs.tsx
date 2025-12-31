@@ -5,11 +5,31 @@ import { Button } from '@/components/ui/button'
 import { SettingsTab } from '@/components/dashboard/SettingsTab'
 import { ProviderPanel } from '@/components/dashboard/ProviderPanel'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User, Shield, Handshake } from "lucide-react"
+import { User, Shield, Handshake, Check } from "lucide-react"
 import Link from "next/link"
+import { completeJob } from '@/lib/actions'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export function DashboardTabs({ user, bookings, providerStats, providerServices, profile }: { user: any, bookings: any[], providerStats: any, providerServices: any[], profile: any }) {
     const [activeTab, setActiveTab] = useState<'overview' | 'provider' | 'settings'>('overview')
+    const [completingJob, setCompletingJob] = useState<string | null>(null)
+    const router = useRouter()
+
+    const handleCompleteJob = async (bookingId: string) => {
+        if (!confirm('Are you sure the job is completed to your satisfaction?')) return
+
+        setCompletingJob(bookingId)
+        try {
+            await completeJob(bookingId)
+            toast.success('Job marked as completed!')
+            router.refresh()
+        } catch (error) {
+            toast.error('Failed to complete job')
+        } finally {
+            setCompletingJob(null)
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -123,11 +143,29 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                         </Button>
                                                     )}
                                                     {booking.status === 'paid' && (
-                                                        <Button size="sm" variant="outline" asChild className="mt-0 sm:mt-2">
-                                                            <Link href={`/book/success?bookingId=${booking.id}`}>
-                                                                View Receipt
-                                                            </Link>
-                                                        </Button>
+                                                        <div className="flex gap-2 mt-0 sm:mt-2">
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-green-600 hover:bg-green-700 text-white"
+                                                                onClick={() => handleCompleteJob(booking.id)}
+                                                                disabled={completingJob === booking.id}
+                                                            >
+                                                                {completingJob === booking.id ? (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="animate-spin">⏳</span> Processing...
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <Check className="h-4 w-4" /> Confirm Job Done
+                                                                    </span>
+                                                                )}
+                                                            </Button>
+                                                            <Button size="sm" variant="outline" asChild>
+                                                                <Link href={`/book/success?bookingId=${booking.id}`}>
+                                                                    View Receipt
+                                                                </Link>
+                                                            </Button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
