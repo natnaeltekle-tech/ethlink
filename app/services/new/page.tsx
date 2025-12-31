@@ -29,6 +29,7 @@ export default function NewServicePage() {
     const [loading, setLoading] = useState(true);
     const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [locationName, setLocationName] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     useEffect(() => {
         async function loadData() {
@@ -158,7 +159,11 @@ export default function NewServicePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Category</Label>
-                                    <Select name="category" required>
+                                    <Select
+                                        name="category"
+                                        required
+                                        onValueChange={(value) => setSelectedCategory(value)}
+                                    >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
@@ -171,6 +176,19 @@ export default function NewServicePage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+
+                                {selectedCategory === 'Other' && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="custom_category">Specify Category</Label>
+                                        <Input
+                                            id="custom_category"
+                                            name="custom_category"
+                                            className="w-full"
+                                            placeholder="e.g. Photography, Catering, etc."
+                                            required
+                                        />
+                                    </div>
+                                )}
 
                                 <div className="space-y-2">
                                     <Label htmlFor="price">Price (ETB)</Label>

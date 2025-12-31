@@ -185,7 +185,8 @@ export async function createService(formData: FormData) {
     }
 
     const title = formData.get('title') as string
-    const category = formData.get('category') as string
+    let category = formData.get('category') as string
+    const customCategory = formData.get('custom_category') as string
     const location = formData.get('location') as string
     const price = parseFloat(formData.get('price') as string)
     const description = formData.get('description') as string
@@ -196,6 +197,11 @@ export async function createService(formData: FormData) {
     const longitudeStr = formData.get('longitude') as string
     const latitude = latitudeStr ? parseFloat(latitudeStr) : null
     const longitude = longitudeStr ? parseFloat(longitudeStr) : null
+
+    // Use custom category if 'Other' was selected
+    if (category === 'Other' && customCategory) {
+        category = customCategory
+    }
 
     if (!title || !category || !location || isNaN(price) || !description) {
         throw new Error('Missing required fields')
@@ -942,11 +948,23 @@ export async function createServiceWithProfile(formData: FormData) {
 
     // 2. Extract Service Details
     const title = formData.get('title') as string
-    const category = formData.get('category') as string
+    let category = formData.get('category') as string
+    const customCategory = formData.get('custom_category') as string
     const location = formData.get('location') as string
     const price = parseFloat(formData.get('price') as string)
     const description = formData.get('description') as string
     const imageUrl = formData.get('image_url') as string
+
+    // Extract coordinates if available
+    const latitudeStr = formData.get('latitude') as string
+    const longitudeStr = formData.get('longitude') as string
+    const latitude = latitudeStr ? parseFloat(latitudeStr) : null
+    const longitude = longitudeStr ? parseFloat(longitudeStr) : null
+
+    // Use custom category if 'Other' was selected
+    if (category === 'Other' && customCategory) {
+        category = customCategory
+    }
 
     // Validation
     if (!firstName || !lastName || !phoneNumber || !idCardLink) {
@@ -984,7 +1002,9 @@ export async function createServiceWithProfile(formData: FormData) {
             price,
             description,
             image_url: imageUrl,
-            user_id: user.id
+            user_id: user.id,
+            latitude,
+            longitude
         })
         .select()
         .single()

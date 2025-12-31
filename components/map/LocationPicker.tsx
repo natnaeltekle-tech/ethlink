@@ -30,11 +30,29 @@ export default function LocationPicker({
         })();
     }, []);
 
+    // Reverse geocode coordinates to get address
+    const reverseGeocode = async (lat: number, lng: number) => {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+            );
+            const data = await response.json();
+
+            // Build a readable address from the response
+            const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            return address;
+        } catch (error) {
+            console.error('Reverse geocoding failed:', error);
+            return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // Fallback to coordinates
+        }
+    };
+
     const LocationMarker = () => {
         const map = useMapEvents({
-            click(e) {
+            async click(e) {
                 setPosition(e.latlng);
-                onLocationSelect(e.latlng.lat, e.latlng.lng);
+                const address = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+                onLocationSelect(e.latlng.lat, e.latlng.lng, address);
                 map.flyTo(e.latlng, map.getZoom());
             },
         });
@@ -44,11 +62,12 @@ export default function LocationPicker({
                 position={position}
                 draggable={true}
                 eventHandlers={{
-                    dragend: (e) => {
+                    async dragend(e) {
                         const marker = e.target;
                         const newPos = marker.getLatLng();
                         setPosition(newPos);
-                        onLocationSelect(newPos.lat, newPos.lng);
+                        const address = await reverseGeocode(newPos.lat, newPos.lng);
+                        onLocationSelect(newPos.lat, newPos.lng, address);
                     }
                 }}
             />
