@@ -18,7 +18,7 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
                 <div className="flex items-center gap-8">
                     <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary cursor-pointer">
                         <Handshake className="h-6 w-6" />
-                        EthLink
+                        Eth-Links
                     </Link>
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
                         <Link href="/services" className="hover:text-primary transition-colors">Services</Link>

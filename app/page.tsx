@@ -26,7 +26,7 @@ export default async function Index() {
           <div className="container mx-auto px-4 flex flex-col items-center text-center">
             <div className="space-y-6 max-w-3xl">
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-gradient-gold pb-2">
-                EthLink
+                Eth-Links
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto">
                 Connecting you with the best service providers in Ethiopia. Experience premium service booking.
@@ -91,7 +91,7 @@ export default async function Index() {
 
       <footer className="border-t border-border py-8 bg-card">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 EthLink. All rights reserved.</p>
+          <p>&copy; 2024 Eth-Links. All rights reserved.</p>
         </div>
       </footer>
     </div>

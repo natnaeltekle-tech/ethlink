@@ -25,10 +25,10 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
     }
 
     return {
-        title: `${service.title} | EthLink`,
+        title: `${service.title} | Eth-Links`,
         description: `Check out this service in ${service.location} for ${service.price} ETB.`,
         openGraph: {
-            title: `${service.title} | EthLink`,
+            title: `${service.title} | Eth-Links`,
             description: `Check out this service in ${service.location} for ${service.price} ETB.`,
             images: service.image_url ? [{ url: service.image_url }] : [],
         },
