@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
@@ -29,7 +28,6 @@ export default function NewServicePage() {
     const [loading, setLoading] = useState(true);
     const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [locationName, setLocationName] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('');
 
     useEffect(() => {
         async function loadData() {
@@ -159,36 +157,24 @@ export default function NewServicePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Category</Label>
-                                    <Select
+                                    <Input
+                                        id="category"
                                         name="category"
+                                        list="category-options"
+                                        className="w-full"
+                                        placeholder="Select or type a category (e.g., Hospitality, Gym, Photography)"
                                         required
-                                        onValueChange={(value) => setSelectedCategory(value)}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select category" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Hospitality">Hospitality (Hotels, etc.)</SelectItem>
-                                            <SelectItem value="Transport">Transport (Buses, etc.)</SelectItem>
-                                            <SelectItem value="Real Estate">Real Estate</SelectItem>
-                                            <SelectItem value="Professional Services">Professional Services</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    />
+                                    <datalist id="category-options">
+                                        <option value="Hospitality" />
+                                        <option value="Transport" />
+                                        <option value="Real Estate" />
+                                        <option value="Professional Services" />
+                                        <option value="Cleaning" />
+                                        <option value="Tech" />
+                                        <option value="Events" />
+                                    </datalist>
                                 </div>
-
-                                {selectedCategory === 'Other' && (
-                                    <div className="space-y-2">
-                                        <Label htmlFor="custom_category">Specify Category</Label>
-                                        <Input
-                                            id="custom_category"
-                                            name="custom_category"
-                                            className="w-full"
-                                            placeholder="e.g. Photography, Catering, etc."
-                                            required
-                                        />
-                                    </div>
-                                )}
 
                                 <div className="space-y-2">
                                     <Label htmlFor="price">Price (ETB)</Label>

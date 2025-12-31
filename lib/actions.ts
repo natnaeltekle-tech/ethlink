@@ -185,8 +185,7 @@ export async function createService(formData: FormData) {
     }
 
     const title = formData.get('title') as string
-    let category = formData.get('category') as string
-    const customCategory = formData.get('custom_category') as string
+    const category = formData.get('category') as string
     const location = formData.get('location') as string
     const price = parseFloat(formData.get('price') as string)
     const description = formData.get('description') as string
@@ -197,11 +196,6 @@ export async function createService(formData: FormData) {
     const longitudeStr = formData.get('longitude') as string
     const latitude = latitudeStr ? parseFloat(latitudeStr) : null
     const longitude = longitudeStr ? parseFloat(longitudeStr) : null
-
-    // Use custom category if 'Other' was selected
-    if (category === 'Other' && customCategory) {
-        category = customCategory
-    }
 
     if (!title || !category || !location || isNaN(price) || !description) {
         throw new Error('Missing required fields')
@@ -948,8 +942,7 @@ export async function createServiceWithProfile(formData: FormData) {
 
     // 2. Extract Service Details
     const title = formData.get('title') as string
-    let category = formData.get('category') as string
-    const customCategory = formData.get('custom_category') as string
+    const category = formData.get('category') as string
     const location = formData.get('location') as string
     const price = parseFloat(formData.get('price') as string)
     const description = formData.get('description') as string
@@ -960,11 +953,6 @@ export async function createServiceWithProfile(formData: FormData) {
     const longitudeStr = formData.get('longitude') as string
     const latitude = latitudeStr ? parseFloat(latitudeStr) : null
     const longitude = longitudeStr ? parseFloat(longitudeStr) : null
-
-    // Use custom category if 'Other' was selected
-    if (category === 'Other' && customCategory) {
-        category = customCategory
-    }
 
     // Validation
     if (!firstName || !lastName || !phoneNumber || !idCardLink) {
