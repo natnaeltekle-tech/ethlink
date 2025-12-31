@@ -11,7 +11,7 @@ export async function searchServices(query: string) {
     }
 
     const { data, error } = await supabase
-        .from('services')
+        .from('services_view')
         .select('*')
         .eq('is_active', true)
         .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
@@ -27,7 +27,7 @@ export async function searchServices(query: string) {
 export async function searchServicesAdvanced(query: string, location?: string, maxPrice?: number) {
     const supabase = await createClient()
 
-    let queryBuilder = supabase.from('services').select('*').eq('is_active', true);
+    let queryBuilder = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (query) {
         queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`);
@@ -54,7 +54,7 @@ export async function searchServicesAdvanced(query: string, location?: string, m
 export async function searchServicesGreedy(keyword: string, maxPrice?: number) {
     const supabase = await createClient()
 
-    let queryBuilder = supabase.from('services').select('*').eq('is_active', true);
+    let queryBuilder = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (maxPrice) {
         queryBuilder = queryBuilder.lte('price', maxPrice);
@@ -771,7 +771,7 @@ export async function getServicesByCategory(category: string, limit: number = 4)
     const supabase = await createClient()
 
     const { data: services } = await supabase
-        .from('services')
+        .from('services_view')
         .select('*')
         .eq('is_active', true)
         .ilike('category', `%${category}%`)
@@ -785,7 +785,7 @@ export async function getLatestServices(limit: number = 4) {
     const supabase = await createClient()
 
     const { data: services } = await supabase
-        .from('services')
+        .from('services_view')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -798,7 +798,7 @@ export async function getServicesByCategoryStrict(category: string, limit: numbe
     const supabase = await createClient()
 
     const { data: services } = await supabase
-        .from('services')
+        .from('services_view')
         .select('*')
         .eq('is_active', true)
         .eq('category', category) // STRICT filtering
@@ -812,7 +812,7 @@ export async function getBuses(limit: number = 24) {
     const supabase = await createClient()
 
     const { data: services } = await supabase
-        .from('services')
+        .from('services_view')
         .select('*')
         .eq('is_active', true)
         .eq('category', 'Transport')
