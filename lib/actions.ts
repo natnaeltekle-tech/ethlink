@@ -774,8 +774,9 @@ export async function completeJob(bookingId: string) {
         throw new Error('Only paid bookings can be marked as completed')
     }
 
-    // Update status to completed
-    const { error } = await supabase
+    // Use admin client to bypass RLS for status update
+    const adminSupabase = createAdminClient()
+    const { error } = await adminSupabase
         .from('bookings')
         .update({ status: 'completed' })
         .eq('id', bookingId)

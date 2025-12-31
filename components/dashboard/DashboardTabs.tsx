@@ -120,11 +120,13 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                         <span>•</span>
                                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${booking.status === 'paid'
                                                             ? 'bg-green-500/10 text-green-500'
-                                                            : booking.status === 'confirmed'
-                                                                ? 'bg-primary/10 text-primary'
-                                                                : 'bg-yellow-500/10 text-yellow-500'
+                                                            : booking.status === 'completed'
+                                                                ? 'bg-gray-500/10 text-gray-500' // Gray badge for completed
+                                                                : booking.status === 'confirmed'
+                                                                    ? 'bg-primary/10 text-primary'
+                                                                    : 'bg-yellow-500/10 text-yellow-500'
                                                             }`}>
-                                                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                                            {booking.status === 'completed' ? 'Job Completed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -140,6 +142,11 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                             <Link href={`/payment/${booking.id}`}>
                                                                 Pay Now
                                                             </Link>
+                                                        </Button>
+                                                    )}
+                                                    {booking.status === 'completed' && (
+                                                        <Button size="sm" variant="secondary" disabled className="mt-0 sm:mt-2 opacity-70">
+                                                            Job Completed
                                                         </Button>
                                                     )}
                                                     {booking.status === 'paid' && (
@@ -185,6 +192,6 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                     <SettingsTab services={providerServices} user={user} profile={profile} />
                 )}
             </div>
-        </div>
+        </div >
     )
 }
