@@ -754,38 +754,63 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
 }
 
 export async function completeJob(bookingId: string) {
+    console.log('completeJob called with bookingId:', bookingId)
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Not authenticated')
+    if (!user) {
+        console.error('completeJob: User not authenticated')
+        throw new Error('Not authenticated')
+    }
+
+    console.log('completeJob: User authenticated:', user.id)
 
     // Verify the user is the customer who made the booking
-    const { data: booking } = await supabase
+    const { data: booking, error: fetchError } = await supabase
         .from('bookings')
         .select('user_id, status')
         .eq('id', bookingId)
         .single()
 
-    if (!booking || booking.user_id !== user.id) {
+    if (fetchError) {
+        console.error('completeJob: Error fetching booking:', fetchError)
+        throw new Error('Failed to fetch booking')
+    }
+
+    if (!booking) {
+        console.error('completeJob: Booking not found')
+        throw new Error('Booking not found')
+    }
+
+    console.log('completeJob: Booking found:', { booking_user: booking.user_id, current_user: user.id, status: booking.status })
+
+    if (booking.user_id !== user.id) {
+        console.error('completeJob: Unauthorized - user does not own booking')
         throw new Error('Unauthorized')
     }
 
     if (booking.status !== 'paid') {
+        console.error('completeJob: Invalid status:', booking.status)
         throw new Error('Only paid bookings can be marked as completed')
     }
 
     // Use admin client to bypass RLS for status update
+    console.log('completeJob: Creating admin client...')
     const adminSupabase = createAdminClient()
+
+    console.log('completeJob: Updating booking status to completed...')
     const { error } = await adminSupabase
         .from('bookings')
         .update({ status: 'completed' })
         .eq('id', bookingId)
 
     if (error) {
-        console.error('Failed to complete job:', error)
-        throw new Error('Failed to complete job')
+        console.error('completeJob: Database update error:', error)
+        throw new Error(`Failed to complete job: ${error.message}`)
     }
 
+    console.log('completeJob: Successfully updated booking to completed')
     revalidatePath('/dashboard')
 }
 
