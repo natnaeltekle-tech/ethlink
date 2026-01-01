@@ -10,11 +10,14 @@ export async function searchServices(query: string) {
         return []
     }
 
+    // Sanitize query to prevent injection in .or()
+    const safeQuery = query.replace(/[.(),]/g, ' ')
+
     const { data, error } = await supabase
         .from('services_view')
         .select('*')
         .eq('is_active', true)
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
+        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%`)
 
     if (error) {
         console.error('Error searching services:', error)
@@ -30,7 +33,8 @@ export async function searchServicesAdvanced(query: string, location?: string, m
     let queryBuilder = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (query) {
-        queryBuilder = queryBuilder.or(`title.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`);
+        const safeQuery = query.replace(/[.(),]/g, ' ')
+        queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%`);
     }
 
     if (location) {
@@ -61,7 +65,8 @@ export async function searchServicesGreedy(keyword: string, maxPrice?: number) {
     }
 
     if (keyword) {
-        queryBuilder = queryBuilder.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,category.ilike.%${keyword}%,location.ilike.%${keyword}%`);
+        const safeQuery = keyword.replace(/[.(),]/g, ' ')
+        queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%,location.ilike.%${safeQuery}%`);
     }
 
     const { data, error } = await queryBuilder;
@@ -100,16 +105,10 @@ export async function getServiceDetails(id: string) {
 export async function getReviews(serviceId: string) {
     const supabase = await createClient()
 
+    // 1. Fetch reviews
     const { data: reviews, error } = await supabase
         .from('reviews')
-        .select(`
-            *,
-            profiles (
-                first_name,
-                last_name,
-                avatar_url
-            )
-        `)
+        .select('*')
         .eq('service_id', serviceId)
         .order('created_at', { ascending: false })
 
@@ -118,7 +117,52 @@ export async function getReviews(serviceId: string) {
         return []
     }
 
-    return reviews
+    // 2. Fetch user profiles manually to avoid relying on 'profiles' join which might be locked down
+    // or to ensure we only get safe public data.
+    const userIds = [...new Set(reviews.map(r => r.user_id))]
+
+    let profilesMap: Record<string, any> = {}
+
+    if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+            .from('public_profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', userIds)
+
+        if (profiles) {
+            profiles.forEach(p => {
+                profilesMap[p.id] = p
+            })
+        }
+    }
+
+    // 3. Merge data
+    // The Frontend often expects { profiles: { first_name, last_name, avatar_url } }
+    // We will attempt to split full_name into first/last to maintain backward compatibility if needed,
+    // or just pass full_name if the component supports it.
+
+    return reviews.map(r => {
+        const profile = profilesMap[r.user_id]
+
+        let formattedProfile = null
+        if (profile) {
+            const nameParts = (profile.full_name || 'Anonymous User').split(' ')
+            const firstName = nameParts[0]
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
+
+            formattedProfile = {
+                first_name: firstName,
+                last_name: lastName,
+                avatar_url: profile.avatar_url,
+                full_name: profile.full_name
+            }
+        }
+
+        return {
+            ...r,
+            profiles: formattedProfile
+        }
+    })
 }
 
 export async function getMessages(serviceId: string) {
@@ -344,13 +388,6 @@ export async function createBooking(formData: FormData) {
 
     redirect(`/payment/${data.id}`)
 }
-// Or do it in createBookingJson if that's what's used. 
-// Assuming createBooking (Form Action) is used:
-// We can't easily insert after redirect. Let's modify slightly.
-// Wait, createBooking redirects to payment. The notification forPROVIDER should happen when booking is requested?
-// Yes. But we need provider ID.
-// Let's look at createBooking implementation again. It doesn't fetch service/provider details yet.
-// I'll add the fetch logic.
 
 
 export async function createBookingJson(formData: FormData) {
@@ -367,6 +404,10 @@ export async function createBookingJson(formData: FormData) {
 
     if (!serviceId || !date) {
         return { error: 'Missing required fields' }
+    }
+
+    if (isNaN(new Date(date).getTime())) {
+        return { error: 'Invalid date format' }
     }
 
     // Check availability
