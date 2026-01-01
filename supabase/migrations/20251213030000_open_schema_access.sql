@@ -5,9 +5,10 @@ using ( true );
 
 -- Allow public read access to messages so ChatBox works for all parties
 -- (Note: In a real app you might want to restrict this to participants, but for this fix we're opening it up)
-create policy "Messages are viewable by everyone"
+-- Allow users to view messages they are part of (sender or receiver)
+create policy "Users can view own messages"
 on messages for select
-using ( true );
+using ( auth.uid() = sender_id OR auth.uid() = receiver_id );
 
 -- Ensure RLS is enabled so policies apply
 alter table profiles enable row level security;

@@ -284,20 +284,27 @@ export async function createBooking(formData: FormData) {
         throw new Error('This slot is already booked. Please pick another time.')
     }
 
-    const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-            service_id: serviceId,
-            user_id: user.id,
-            // Ensure we save the literal time as UTC to avoid shifts
-            // Input is usually YYYY-MM-DDTHH:mm
-            date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
-            status: 'pending'
-        })
-        .select()
-        .single()
+    let data;
+    try {
+        const result = await supabase
+            .from('bookings')
+            .insert({
+                service_id: serviceId,
+                user_id: user.id,
+                // Ensure we save the literal time as UTC to avoid shifts
+                // Input is usually YYYY-MM-DDTHH:mm
+                date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
+                status: 'pending'
+            })
+            .select()
+            .single()
 
-    if (error) {
+        if (result.error) throw result.error
+        data = result.data
+    } catch (error: any) {
+        if (error.code === '23505') {
+            throw new Error('This time slot is no longer available. Please choose another.')
+        }
         console.error('Error creating booking:', error)
         throw new Error('Failed to create booking')
     }
@@ -389,6 +396,9 @@ export async function createBookingJson(formData: FormData) {
         .single()
 
     if (error) {
+        if (error.code === '23505') {
+            return { error: 'This time slot is no longer available. Please choose another.' }
+        }
         console.error('Error creating booking:', error)
         return { error: 'Failed to create booking' }
     }
@@ -714,12 +724,17 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         throw new Error('Unauthorized')
     }
 
+    // Prevent cancelling paid bookings without refund
+    if (status === 'cancelled' && booking.status === 'paid') {
+        throw new Error('Cannot cancel a paid booking. Please contact support for a refund.')
+    }
+
     // Debug logging for cancel action
     if (status === 'cancelled') {
         console.log('Cancelling booking:', bookingId)
     }
 
-    // Use admin client to bypass RLS for status update
+    // Use admin client to bypass RLS for status update (ownership already validated above)
     const adminSupabase = createAdminClient()
     const { error } = await adminSupabase
         .from('bookings')
