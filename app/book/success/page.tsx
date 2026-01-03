@@ -77,6 +77,19 @@ export default async function SuccessPage({
                             <span className="text-gray-500 dark:text-gray-400">Service</span>
                             <span className="font-medium text-right">{service.title}</span>
                         </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-500 dark:text-gray-400">Transaction Time</span>
+                            <span className="font-medium text-right">
+                                {new Date(booking.created_at).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                })}
+                            </span>
+                        </div>
                     </div>
 
                     <div className="pt-6 space-y-3">
