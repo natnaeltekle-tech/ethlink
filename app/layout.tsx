@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { FloatingChat } from "@/components/floating-chat";
@@ -37,7 +38,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <MobileNav />
+          <Suspense fallback={null}>
+            <MobileNav />
+          </Suspense>
           <FloatingChat />
           <Toaster />
         </ThemeProvider>
