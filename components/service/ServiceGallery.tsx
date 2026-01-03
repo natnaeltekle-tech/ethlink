@@ -83,10 +83,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
 
     return (
         <div className="relative rounded-xl overflow-hidden group mb-6">
-            {/* Debug Info - Temporary */}
-            <div className="bg-yellow-100 p-2 mb-2 rounded text-xs text-black font-mono">
-                DEBUG: Owner: {isOwner ? 'YES' : 'NO'} | ID: {serviceId?.substring(0, 6)}... | Images: {images?.length || 0}
-            </div>
+
             <div className="flex flex-col md:grid md:grid-cols-2 gap-2 h-auto md:h-[500px]">
                 {/* Main Image (Left) */}
                 <div className="relative h-[300px] md:h-full w-full overflow-hidden bg-muted rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
