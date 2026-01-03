@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Grid, Plus, Loader2 } from 'lucide-react'
@@ -17,6 +18,7 @@ interface ServiceGalleryProps {
 
 export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGalleryProps) {
     const [isUploading, setIsUploading] = useState(false)
+    const router = useRouter()
 
     // Helper to get full URL
     const getFullUrl = (path: string | null) => {
@@ -49,6 +51,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
             // 2. Add to Gallery in DB
             await addImageToGallery(serviceId, filePath)
 
+            router.refresh()
             toast.success('Image added successfully!')
         } catch (error: any) {
             console.error('Upload failed:', error)
@@ -80,9 +83,9 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
 
     return (
         <div className="relative rounded-xl overflow-hidden group mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-[400px] md:h-[500px]">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-2 h-auto md:h-[500px]">
                 {/* Main Image (Left) */}
-                <div className="relative h-full w-full overflow-hidden bg-muted rounded-l-xl">
+                <div className="relative h-[300px] md:h-full w-full overflow-hidden bg-muted rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
                     {mainImage ? (
                         <Image
                             src={getFullUrl(mainImage) || ''}
@@ -110,16 +113,16 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
                 </div>
 
                 {/* Side Images (Right) */}
-                <div className="hidden md:flex flex-col gap-2 h-full">
+                <div className="grid grid-cols-2 md:flex md:flex-col gap-2 w-full h-[150px] md:h-full">
                     {/* Top Right */}
-                    <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-tr-xl">
+                    <div className="relative h-full md:h-1/2 w-full overflow-hidden bg-muted rounded-bl-xl md:rounded-bl-none md:rounded-tr-xl">
                         {sideImages[0] ? (
                             <Image
                                 src={getFullUrl(sideImages[0]) || ''}
                                 alt={`${title} - 2`}
                                 fill
                                 className="object-cover transition-transform duration-500 hover:scale-105"
-                                sizes="25vw"
+                                sizes="(max-width: 768px) 50vw, 25vw"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -139,14 +142,14 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
                     </div>
 
                     {/* Bottom Right */}
-                    <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-br-xl">
+                    <div className="relative h-full md:h-1/2 w-full overflow-hidden bg-muted rounded-br-xl">
                         {sideImages[1] ? (
                             <Image
                                 src={getFullUrl(sideImages[1]) || ''}
                                 alt={`${title} - 3`}
                                 fill
                                 className="object-cover transition-transform duration-500 hover:scale-105"
-                                sizes="25vw"
+                                sizes="(max-width: 768px) 50vw, 25vw"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
