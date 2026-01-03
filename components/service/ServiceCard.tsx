@@ -21,17 +21,13 @@ export function ServiceCard({ service, distance }: { service: any, distance?: nu
                         </div>
                     )}
 
-                    {/* Top Right Badge - Dynamic Rating */}
-                    <div className="absolute top-3 right-3 bg-white text-black px-2 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
-                        {service.avg_rating && service.avg_rating > 0 ? (
-                            <>
-                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                {service.avg_rating.toFixed(1)}
-                            </>
-                        ) : (
-                            'New'
-                        )}
-                    </div>
+                    {/* Top Right Badge - Rating (only if reviews exist) */}
+                    {service.avg_rating && service.avg_rating > 0 && (
+                        <div className="absolute top-3 right-3 bg-white text-black px-2 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            {service.avg_rating.toFixed(1)}
+                        </div>
+                    )}
                 </div>
 
                 {/* Details Area */}

@@ -14,7 +14,7 @@ export async function searchServices(query: string) {
     const safeQuery = query.replace(/[.(),]/g, ' ')
 
     const { data, error } = await supabase
-        .from('services_view')
+        .from('services_view') // Ensure we query the view for ratings
         .select('*')
         .eq('is_active', true)
         .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%`)

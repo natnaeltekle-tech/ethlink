@@ -16,7 +16,7 @@ export default async function ServicesPage({
 
     const supabase = await createClient();
 
-    let query = supabase.from('services').select('*').eq('is_active', true);
+    let query = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (category) {
         // Strict category filtering
