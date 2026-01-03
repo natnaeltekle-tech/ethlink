@@ -27,14 +27,20 @@ export async function searchServices(query: string) {
     return data
 }
 
-export async function searchServicesAdvanced(query: string, location?: string, maxPrice?: number) {
+export async function searchServicesAdvanced(query: string, location?: string, maxPrice?: number, category?: string) {
     const supabase = await createClient()
 
     let queryBuilder = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (query) {
         const safeQuery = query.replace(/[.(),]/g, ' ')
-        queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%`);
+        // Note: Mix of AND/OR with Supabase query builder determines priority.
+        // .or() is usually AND'd with previous .eq() filters if chained simply.
+        queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`);
+    }
+
+    if (category) {
+        queryBuilder = queryBuilder.eq('category', category);
     }
 
     if (location) {
@@ -49,6 +55,32 @@ export async function searchServicesAdvanced(query: string, location?: string, m
 
     if (error) {
         console.error('Error searching services (advanced):', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function getFilteredServices(category?: string, query?: string) {
+    const supabase = await createClient()
+
+    let dbQuery = supabase.from('services_view').select('*').eq('is_active', true);
+
+    if (category) {
+        dbQuery = dbQuery.eq('category', category);
+    }
+
+    if (query) {
+        const safeQuery = query.replace(/[.(),]/g, ' ')
+        // We want (title matches OR description matches) AND other filters
+        // .or() applies to the rows that match the REST of the filters by default in this chain order
+        dbQuery = dbQuery.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`);
+    }
+
+    const { data, error } = await dbQuery;
+
+    if (error) {
+        console.error('Error fetching filtered services:', error);
         return [];
     }
 

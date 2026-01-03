@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/server';
+import { getFilteredServices } from '@/lib/actions';
+
 import { ArrowRight } from 'lucide-react';
 import ServiceListing from '@/components/service/ServiceListing';
 
@@ -14,23 +16,8 @@ export default async function ServicesPage({
     const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
     const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : '';
 
-    const supabase = await createClient();
-
-    let query = supabase.from('services_view').select('*').eq('is_active', true);
-
-    if (category) {
-        // Strict category filtering
-        query = query.eq('category', category);
-    } else if (search) {
-        // Fuzzy search across fields
-        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,category.ilike.%${search}%`);
-    }
-
-    const { data: services, error } = await query;
-
-    if (error) {
-        console.error("Error fetching services:", error);
-    }
+    // Use the optimized server action for filtering
+    const services = await getFilteredServices(category, search);
 
     const filteredServices = services || [];
 
