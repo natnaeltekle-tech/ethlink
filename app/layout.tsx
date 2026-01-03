@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
+import { MobileNav } from "@/components/mobile-nav";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -28,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      <body className={`${geistSans.className} antialiased pb-16 md:pb-0`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -36,6 +37,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <MobileNav />
           <FloatingChat />
           <Toaster />
         </ThemeProvider>
