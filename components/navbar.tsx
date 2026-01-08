@@ -13,7 +13,7 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
     const { data: { user } } = await supabase.auth.getUser()
 
     return (
-        <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-border/50">
+        <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-border/50 select-none">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
                     <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary cursor-pointer">

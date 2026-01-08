@@ -65,9 +65,30 @@
 
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .text-gradient-gold {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-white;
+  }
+
+  /* Mobile optimizations */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent text selection on UI elements */
+  nav,
+  header,
+  [role="navigation"],
+  [role="banner"] {
+    @apply select-none;
+  }
+
+  /* Ensure inputs are 16px on mobile to prevent zoom */
+  input,
+  textarea,
+  select {
+    @apply text-base;
   }
 }
