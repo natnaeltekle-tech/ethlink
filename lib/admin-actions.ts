@@ -33,18 +33,12 @@ export async function getAdminStats() {
         .from('bookings')
         .select('*', { count: 'exact', head: true })
 
-    // Count Users (Proxy via unique user_ids in bookings/services if no profiles table)
-    // For now, let's just return a placeholder or 0 if we can't access auth.users
-    // If there is a profiles table, we could use that.
-    // Let's check if 'profiles' table exists by trying to select from it.
-    let usersCount = 0
-    const { count: profilesCount, error } = await supabase
+    // Count Users from profiles table
+    // Use admin client to bypass RLS
+    const adminSupabase = createAdminClient()
+    const { count: usersCount } = await adminSupabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
-
-    if (!error) {
-        usersCount = profilesCount || 0
-    }
 
     // Calculate Platform Revenue
     // Sum commission_amount from bookings
@@ -129,7 +123,7 @@ export async function getProviderInfo(userId: string) {
         .select('*')
         .eq('id', userId)
         .single()
-    
+
     // Check if we have a valid profile with a name
     if (profileData && profileData.full_name) {
         return profileData
@@ -148,7 +142,7 @@ export async function getProviderInfo(userId: string) {
                 avatar_url: authUser.user_metadata?.avatar_url,
                 created_at: authUser.created_at
             }
-        } 
+        }
     } catch (e) {
         console.error('Failed to fetch provider details via Admin API:', e)
     }
