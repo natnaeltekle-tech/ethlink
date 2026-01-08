@@ -50,7 +50,7 @@ export default async function ServicesPage({
                     </Button>
                 </div>
             ) : (
-                <ServiceListing services={filteredServices} />
+                <ServiceListing key={category} services={filteredServices} />
             )}
         </div>
     );
