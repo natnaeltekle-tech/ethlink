@@ -6,6 +6,7 @@ import { getServicesByCategory, getLatestServices } from '@/lib/actions'
 import { ServiceCard } from '@/components/service/ServiceCard'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
 
 export default async function Index() {
   const supabase = await createClient()
@@ -89,11 +90,7 @@ export default async function Index() {
         </section>
       </main>
 
-      <footer className="border-t border-border py-8 bg-card">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Eth-Links. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
