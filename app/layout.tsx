@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "@/components/mobile-nav";
+import { GlobalBanner } from "@/components/global-banner";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -37,6 +38,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <GlobalBanner />
           {children}
           <Suspense fallback={null}>
             <MobileNav />
