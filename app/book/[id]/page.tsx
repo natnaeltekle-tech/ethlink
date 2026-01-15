@@ -15,11 +15,11 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-border/50">
                     {/* Header Image */}
                     <div className="relative h-48 sm:h-64 w-full">
                         <Image
-                            src={service.images?.[0] || '/placeholder.jpg'}
+                            src={service.gallery?.[0] || service.image_url || '/placeholder.jpg'}
                             alt={service.title}
                             fill
                             className="object-cover"

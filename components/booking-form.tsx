@@ -71,10 +71,10 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                             name="date"
                             id="date"
                             required
-                            className="pl-10 h-12 text-lg bg-secondary text-foreground border-border focus:ring-primary focus:border-primary"
+                            className="pl-12 h-14 w-full text-lg bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
                             min={new Date().toISOString().slice(0, 16)}
                         />
-                        <Calendar className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                        <Calendar className="absolute left-4 top-4 h-6 w-6 text-muted-foreground" />
                     </div>
                 </div>
 
