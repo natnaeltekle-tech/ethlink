@@ -8,6 +8,8 @@ import { getUserBookings, getProviderStats, getProviderServices, getProfile, com
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { Navbar } from "@/components/navbar";
 
+export const revalidate = 0;
+
 export default async function DashboardPage() {
     const supabase = await createClient();
 
@@ -27,10 +29,9 @@ export default async function DashboardPage() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             {/* Simple Header */}
-            {/* Simple Header */}
             <Navbar hideSearch />
 
-            <main className="container mx-auto px-4 py-8 max-w-3xl">
+            <main className="w-full max-w-lg mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
                 <DashboardTabs
