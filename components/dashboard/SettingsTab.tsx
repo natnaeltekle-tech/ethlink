@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, UserCog, AlertCircle } from 'lucide-react'
+import { Trash2, UserCog, AlertCircle, Shield } from 'lucide-react'
 import { deleteService, updateProfile } from '@/lib/actions'
 import { toast } from 'sonner'
 
@@ -78,6 +78,41 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
 
     return (
         <div className="space-y-6">
+            {/* User Details */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <UserCog className="h-5 w-5" />
+                        User Details
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">
+                            {user.email?.[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Email</p>
+                            <p className="text-lg font-medium">{user.email}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full flex items-center justify-center ${services.length > 0
+                            ? 'bg-primary/20 text-primary'
+                            : 'bg-secondary text-muted-foreground'
+                            }`}>
+                            <Shield className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Role</p>
+                            <p className="text-lg font-medium">
+                                {services.length > 0 ? 'Vendor' : 'Customer'}
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Services Management */}
             <Card>
                 <CardHeader>
@@ -187,6 +222,15 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                     </form>
                 </CardContent>
             </Card>
+
+            {/* Log Out Button - Moved here */}
+            <div className="flex justify-end pt-4 border-t border-border">
+                <form action="/auth/signout" method="post">
+                    <Button variant="destructive" size="lg" className="w-full sm:w-auto">
+                        Log Out
+                    </Button>
+                </form>
+            </div>
         </div>
     )
 }

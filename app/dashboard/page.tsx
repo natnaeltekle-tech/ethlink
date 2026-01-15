@@ -40,15 +40,6 @@ export default async function DashboardPage() {
                     providerServices={providerServices}
                     profile={profile}
                 />
-
-                {/* Log Out Button */}
-                <div className="flex justify-end mt-8">
-                    <form action="/auth/signout" method="post">
-                        <Button variant="destructive" size="lg">
-                            Log Out
-                        </Button>
-                    </form>
-                </div>
             </main>
         </div >
     );

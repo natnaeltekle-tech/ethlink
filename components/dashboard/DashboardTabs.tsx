@@ -64,40 +64,7 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
             <div className="mt-6">
                 {activeTab === 'overview' && (
                     <div className="grid gap-6">
-                        {/* User Details */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
-                                    User Details
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">
-                                        {user.email?.[0].toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Email</p>
-                                        <p className="text-lg font-medium">{user.email}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className={`h-12 w-12 rounded-full flex items-center justify-center ${providerServices.length > 0
-                                        ? 'bg-primary/20 text-primary'
-                                        : 'bg-secondary text-muted-foreground'
-                                        }`}>
-                                        <Shield className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-muted-foreground">Role</p>
-                                        <p className="text-lg font-medium">
-                                            {providerServices.length > 0 ? 'Vendor' : 'Customer'}
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        {/* User Details - Moved to Settings */}
 
                         {/* My Activity */}
                         <Card>
