@@ -4,27 +4,52 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-    Building2,
-    Bus,
-    Car,
-    Plus,
-    Briefcase,
-    PartyPopper,
-    Stethoscope,
-    Sparkles,
-    ChevronLeft,
-    ChevronRight
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 const categories = [
-    { label: "Hotels", sub: "Hospitality", icon: Building2, href: "/services?category=Hospitality" },
-    { label: "Transportation", sub: "Transport", icon: Car, href: "/services?category=Transport" },
-    { label: "Cleaning", sub: "Home Services", icon: Sparkles, href: "/services?category=Home Services" },
-    { label: "Tech", sub: "IT/Dev", icon: Briefcase, href: "/services?category=Tech" },
-    { label: "Events", sub: "Party/Wedding", icon: PartyPopper, href: "/services?category=Events" },
-    { label: "Health", sub: "Medical", icon: Stethoscope, href: "/services?category=Health" },
-    { label: "Add Listing", sub: "Join Us", icon: Plus, href: "/services/new", isAction: true },
+    {
+        label: "Hotels",
+        sub: "Hospitality",
+        href: "/services?category=Hospitality",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"
+    },
+    {
+        label: "Transportation",
+        sub: "Transport",
+        href: "/services?category=Transport",
+        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800"
+    },
+    {
+        label: "Cleaning",
+        sub: "Home Services",
+        href: "/services?category=Home Services",
+        image: "https://images.unsplash.com/photo-1581578731117-104f2a9d4547?w=800"
+    },
+    {
+        label: "Tech",
+        sub: "IT/Dev",
+        href: "/services?category=Tech",
+        image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800"
+    },
+    {
+        label: "Events",
+        sub: "Party/Wedding",
+        href: "/services?category=Events",
+        image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800"
+    },
+    {
+        label: "Health",
+        sub: "Medical",
+        href: "/services?category=Health",
+        image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800"
+    },
+    {
+        label: "Add Listing",
+        sub: "Join Us",
+        href: "/services/new",
+        isAction: true,
+        image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800"
+    },
 ]
 
 export function CategoryCarousel() {
@@ -64,16 +89,32 @@ export function CategoryCarousel() {
                         href={cat.href}
                         className="flex-none w-[200px] md:w-[240px] snap-center"
                     >
-                        <Card className={`h-full hover:shadow-lg transition-all cursor-pointer border group/card ${cat.isAction ? 'border-dashed border-primary/50 bg-primary/5' : 'border-border bg-card hover:border-primary/50'}`}>
-                            <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
-                                <div className={`p-4 rounded-full ${cat.isAction ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground group-hover/card:bg-primary/20 group-hover/card:text-primary'} transition-colors`}>
-                                    <cat.icon className="h-8 w-8" />
+                        <Card className={`h-full overflow-hidden hover:shadow-xl transition-all cursor-pointer border-0 group/card ${cat.isAction ? 'ring-2 ring-primary/50' : ''}`}>
+                            <div className="relative h-[280px] overflow-hidden">
+                                {/* Background Image */}
+                                <div
+                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover/card:scale-110"
+                                    style={{ backgroundImage: `url(${cat.image})` }}
+                                />
+
+                                {/* Dark Overlay */}
+                                <div className="absolute inset-0 bg-black/40 group-hover/card:bg-black/30 transition-colors" />
+
+                                {/* Content */}
+                                <div className="relative h-full flex flex-col items-center justify-center text-center p-6">
+                                    {cat.isAction && (
+                                        <div className="mb-3 p-3 rounded-full bg-primary/20 backdrop-blur-sm">
+                                            <Plus className="h-8 w-8 text-white" />
+                                        </div>
+                                    )}
+                                    <h3 className="font-bold text-2xl text-white mb-2 drop-shadow-lg">
+                                        {cat.label}
+                                    </h3>
+                                    <p className="text-sm text-white/90 font-medium drop-shadow-md">
+                                        {cat.sub}
+                                    </p>
                                 </div>
-                                <div>
-                                    <h3 className={`font-semibold text-lg ${cat.isAction ? 'text-primary' : 'text-foreground'}`}>{cat.label}</h3>
-                                    <p className="text-xs text-muted-foreground mt-1">{cat.sub}</p>
-                                </div>
-                            </CardContent>
+                            </div>
                         </Card>
                     </Link>
                 ))}
