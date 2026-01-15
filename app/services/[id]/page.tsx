@@ -100,20 +100,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                         </p>
                     </div>
 
-                    <ReviewsList reviews={reviews} />
 
-                    {user ? (
-                        <ReviewForm serviceId={service.id} />
-                    ) : (
-                        <div className="mt-8 p-6 border border-dashed border-border rounded-lg bg-secondary/20 text-center">
-                            <p className="text-muted-foreground mb-2">
-                                Want to write a review?
-                            </p>
-                            <a href={`/auth/login?next=/services/${service.id}`} className="text-primary hover:text-primary/80 hover:underline font-medium">
-                                Log in to share your experience
-                            </a>
-                        </div>
-                    )}
                 </div>
 
                 {/* Right Column: The Deal Zone */}
@@ -126,6 +113,27 @@ export default async function ServicePage({ params }: ServicePageProps) {
                         currentUserId={user?.id || null}
                     />
                 </div>
+            </div>
+
+            <hr className="my-8 border-border" />
+
+            <div className="space-y-8">
+                <ReviewsList reviews={reviews} />
+
+                {user ? (
+                    <div className="w-full">
+                        <ReviewForm serviceId={service.id} />
+                    </div>
+                ) : (
+                    <div className="p-8 border border-dashed border-border rounded-lg bg-secondary/10 text-center">
+                        <p className="text-muted-foreground mb-4 text-lg">
+                            Have you used this service? Share your experience!
+                        </p>
+                        <a href={`/auth/login?next=/services/${service.id}`} className="inline-block bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors">
+                            Log in to write a review
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
     )
