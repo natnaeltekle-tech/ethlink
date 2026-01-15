@@ -86,10 +86,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
                 {/* Left Column: Description and Images */}
                 <div className="lg:col-span-2 space-y-8">
                     <ServiceGallery
-                        images={service.images || service.gallery || (service.image_url ? [service.image_url] : [])}
+                        images={service.images || service.gallery || []}
                         title={service.title}
                         isOwner={user?.id === service.user_id}
                         serviceId={service.id}
+                        imageUrl={service.image_url}
                     />
 
                     <div className="prose dark:prose-invert max-w-none">

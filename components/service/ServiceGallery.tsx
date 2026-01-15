@@ -14,9 +14,10 @@ interface ServiceGalleryProps {
     title: string
     isOwner?: boolean
     serviceId?: string
+    imageUrl?: string | null
 }
 
-export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGalleryProps) {
+export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: ServiceGalleryProps) {
     const [isUploading, setIsUploading] = useState(false)
     const router = useRouter()
 
@@ -61,8 +62,8 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
         }
     }
 
-    // Ensure we have at least standard array structure
-    const displayImages = images && images.length > 0 ? images : []
+    // Use gallery images if available, otherwise fallback to legacy imageUrl
+    const displayImages = images && images.length > 0 ? images : (imageUrl ? [imageUrl] : [])
 
     // Empty state for non-owners
     if (displayImages.length === 0 && !isOwner) {
@@ -99,17 +100,6 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
             {/* Mobile: Horizontal Scroll */}
             <div className="md:hidden">
                 <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4">
-                    {/* Add Image Button - Owner Only - First in scroll */}
-                    {isOwner && serviceId && (
-                        <label className="flex-shrink-0 w-[calc(100vw-2rem)] aspect-[4/3] rounded-xl border-2 border-dashed border-primary/30 bg-muted/50 cursor-pointer hover:bg-muted transition-colors snap-start flex flex-col items-center justify-center gap-3 active:scale-[0.98]">
-                            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8" />}
-                            </div>
-                            <span className="text-base font-semibold text-foreground">Tap to Add Photo</span>
-                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
-                        </label>
-                    )}
-
                     {/* Images */}
                     {displayImages.map((image, index) => (
                         <div
@@ -126,6 +116,17 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
                             />
                         </div>
                     ))}
+
+                    {/* Add Image Button - Owner Only - End of scroll */}
+                    {isOwner && serviceId && (
+                        <label className="flex-shrink-0 w-[calc(100vw-2rem)] aspect-[4/3] rounded-xl border-2 border-dashed border-primary/30 bg-muted/50 cursor-pointer hover:bg-muted transition-colors snap-start flex flex-col items-center justify-center gap-3 active:scale-[0.98]">
+                            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8" />}
+                            </div>
+                            <span className="text-base font-semibold text-foreground">Tap to Add Photo</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
+                        </label>
+                    )}
                 </div>
 
                 {/* Photo counter */}
