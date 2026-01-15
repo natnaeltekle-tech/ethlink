@@ -63,120 +63,177 @@ export function ServiceGallery({ images, title, isOwner, serviceId }: ServiceGal
 
     // Ensure we have at least standard array structure
     const displayImages = images && images.length > 0 ? images : []
-    // If we have images, use them. If main image is missing but we have side images, valid but rare.
-    // If displayImages is empty, we handle placeholders below.
 
-    const mainImage = displayImages[0]
-    const sideImages = displayImages.slice(1, 3) // Get next 2 images
-
-    // If completely empty and not owner, show simple placeholder
+    // Empty state for non-owners
     if (displayImages.length === 0 && !isOwner) {
         return (
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-muted flex items-center justify-center text-muted-foreground">
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-muted flex items-center justify-center text-muted-foreground mb-6">
                 <div className="flex flex-col items-center gap-2">
                     <span className="text-4xl opacity-50">📷</span>
-                    <span>No Images Available</span>
+                    <span className="text-sm md:text-base">No photos available</span>
                 </div>
             </div>
         )
     }
 
-    return (
-        <div className="relative rounded-xl overflow-hidden group mb-6">
+    // Empty state for owners - large upload prompt
+    if (displayImages.length === 0 && isOwner && serviceId) {
+        return (
+            <div className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-primary/30 bg-muted/50 mb-6">
+                <label className="cursor-pointer flex flex-col items-center justify-center gap-4 p-12 md:p-16 hover:bg-muted/80 transition-colors group/upload min-h-[300px]">
+                    <div className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
+                        {isUploading ? <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin" /> : <Plus className="w-10 h-10 md:w-12 md:h-12" />}
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-lg md:text-xl font-semibold text-foreground group-hover/upload:text-primary transition-colors">Upload First Photo</span>
+                        <span className="text-sm text-muted-foreground">Tap to add your first service photo</span>
+                    </div>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
+                </label>
+            </div>
+        )
+    }
 
-            <div className="flex flex-col md:grid md:grid-cols-2 gap-2 h-auto md:h-[500px]">
-                {/* Main Image (Left) */}
-                <div className="relative h-[300px] md:h-full w-full overflow-hidden bg-muted rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
-                    {mainImage ? (
-                        <Image
-                            src={getFullUrl(mainImage) || ''}
-                            alt={`${title} - Main`}
-                            fill
-                            className="object-cover transition-transform duration-500 hover:scale-105"
-                            priority
-                            sizes="(max-width: 768px) 100vw, 50vw"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            {isOwner && serviceId ? (
-                                <label className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-muted/50 rounded-lg transition-colors group/upload">
-                                    <div className="h-16 w-16 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
-                                        {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8" />}
-                                    </div>
-                                    <span className="text-sm font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Main Photo</span>
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
-                                </label>
-                            ) : (
-                                <span className="text-muted-foreground">No Main Image</span>
-                            )}
-                        </div>
+    return (
+        <div className="relative mb-6">
+            {/* Mobile: Horizontal Scroll */}
+            <div className="md:hidden">
+                <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4">
+                    {/* Add Image Button - Owner Only - First in scroll */}
+                    {isOwner && serviceId && (
+                        <label className="flex-shrink-0 w-[calc(100vw-2rem)] aspect-[4/3] rounded-xl border-2 border-dashed border-primary/30 bg-muted/50 cursor-pointer hover:bg-muted transition-colors snap-start flex flex-col items-center justify-center gap-3 active:scale-[0.98]">
+                            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8" />}
+                            </div>
+                            <span className="text-base font-semibold text-foreground">Tap to Add Photo</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
+                        </label>
                     )}
+
+                    {/* Images */}
+                    {displayImages.map((image, index) => (
+                        <div
+                            key={index}
+                            className="flex-shrink-0 w-[calc(100vw-2rem)] aspect-[4/3] relative rounded-xl overflow-hidden bg-muted snap-start"
+                        >
+                            <Image
+                                src={getFullUrl(image) || ''}
+                                alt={`${title} - ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                priority={index === 0}
+                                sizes="100vw"
+                            />
+                        </div>
+                    ))}
                 </div>
 
-                {/* Side Images (Right) */}
-                <div className="grid grid-cols-2 md:flex md:flex-col gap-2 w-full h-[150px] md:h-full">
-                    {/* Top Right */}
-                    <div className="relative h-full md:h-1/2 w-full overflow-hidden bg-muted rounded-bl-xl md:rounded-bl-none md:rounded-tr-xl">
-                        {sideImages[0] ? (
+                {/* Photo counter */}
+                {displayImages.length > 0 && (
+                    <div className="flex justify-center mt-3">
+                        <div className="px-3 py-1 rounded-full bg-black/60 text-white text-xs font-medium">
+                            {displayImages.length} {displayImages.length === 1 ? 'photo' : 'photos'}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop: Grid Layout (unchanged) */}
+            <div className="hidden md:block rounded-xl overflow-hidden group">
+                <div className="grid grid-cols-2 gap-2 h-[500px]">
+                    {/* Main Image (Left) */}
+                    <div className="relative h-full w-full overflow-hidden bg-muted rounded-l-xl">
+                        {displayImages[0] ? (
                             <Image
-                                src={getFullUrl(sideImages[0]) || ''}
-                                alt={`${title} - 2`}
+                                src={getFullUrl(displayImages[0]) || ''}
+                                alt={`${title} - Main`}
                                 fill
                                 className="object-cover transition-transform duration-500 hover:scale-105"
-                                sizes="(max-width: 768px) 50vw, 25vw"
+                                priority
+                                sizes="50vw"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
                                 {isOwner && serviceId ? (
                                     <label className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-muted/50 rounded-lg transition-colors group/upload">
-                                        <div className="h-12 w-12 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
-                                            {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
+                                        <div className="h-16 w-16 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
+                                            {isUploading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8" />}
                                         </div>
-                                        <span className="text-xs font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Photo</span>
+                                        <span className="text-sm font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Main Photo</span>
                                         <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
                                     </label>
                                 ) : (
-                                    <span className="text-muted-foreground/30 font-bold text-xl">Eth-Links</span>
+                                    <span className="text-muted-foreground">No Main Image</span>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    {/* Bottom Right */}
-                    <div className="relative h-full md:h-1/2 w-full overflow-hidden bg-muted rounded-br-xl">
-                        {sideImages[1] ? (
-                            <Image
-                                src={getFullUrl(sideImages[1]) || ''}
-                                alt={`${title} - 3`}
-                                fill
-                                className="object-cover transition-transform duration-500 hover:scale-105"
-                                sizes="(max-width: 768px) 50vw, 25vw"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                {isOwner && serviceId ? (
-                                    <label className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-muted/50 rounded-lg transition-colors group/upload">
-                                        <div className="h-12 w-12 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
-                                            {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
-                                        </div>
-                                        <span className="text-xs font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Photo</span>
-                                        <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
-                                    </label>
-                                ) : (
-                                    <span className="text-muted-foreground/30 font-bold text-xl">Eth-Links</span>
-                                )}
-                            </div>
-                        )}
+                    {/* Side Images (Right) */}
+                    <div className="flex flex-col gap-2 w-full h-full">
+                        {/* Top Right */}
+                        <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-tr-xl">
+                            {displayImages[1] ? (
+                                <Image
+                                    src={getFullUrl(displayImages[1]) || ''}
+                                    alt={`${title} - 2`}
+                                    fill
+                                    className="object-cover transition-transform duration-500 hover:scale-105"
+                                    sizes="25vw"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    {isOwner && serviceId ? (
+                                        <label className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-muted/50 rounded-lg transition-colors group/upload">
+                                            <div className="h-12 w-12 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
+                                                {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
+                                            </div>
+                                            <span className="text-xs font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Photo</span>
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
+                                        </label>
+                                    ) : (
+                                        <span className="text-muted-foreground/30 font-bold text-xl">Eth-Links</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
-                        {/* Overlay for "View All" (Only if we have images in this slot or more) */}
-                        {sideImages[1] && (
-                            <div className="absolute inset-0 bg-black/10 transition-colors hover:bg-black/20 flex items-end justify-end p-4">
-                                <Button size="sm" variant="secondary" className="gap-2 font-semibold shadow-md pointer-events-none">
-                                    <Grid className="w-4 h-4" />
-                                    See all photos
-                                </Button>
-                            </div>
-                        )}
+                        {/* Bottom Right */}
+                        <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-br-xl">
+                            {displayImages[2] ? (
+                                <Image
+                                    src={getFullUrl(displayImages[2]) || ''}
+                                    alt={`${title} - 3`}
+                                    fill
+                                    className="object-cover transition-transform duration-500 hover:scale-105"
+                                    sizes="25vw"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    {isOwner && serviceId ? (
+                                        <label className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-muted/50 rounded-lg transition-colors group/upload">
+                                            <div className="h-12 w-12 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
+                                                {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
+                                            </div>
+                                            <span className="text-xs font-medium text-muted-foreground group-hover/upload:text-primary transition-colors">Add Photo</span>
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
+                                        </label>
+                                    ) : (
+                                        <span className="text-muted-foreground/30 font-bold text-xl">Eth-Links</span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Overlay for "View All" */}
+                            {displayImages[2] && (
+                                <div className="absolute inset-0 bg-black/10 transition-colors hover:bg-black/20 flex items-end justify-end p-4">
+                                    <Button size="sm" variant="secondary" className="gap-2 font-semibold shadow-md pointer-events-none">
+                                        <Grid className="w-4 h-4" />
+                                        See all photos
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
