@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, UserCog, AlertCircle, Shield } from 'lucide-react'
+import { Trash2, UserCog, AlertCircle, Shield, Mail } from 'lucide-react'
 import { deleteService, updateProfile } from '@/lib/actions'
 import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 
 import {
     AlertDialog,
@@ -86,28 +87,33 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                         User Details
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xl">
+                <CardContent>
+                    <div className="flex items-center gap-6">
+                        {/* Large Avatar */}
+                        <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl shadow-sm border border-primary/10">
                             {user.email?.[0].toUpperCase()}
                         </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Email</p>
-                            <p className="text-lg font-medium">{user.email}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className={`h-12 w-12 rounded-full flex items-center justify-center ${services.length > 0
-                            ? 'bg-primary/20 text-primary'
-                            : 'bg-secondary text-muted-foreground'
-                            }`}>
-                            <Shield className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Role</p>
-                            <p className="text-lg font-medium">
-                                {services.length > 0 ? 'Vendor' : 'Customer'}
-                            </p>
+
+                        <div className="space-y-2">
+                            {/* Email with Icon */}
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Mail className="h-4 w-4" />
+                                <span className="font-medium">{user.email}</span>
+                            </div>
+
+                            {/* Role Badge */}
+                            <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-muted-foreground" />
+                                <Badge
+                                    variant="outline"
+                                    className={`${services.length > 0
+                                        ? 'bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-yellow-200'
+                                        : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200'
+                                        } px-3 py-1 font-semibold`}
+                                >
+                                    {services.length > 0 ? 'Vendor Account' : 'Customer Account'}
+                                </Badge>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
