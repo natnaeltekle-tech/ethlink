@@ -8,18 +8,40 @@ export function ServiceCard({ service, distance }: { service: any, distance?: nu
         <Link href={`/services/${service.id}`} className="group block">
             <Card className="h-full overflow-hidden border-border bg-card transition-all hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/50 relative">
                 {/* Image Area */}
-                <div className="aspect-[4/3] relative bg-secondary/50 overflow-hidden">
-                    {service.images?.[0] ? (
-                        <img
-                            src={service.images[0]}
-                            alt={service.title}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                            <Building2 className="h-12 w-12" />
-                        </div>
-                    )}
+                <div className="relative h-48 w-full bg-secondary/50 overflow-hidden">
+                    {(() => {
+                        // 1. Check Gallery First
+                        const galleryImage = service.gallery?.[0]
+                        if (galleryImage) {
+                            return (
+                                <img
+                                    src={galleryImage.startsWith('http')
+                                        ? galleryImage
+                                        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${galleryImage}`}
+                                    alt={service.title}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                            )
+                        }
+
+                        // 2. Check Old Image Field
+                        if (service.image_url) {
+                            return (
+                                <img
+                                    src={service.image_url}
+                                    alt={service.title}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                            )
+                        }
+
+                        // 3. Fallback Placeholder
+                        return (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                                <Building2 className="h-12 w-12" />
+                            </div>
+                        )
+                    })()}
 
                     {/* Top Right Badge - Rating (only if reviews exist) */}
                     {service.avg_rating && service.avg_rating > 0 && (
@@ -60,6 +82,6 @@ export function ServiceCard({ service, distance }: { service: any, distance?: nu
                     </div>
                 </CardContent>
             </Card>
-        </Link>
+        </Link >
     )
 }
