@@ -8,7 +8,7 @@ import { getUserBookings, getProviderStats, getProviderServices, getProfile, com
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { Navbar } from "@/components/navbar";
 
-export const revalidate = 0;
+
 
 export default async function DashboardPage() {
     const supabase = await createClient();
