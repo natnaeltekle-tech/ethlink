@@ -3,45 +3,46 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, Building2, Star } from 'lucide-react'
 
+// Category-specific placeholder images from Unsplash
+const CATEGORY_PLACEHOLDERS: Record<string, string> = {
+    'Hospitality': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+    'Transport': 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800',
+    'Home Services': 'https://images.unsplash.com/photo-1581578731117-104f2a9d4547?w=800',
+    'Tech': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
+    'Events': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
+}
+const DEFAULT_PLACEHOLDER = 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800'
+
 export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
+    // Determine the image to display
+    const getImageSrc = () => {
+        // 1. Check Gallery First
+        const galleryImage = service.gallery?.[0]
+        if (galleryImage) {
+            return galleryImage.startsWith('http')
+                ? galleryImage
+                : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${galleryImage}`
+        }
+
+        // 2. Check Old Image Field
+        if (service.image_url) {
+            return service.image_url
+        }
+
+        // 3. Smart Category Placeholder
+        return CATEGORY_PLACEHOLDERS[service.category] || DEFAULT_PLACEHOLDER
+    }
+
     return (
         <Link href={`/services/${service.id}`} className="group block">
             <Card className="h-full overflow-hidden border-border bg-card transition-all hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/50 relative">
                 {/* Image Area */}
-                <div className="relative h-48 w-full bg-secondary/50 overflow-hidden">
-                    {(() => {
-                        // 1. Check Gallery First
-                        const galleryImage = service.gallery?.[0]
-                        if (galleryImage) {
-                            return (
-                                <img
-                                    src={galleryImage.startsWith('http')
-                                        ? galleryImage
-                                        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${galleryImage}`}
-                                    alt={service.title}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                />
-                            )
-                        }
-
-                        // 2. Check Old Image Field
-                        if (service.image_url) {
-                            return (
-                                <img
-                                    src={service.image_url}
-                                    alt={service.title}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                />
-                            )
-                        }
-
-                        // 3. Fallback Placeholder
-                        return (
-                            <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                                <Building2 className="h-12 w-12" />
-                            </div>
-                        )
-                    })()}
+                <div className="relative aspect-[4/3] w-full bg-secondary/50 overflow-hidden">
+                    <img
+                        src={getImageSrc()}
+                        alt={service.title}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
 
                     {/* Top Right Badge - Rating (only if reviews exist) */}
                     {service.avg_rating && service.avg_rating > 0 && (
