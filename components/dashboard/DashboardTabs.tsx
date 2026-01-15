@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { SettingsTab } from '@/components/dashboard/SettingsTab'
 import { ProviderPanel } from '@/components/dashboard/ProviderPanel'
@@ -15,6 +15,10 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
     const [activeTab, setActiveTab] = useState<'overview' | 'provider' | 'settings'>('overview')
     const [completingJob, setCompletingJob] = useState<string | null>(null)
     const router = useRouter()
+
+    useEffect(() => {
+        router.refresh()
+    }, [router])
 
     const handleCompleteJob = async (bookingId: string) => {
         if (!confirm('Are you sure the job is completed to your satisfaction?')) return
@@ -79,8 +83,8 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                 ) : (
                                     <div className="grid gap-4">
                                         {bookings.map((booking) => (
-                                            <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg bg-card hover:bg-secondary/50 transition-colors">
-                                                <div className="space-y-1 mb-4 sm:mb-0">
+                                            <div key={booking.id} className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between p-4 border border-border rounded-lg bg-card hover:bg-secondary/50 transition-colors">
+                                                <div className="space-y-1 w-full sm:w-auto">
                                                     <p className="font-bold text-lg">{booking.services?.title || 'Unknown Service'}</p>
                                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                         <span>{new Date(booking.date).toLocaleDateString()}</span>
@@ -97,30 +101,30 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 sm:gap-0">
+                                                <div className="w-full sm:w-auto flex flex-col gap-3 sm:items-end">
                                                     <p className="font-bold text-lg text-primary">{booking.services?.price} ETB</p>
                                                     {booking.status === 'pending' && (
-                                                        <Button size="sm" variant="outline" disabled className="mt-0 sm:mt-2 opacity-70">
+                                                        <Button size="sm" variant="outline" disabled className="w-full sm:w-auto opacity-70">
                                                             Waiting for Approval
                                                         </Button>
                                                     )}
                                                     {booking.status === 'confirmed' && (
-                                                        <Button size="sm" className="mt-0 sm:mt-2 bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+                                                        <Button size="sm" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" asChild>
                                                             <Link href={`/payment/${booking.id}`}>
                                                                 Pay Now
                                                             </Link>
                                                         </Button>
                                                     )}
                                                     {booking.status === 'completed' && (
-                                                        <Button size="sm" variant="secondary" disabled className="mt-0 sm:mt-2 opacity-70">
+                                                        <Button size="sm" variant="secondary" disabled className="w-full sm:w-auto opacity-70">
                                                             Job Completed
                                                         </Button>
                                                     )}
                                                     {booking.status === 'paid' && (
-                                                        <div className="flex gap-2 mt-0 sm:mt-2">
+                                                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                                                             <Button
                                                                 size="sm"
-                                                                className="bg-green-600 hover:bg-green-700 text-white"
+                                                                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
                                                                 onClick={() => handleCompleteJob(booking.id)}
                                                                 disabled={completingJob === booking.id}
                                                             >
@@ -134,7 +138,7 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                                     </span>
                                                                 )}
                                                             </Button>
-                                                            <Button size="sm" variant="outline" asChild>
+                                                            <Button size="sm" variant="outline" className="w-full sm:w-auto" asChild>
                                                                 <Link href={`/book/success?bookingId=${booking.id}`}>
                                                                     View Receipt
                                                                 </Link>
