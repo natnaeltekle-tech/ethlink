@@ -73,9 +73,9 @@ export default async function Index() {
 
             <div className="grid md:grid-cols-3 gap-8 text-center">
               {[
-                { icon: Search, title: "1. Find Your Service", desc: "Use our smart search or AI recommendations to find the perfect service provider." },
-                { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Select your service, choose a date, and pay securely. All providers are verified." },
-                { icon: Handshake, title: "3. Get It Done", desc: "Your chosen professional arrives and completes the job. Enjoy peace of mind." },
+                { icon: Search, title: "1. Find Your Service", desc: "Find exactly what you need instantly with our AI Smart Search." },
+                { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Book securely and pay directly via Telebirr or CBE." },
+                { icon: Handshake, title: "3. Get It Done", desc: "Get the job done. Verified providers, zero stress." },
               ].map((step, i) => (
                 <div key={i} className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group">
                   <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
