@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { BookingForm } from '@/components/booking-form';
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
 
 export default async function BookingPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -19,7 +20,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
                     {/* Header Image */}
                     <div className="relative h-48 sm:h-64 w-full">
                         <Image
-                            src={service.gallery?.[0] || service.image_url || '/placeholder.jpg'}
+                            src={service.gallery?.[0] || service.image_url || DEFAULT_SERVICE_IMAGE}
                             alt={service.title}
                             fill
                             className="object-cover"

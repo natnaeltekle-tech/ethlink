@@ -4,6 +4,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, Building2, Star } from 'lucide-react'
 
 // Category-specific placeholder images from Unsplash
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
+
+// Category-specific placeholder images from Unsplash
 const CATEGORY_PLACEHOLDERS: Record<string, string> = {
     'Hospitality': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
     'Transport': 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800',
@@ -11,7 +14,6 @@ const CATEGORY_PLACEHOLDERS: Record<string, string> = {
     'Tech': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
     'Events': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
 }
-const DEFAULT_PLACEHOLDER = 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800'
 
 export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
     // Determine the image to display
@@ -29,8 +31,8 @@ export function ServiceCard({ service, distance }: { service: any, distance?: nu
             return service.image_url
         }
 
-        // 3. Smart Category Placeholder
-        return CATEGORY_PLACEHOLDERS[service.category] || DEFAULT_PLACEHOLDER
+        // 3. Smart Category Placeholder or Global Default
+        return CATEGORY_PLACEHOLDERS[service.category] || DEFAULT_SERVICE_IMAGE
     }
 
     return (

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ShieldCheck, Calendar, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { PaymentMethods } from '@/components/payment/payment-methods';
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
 
 export default async function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -27,21 +28,21 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
                         <div className="mb-8">
                             {/* Service Details */}
                             <div className="flex gap-4 mb-4 items-center justify-center">
-                                <div className="relative h-20 w-20 rounded-lg overflow-hidden shrink-0 shadow-sm border border-border">
+                                <div className="relative h-24 w-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-border">
                                     <Image
-                                        src={service.images?.[0] || '/placeholder.jpg'}
+                                        src={service.gallery?.[0] || service.image_url || DEFAULT_SERVICE_IMAGE}
                                         alt={service.title}
                                         fill
                                         className="object-cover"
                                     />
                                 </div>
                                 <div>
-                                    <h3 className="font-medium text-foreground text-lg">{service.title}</h3>
+                                    <h3 className="text-xl font-semibold text-foreground">{service.title}</h3>
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                                         <Calendar className="h-3 w-3" />
                                         <span>{new Date(booking.date).toLocaleString('en-US', { timeZone: 'UTC' })}</span>
                                     </div>
-                                    <div className="mt-2 text-2xl font-bold text-primary">
+                                    <div className="mt-2 text-3xl font-bold text-primary">
                                         {service.price} ETB
                                     </div>
                                 </div>

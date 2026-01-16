@@ -8,6 +8,7 @@ import { Grid, Plus, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { addImageToGallery } from '@/lib/gallery-actions'
 import { toast } from 'sonner'
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 
 interface ServiceGalleryProps {
     images: string[]
@@ -107,7 +108,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                             className="flex-shrink-0 w-[calc(100vw-2rem)] aspect-[4/3] relative rounded-xl overflow-hidden bg-muted snap-start"
                         >
                             <Image
-                                src={getFullUrl(image) || ''}
+                                src={getFullUrl(image) || DEFAULT_SERVICE_IMAGE}
                                 alt={`${title} - ${index + 1}`}
                                 fill
                                 className="object-cover"
@@ -146,7 +147,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                     <div className="relative h-full w-full overflow-hidden bg-muted rounded-l-xl">
                         {displayImages[0] ? (
                             <Image
-                                src={getFullUrl(displayImages[0]) || ''}
+                                src={getFullUrl(displayImages[0]) || DEFAULT_SERVICE_IMAGE}
                                 alt={`${title} - Main`}
                                 fill
                                 className="object-cover transition-transform duration-500 hover:scale-105"
@@ -176,7 +177,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                         <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-tr-xl">
                             {displayImages[1] ? (
                                 <Image
-                                    src={getFullUrl(displayImages[1]) || ''}
+                                    src={getFullUrl(displayImages[1]) || DEFAULT_SERVICE_IMAGE}
                                     alt={`${title} - 2`}
                                     fill
                                     className="object-cover transition-transform duration-500 hover:scale-105"
@@ -203,7 +204,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                         <div className="relative h-1/2 w-full overflow-hidden bg-muted rounded-br-xl">
                             {displayImages[2] ? (
                                 <Image
-                                    src={getFullUrl(displayImages[2]) || ''}
+                                    src={getFullUrl(displayImages[2]) || DEFAULT_SERVICE_IMAGE}
                                     alt={`${title} - 3`}
                                     fill
                                     className="object-cover transition-transform duration-500 hover:scale-105"
