@@ -13,6 +13,7 @@ const CATEGORY_PLACEHOLDERS: Record<string, string> = {
     'Home Services': 'https://images.unsplash.com/photo-1581578731117-104f2a9d4547?w=800',
     'Tech': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
     'Events': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
+    'Photography': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
 }
 
 export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
