@@ -1045,6 +1045,40 @@ export async function updateProfile(formData: FormData) {
     revalidatePath('/services/[id]')
 }
 
+export async function resetServiceImage(serviceId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    // Verify ownership
+    const { data: service } = await supabase
+        .from('services')
+        .select('user_id')
+        .eq('id', serviceId)
+        .single()
+
+    if (!service || service.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    const { error } = await supabase
+        .from('services')
+        .update({
+            image_url: null,
+            gallery: []
+        })
+        .eq('id', serviceId)
+
+    if (error) {
+        console.error('Error resetting service image:', error)
+        throw new Error('Failed to reset service image')
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath(`/services/${serviceId}`)
+}
+
 export async function getProfile() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

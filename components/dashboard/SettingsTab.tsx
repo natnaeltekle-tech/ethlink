@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, UserCog, AlertCircle, Shield, Mail } from 'lucide-react'
-import { deleteService, updateProfile } from '@/lib/actions'
+import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff } from 'lucide-react'
+import { deleteService, updateProfile, resetServiceImage } from '@/lib/actions'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 
@@ -24,6 +24,7 @@ import {
 
 export function SettingsTab({ services, user, profile }: { services: any[], user: any, profile: any }) {
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
+    const [isResetting, setIsResetting] = useState<string | null>(null)
     const [isUpdating, setIsUpdating] = useState(false)
 
     // Pre-fill logic helpers
@@ -61,6 +62,19 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
             console.error(error)
         } finally {
             setIsDeleting(null)
+        }
+    }
+
+    const handleResetImage = async (id: string) => {
+        setIsResetting(id)
+        try {
+            await resetServiceImage(id)
+            toast.success('Service image reset successfully')
+        } catch (error) {
+            toast.error('Failed to reset service image')
+            console.error(error)
+        } finally {
+            setIsResetting(null)
         }
     }
 
@@ -141,37 +155,50 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                                         <h4 className="font-semibold">{service.title}</h4>
                                         <p className="text-sm text-green-500 font-bold">{service.price} ETB</p>
                                     </div>
-                                    <AlertDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                className="gap-2"
-                                                disabled={isDeleting === service.id}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                                {isDeleting === service.id ? 'Deleting...' : 'Delete'}
-                                            </Button>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This action cannot be undone. This will permanently delete your service
-                                                    "{service.title}" and remove it from our servers.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                    onClick={() => handleDelete(service.id)}
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => handleResetImage(service.id)}
+                                            disabled={isResetting === service.id}
+                                            title="Reset Image"
+                                        >
+                                            <ImageOff className="h-4 w-4" />
+                                            {isResetting === service.id ? '...' : ''}
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="gap-2"
+                                                    disabled={isDeleting === service.id}
                                                 >
-                                                    Delete
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
+                                                    <Trash2 className="h-4 w-4" />
+                                                    {isDeleting === service.id ? 'Deleting...' : 'Delete'}
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete your service
+                                                        "{service.title}" and remove it from our servers.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                        onClick={() => handleDelete(service.id)}
+                                                    >
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </div>
                             ))}
                         </div>
