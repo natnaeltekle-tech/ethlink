@@ -6,34 +6,32 @@ import { MapPin, Building2, Star } from 'lucide-react'
 // Category-specific placeholder images from Unsplash
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 
-// Category-specific placeholder images from Unsplash
-const CATEGORY_PLACEHOLDERS: Record<string, string> = {
-    'Hospitality': 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
-    'Transport': 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800',
-    'Home Services': 'https://images.unsplash.com/photo-1581578731117-104f2a9d4547?w=800',
-    'Tech': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
-    'Events': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
-    'Photography': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800',
-}
+
 
 export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
     // Determine the image to display
     const getImageSrc = () => {
-        // 1. Check Gallery First
-        const galleryImage = service.gallery?.[0]
-        if (galleryImage) {
-            return galleryImage.startsWith('http')
-                ? galleryImage
-                : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${galleryImage}`
+        let imageSrc;
+
+        // 1. Check if service.gallery has items. Use gallery[0].
+        if (service.gallery && service.gallery.length > 0) {
+            imageSrc = service.gallery[0];
+        }
+        // 2. If not, check service.image_url.
+        else if (service.image_url) {
+            imageSrc = service.image_url;
+        }
+        // 3. ONLY if both are null/empty, use DEFAULT_IMAGE.
+        else {
+            imageSrc = DEFAULT_SERVICE_IMAGE;
         }
 
-        // 2. Check Old Image Field
-        if (service.image_url) {
-            return service.image_url
+        // URL Fix: If the image string is a relative path (starts with /), automatically prepend the Supabase Storage Base URL.
+        if (imageSrc.startsWith('/')) {
+            imageSrc = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${imageSrc}`;
         }
 
-        // 3. Smart Category Placeholder or Global Default
-        return CATEGORY_PLACEHOLDERS[service.category] || DEFAULT_SERVICE_IMAGE
+        return imageSrc;
     }
 
     return (
