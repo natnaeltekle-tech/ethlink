@@ -3,7 +3,7 @@ import { Handshake } from 'lucide-react'
 
 export function Footer() {
     return (
-        <footer className="hidden md:block border-t border-border py-12 bg-card select-none">
+        <footer className="border-t border-border py-12 pb-20 bg-card select-none">
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* Brand Section */}

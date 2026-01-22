@@ -76,8 +76,8 @@ export default function ServiceListing({ services }: { services: any[] }) {
                     setSortedServices(sorted);
                 },
                 (error) => {
-                    console.error("Error getting location", error);
-                    // toast("Could not get your location to sort by distance.");
+                    // Silently handle geolocation errors (user denied permission or unavailable)
+                    // Services will display in default order without distance sorting
                 }
             );
         }
