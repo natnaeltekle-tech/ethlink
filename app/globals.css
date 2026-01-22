@@ -72,7 +72,9 @@
 
   /* Disable pull-to-refresh on mobile by containing overflow */
   @media (max-width: 768px) {
-    html, body {
+
+    html,
+    body {
       overscroll-behavior-y: contain;
     }
   }
@@ -112,5 +114,17 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
     /* Chrome, Safari and Opera */
+  }
+
+  /* GPU Acceleration for smooth mobile transitions */
+  .page-container {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* Smooth transitions for route changes */
+  main {
+    will-change: transform;
   }
 }

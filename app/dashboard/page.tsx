@@ -1,13 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Link as UserLink, Handshake } from "lucide-react";
-import { getUserBookings, getProviderStats, getProviderServices, getProfile, completeJob } from "@/lib/actions";
-import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { getUserBookings, getProviderStats, getProviderServices, getProfile } from "@/lib/actions";
+import { DashboardClient } from "@/components/dashboard/DashboardClient";
 import { Navbar } from "@/components/navbar";
-
 
 
 export default async function DashboardPage() {
@@ -21,6 +16,7 @@ export default async function DashboardPage() {
         return redirect("/auth/login");
     }
 
+    // Fetch initial data for SSR
     const bookings = await getUserBookings();
     const providerStats = await getProviderStats();
     const providerServices = await getProviderServices();
@@ -34,12 +30,12 @@ export default async function DashboardPage() {
             <main className="w-full max-w-lg mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-                <DashboardTabs
+                <DashboardClient
                     user={user}
-                    bookings={bookings}
-                    providerStats={providerStats}
-                    providerServices={providerServices}
-                    profile={profile}
+                    initialProfile={profile}
+                    initialBookings={bookings}
+                    initialProviderServices={providerServices}
+                    initialProviderStats={providerStats}
                 />
             </main>
         </div >

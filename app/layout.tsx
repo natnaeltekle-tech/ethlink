@@ -15,7 +15,14 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "Eth-Links",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  description: "Premium service booking platform for Ethiopia",
+  manifest: "/manifest.json",
+  themeColor: "#F5C518",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Eth-Links",
+  },
 };
 
 const geistSans = Geist({
@@ -39,7 +46,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <GlobalBanner />
-          {children}
+          <div className="page-container">
+            {children}
+          </div>
           <Suspense fallback={null}>
             <MobileNav />
           </Suspense>
