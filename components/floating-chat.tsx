@@ -110,13 +110,13 @@ export function FloatingChat() {
 
     return (
         <>
-            <div ref={constraintsRef} className="fixed inset-4 pointer-events-none z-[49]" />
+            <div ref={constraintsRef} className="fixed inset-4 pointer-events-none z-[39]" />
             <motion.div
                 drag
                 dragConstraints={constraintsRef}
                 dragMomentum={false}
                 dragElastic={0.1}
-                className="fixed bottom-24 md:bottom-6 right-6 z-50 flex flex-col items-end gap-4"
+                className="fixed bottom-32 md:bottom-6 right-6 z-40 flex flex-col items-end gap-4"
             >
                 {isOpen && (
                     <div className="w-[300px] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
