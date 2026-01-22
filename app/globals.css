@@ -66,6 +66,15 @@
   body {
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable pull-to-refresh on mobile by containing overflow */
+  @media (max-width: 768px) {
+    html, body {
+      overscroll-behavior-y: contain;
+    }
   }
 
   .text-gradient-gold {
