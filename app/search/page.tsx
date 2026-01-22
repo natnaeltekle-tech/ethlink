@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Search as SearchIcon, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import ServiceMap from '@/components/map/ServiceMap'
+import dynamic from 'next/dynamic'
+
+const ServiceMap = dynamic(() => import('@/components/map/ServiceMap'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-secondary/20 animate-pulse rounded-lg" />
+})
 import { getFilteredServices } from '@/lib/actions'
 import { cn } from '@/lib/utils'
 import { Haptics } from '@/lib/haptics'
