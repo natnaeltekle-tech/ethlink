@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,6 +25,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -99,7 +101,31 @@ export function LoginForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+
+              {/* Terms & Conditions Checkbox */}
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="terms"
+                  checked={agreedToTerms}
+                  onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                    Terms of Service
+                  </Link>
+                  {" "}and{" "}
+                  <Link href="/privacy" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                    Privacy Policy
+                  </Link>
+                  .
+                </label>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading || !agreedToTerms}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
 
