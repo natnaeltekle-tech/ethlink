@@ -116,7 +116,7 @@ export function FloatingChat() {
                 dragConstraints={constraintsRef}
                 dragMomentum={false}
                 dragElastic={0.1}
-                className="fixed bottom-32 md:bottom-6 right-6 z-40 flex flex-col items-end gap-4"
+                className="fixed bottom-32 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-4"
             >
                 {isOpen && (
                     <div className="w-[300px] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">

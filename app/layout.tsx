@@ -17,12 +17,15 @@ export const metadata: Metadata = {
   title: "Eth-Links",
   description: "Premium service booking platform for Ethiopia",
   manifest: "/manifest.json",
-  themeColor: "#F5C518",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Eth-Links",
   },
+};
+
+export const viewport = {
+  themeColor: "#F5C518",
 };
 
 const geistSans = Geist({
@@ -38,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased pb-16 md:pb-0`}>
+      <body className={`${geistSans.className} antialiased pb-16 md:pb-0 overflow-x-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

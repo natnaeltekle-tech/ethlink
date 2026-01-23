@@ -66,7 +66,7 @@ export default function NewServicePage() {
             <div className="container w-full mx-auto px-4 max-w-3xl">
                 <div className="mb-8">
                     <Link href="/">
-                        <Button variant="ghost" className="hidden md:inline-flex mb-4">← Back to Home</Button>
+                        <Button variant="ghost" className="hidden md:inline-flex mb-4 min-h-[44px]">← Back to Home</Button>
                     </Link>
                     <div className="flex items-center gap-3 mb-2">
                         <h1 className="text-3xl font-bold text-foreground">List your Service</h1>

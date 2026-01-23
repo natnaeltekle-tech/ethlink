@@ -32,7 +32,7 @@ export function MobileNav() {
     ]
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t border-border md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border md:hidden supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-around h-16">
                 {links.map((link) => {
                     const Icon = link.icon
@@ -44,9 +44,9 @@ export function MobileNav() {
                             href={link.href}
                             prefetch={true}
                             className={cn(
-                                "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors",
+                                "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors min-h-[44px] min-w-[44px]",
                                 isActive
-                                    ? "text-yellow-500"
+                                    ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -57,7 +57,7 @@ export function MobileNav() {
                 })}
             </div>
             {/* Safe area padding for newer iPhones */}
-            <div className="h-[env(safe-area-inset-bottom)] bg-background/95 backdrop-blur" />
+            <div className="h-[env(safe-area-inset-bottom)] bg-background/80 backdrop-blur-md" />
         </div>
     )
 }

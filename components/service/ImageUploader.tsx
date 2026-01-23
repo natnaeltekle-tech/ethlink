@@ -152,8 +152,7 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
                         <Button
                             type="button"
                             variant="destructive"
-                            size="sm"
-                            className="gap-2"
+                            className="gap-2 min-h-[44px]"
                             onClick={removeImage}
                         >
                             <X className="h-4 w-4" />
