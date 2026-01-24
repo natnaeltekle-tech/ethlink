@@ -1,14 +1,13 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Search, Handshake, CalendarCheck } from 'lucide-react'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 
-export default async function Index() {
+export default function Index() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Navbar />
 
       <main className="flex-1">
@@ -64,24 +63,4 @@ export default async function Index() {
 
             <div className="grid md:grid-cols-3 gap-8 text-center">
               {[
-                { icon: Search, title: "1. Find Your Service", desc: "Find exactly what you need instantly with our AI Smart Search." },
-                { icon: CalendarCheck, title: "2. Book with Confidence", desc: "Book securely using our integrated online payment system. Fast, safe, and reliable." },
-                { icon: Handshake, title: "3. Get It Done", desc: "Get the job done. Verified providers, zero stress." },
-              ].map((step, i) => (
-                <div key={i} className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors group">
-                  <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                    <step.icon className="h-8 w-8" />
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto leading-relaxed">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
-  )
-}
+                { icon: Search, title: "1. Find Your Service", desc: "Find exactly what you need instantly with our AI Smart Search."
