@@ -40,13 +40,18 @@ export function LoginForm({
         email,
         password,
       });
-      if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
+
+      if (error) {
+        toast.error(error.message);
+        setError(error.message);
+        return;
+      }
+
       router.push("/dashboard");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
-      setError(errorMessage);
-      toast.error(errorMessage);
+    } catch (error: any) {
+      const message = error.message || "An unexpected error occurred";
+      toast.error(message);
+      setError(message);
     } finally {
       setIsLoading(false);
     }
