@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
@@ -6,7 +6,6 @@ import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "@/components/mobile-nav";
 import { GlobalBanner } from "@/components/global-banner";
-import { ErrorBoundary } from "@/components/error-boundary";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -25,8 +24,12 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   themeColor: "#F5C518",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // Disables zoom for App feel
 };
 
 const geistSans = Geist({
@@ -41,32 +44,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased pb-16 md:pb-0 overflow-x-hidden`}>
+    <html lang="en" suppressHydrationWarning className="dark">
+      <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <GlobalBanner />
-          <div className="page-container">
+          <div className="flex flex-col min-h-screen">
             {children}
           </div>
           <Suspense fallback={null}>
             <MobileNav />
           </Suspense>
-          <ErrorBoundary fallback={null}>
-            <FloatingChat />
-          </ErrorBoundary>
+          <FloatingChat />
           <Toaster />
         </ThemeProvider>
       </body>
     </html>
   );
 }
-
-
-// Vercel build fix
-
-// Fixing Vercel build error - Attempt 2
