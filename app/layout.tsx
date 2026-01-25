@@ -6,6 +6,7 @@ import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "@/components/mobile-nav";
 import { GlobalBanner } from "@/components/global-banner";
+import { ErrorBoundary } from "@/components/error-boundary";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -55,7 +56,9 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <MobileNav />
           </Suspense>
-          <FloatingChat />
+          <ErrorBoundary fallback={null}>
+            <FloatingChat />
+          </ErrorBoundary>
           <Toaster />
         </ThemeProvider>
       </body>
