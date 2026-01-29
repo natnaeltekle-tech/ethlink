@@ -64,7 +64,6 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                     filter: `user_id=eq.${userId}`
                 },
                 (payload) => {
-                    console.log('New Notification Event Received:', payload)
                     const newNotification = payload.new as Notification
                     setNotifications(prev => [newNotification, ...prev])
                     setUnreadCount(prev => prev + 1)

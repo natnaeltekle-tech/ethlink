@@ -94,16 +94,6 @@ export async function getChatResponse(userMessage: string) {
         // --- 5. Clean what's left for the text search ---
         const finalQuery = cleanSearchQuery(pSearch);
 
-        console.log(`
-        🔎 Detective Logic:
-        Original: "${userMessage}"
-        Category: ${category_filter}
-        Max Price: ${max_price}
-        Location: ${location_filter}
-        Sort: ${sortColumn} (${sortOrder ? 'ASC' : 'DESC'})
-        Text Query: "${finalQuery}"
-        `);
-
         // --- 6. Database Query ---
         // Use services_view for pre-calculated avg_rating
         let query = supabase

@@ -64,7 +64,6 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 filter: `service_id=eq.${serviceId}`
             }, (payload) => {
                 const newMsg = payload.new as Message
-                console.log('Realtime Event Received:', payload) // Keep debug log for now
 
                 // Privacy Check: REMOVED by request to allow all messages in the room
                 // if (newMsg.sender_id !== currentUserId && newMsg.receiver_id !== currentUserId) {
@@ -104,14 +103,11 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                     })
                 }
 
-                // Debug logging
-                console.log('Presence Sync:', Array.from(onlineIds))
                 setOnlineUsers(onlineIds)
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
                     // Announce my presence
-                    console.log('Subscribed to presence channel')
                     await channel.track({
                         online_at: new Date().toISOString(),
                         user_id: currentUserId,
@@ -127,7 +123,6 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     // Update isOnline based on Presence
     useEffect(() => {
         const isProviderOnline = onlineUsers.has(providerId)
-        console.log(`Checking Status: Provider=${providerId}, Online=${isProviderOnline}, AllOnline=${Array.from(onlineUsers)}`)
         setIsOnline(isProviderOnline)
     }, [onlineUsers, providerId])
 

@@ -67,24 +67,17 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
     }
 
     const handleCancelUpcoming = async (bookingId: string) => {
-        console.log('Cancel button clicked for booking:', bookingId)
-
         if (!confirm("Are you sure you want to cancel this job? This action cannot be undone.")) {
-            console.log('Cancellation aborted by user')
             return
         }
 
         setIsUpdating(bookingId)
         try {
-            console.log('Calling updateBookingStatus with cancelled status...')
             await updateBookingStatus(bookingId, 'cancelled')
-            // Optimistic update: Remove from upcoming list
             setUpcomingJobs(prev => prev.filter(b => b.id !== bookingId))
             toast.success("Job cancelled successfully")
-            console.log('✅ Calling router.refresh()...')
             router.refresh()
         } catch (error) {
-            console.error('❌ Error cancelling job:', error)
             toast.error("Failed to cancel job")
         } finally {
             setIsUpdating(null)

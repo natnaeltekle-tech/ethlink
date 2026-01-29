@@ -393,12 +393,9 @@ export async function createBooking(formData: FormData) {
         .single()
 
     if (service && service.user_id) {
-        console.log('✅ Provider ID found:', service.user_id)
-        console.log('📦 Service Title:', service.title)
-
         // Use admin client to bypass RLS and insert notification for provider
         const adminSupabase = createAdminClient()
-        const { data: notifData, error: notifError } = await adminSupabase
+        await adminSupabase
             .from('notifications')
             .insert({
                 user_id: service.user_id,
@@ -407,15 +404,6 @@ export async function createBooking(formData: FormData) {
                 link: '/dashboard'
             })
             .select()
-
-        if (notifError) {
-            console.error('❌ Error inserting notification:', notifError)
-        } else {
-            console.log('✅ Notification inserted successfully!')
-            console.log('📬 Notification data:', notifData)
-        }
-    } else {
-        console.warn('⚠️ Service or service owner not found for notification')
     }
 
     redirect(`/payment/${data.id}`)
@@ -481,12 +469,9 @@ export async function createBookingJson(formData: FormData) {
     const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
 
     if (service && service.user_id !== user.id) {
-        console.log('✅ Provider ID found (Json):', service.user_id)
-        console.log('📦 Service Title:', service.title)
-
         // Use admin client to bypass RLS and insert notification for provider
         const adminSupabase = createAdminClient()
-        const { data: notifData, error: notifError } = await adminSupabase
+        await adminSupabase
             .from('notifications')
             .insert({
                 user_id: service.user_id,
@@ -495,17 +480,6 @@ export async function createBookingJson(formData: FormData) {
                 type: 'booking'
             })
             .select()
-
-        if (notifError) {
-            console.error('❌ Error inserting notification (Json):', notifError)
-        } else {
-            console.log('✅ Notification inserted successfully (Json)!')
-            console.log('📬 Notification data:', notifData)
-        }
-    } else if (service) {
-        console.warn('⚠️ Skipping notification - user is booking their own service')
-    } else {
-        console.warn('⚠️ Service not found for notification (Json)')
     }
 
     return { success: true, bookingId: data.id }
@@ -560,10 +534,8 @@ export async function initiatePayment(bookingId: string, paymentMethod: string) 
 
     const price = booking.services.price
 
-    // TODO: Call Telebirr/Chapa API here to get payment URL
+    // Payment integration placeholder
     // Example: const response = await telebirr.init({ amount: price, ... })
-    // For now, we just log it and return success
-    console.log(`Initiating payment for Booking ${bookingId} via ${paymentMethod} for ${price} ETB`)
 
     return { success: true, message: 'Payment initiated' }
 }
@@ -575,8 +547,6 @@ export async function verifyPayment(bookingId: string) {
     if (!user) throw new Error('Not authenticated')
 
     // Verify transaction ID with Provider
-    console.log(`Verifying payment for Booking ${bookingId}...`)
-
     // Get the booking price to calculate commission
     const { data: booking, error: fetchError } = await supabase
         .from('bookings')
@@ -778,8 +748,6 @@ export async function getProviderStats() {
 }
 
 export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled') {
-    console.log('updateBookingStatus called:', { bookingId, status })
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -802,11 +770,6 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         throw new Error('Cannot cancel a paid booking. Please contact support for a refund.')
     }
 
-    // Debug logging for cancel action
-    if (status === 'cancelled') {
-        console.log('Cancelling booking:', bookingId)
-    }
-
     // Use admin client to bypass RLS for status update (ownership already validated above)
     const adminSupabase = createAdminClient()
     const { error } = await adminSupabase
@@ -818,8 +781,6 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         console.error('Failed to update booking status:', error)
         throw new Error('Failed to update booking')
     }
-
-    console.log('✅ Booking status updated successfully:', { bookingId, status })
 
     // Auto-Message on Accept
     if (status === 'confirmed') {
@@ -842,17 +803,12 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
 }
 
 export async function completeJob(bookingId: string) {
-    console.log('completeJob called with bookingId:', bookingId)
-
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        console.error('completeJob: User not authenticated')
         throw new Error('Not authenticated')
     }
-
-    console.log('completeJob: User authenticated:', user.id)
 
     // Verify the user is the customer who made the booking
     const { data: booking, error: fetchError } = await supabase
@@ -862,16 +818,12 @@ export async function completeJob(bookingId: string) {
         .single()
 
     if (fetchError) {
-        console.error('completeJob: Error fetching booking:', fetchError)
         throw new Error('Failed to fetch booking')
     }
 
     if (!booking) {
-        console.error('completeJob: Booking not found')
         throw new Error('Booking not found')
     }
-
-    console.log('completeJob: Booking found:', { booking_user: booking.user_id, current_user: user.id, status: booking.status })
 
     if (booking.user_id !== user.id) {
         console.error('completeJob: Unauthorized - user does not own booking')
@@ -884,21 +836,17 @@ export async function completeJob(bookingId: string) {
     }
 
     // Use admin client to bypass RLS for status update
-    console.log('completeJob: Creating admin client...')
     const adminSupabase = createAdminClient()
 
-    console.log('completeJob: Updating booking status to completed...')
     const { error } = await adminSupabase
         .from('bookings')
         .update({ status: 'completed' })
         .eq('id', bookingId)
 
     if (error) {
-        console.error('completeJob: Database update error:', error)
         throw new Error(`Failed to complete job: ${error.message}`)
     }
 
-    console.log('completeJob: Successfully updated booking to completed')
     revalidatePath('/dashboard')
 }
 

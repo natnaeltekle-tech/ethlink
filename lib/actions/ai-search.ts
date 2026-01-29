@@ -34,8 +34,6 @@ export async function processUserMessage(userMessage: string) {
             criteria = { query: userMessage, location: null, maxPrice: null };
         }
 
-        console.log("AI Criteria:", criteria);
-
         // 2. Search Database
         // If the query is empty/meaningless after extraction, we might get too many results, but searchServicesAdvanced handles empty query by returning everything or nothing depending on implementation.
         // Let's ensure we have at least something.
