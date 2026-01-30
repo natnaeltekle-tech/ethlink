@@ -47,7 +47,10 @@ export function LoginForm({
         return;
       }
 
-      router.push("/dashboard");
+      // Success: show notification and redirect
+      toast.success("Login successful!");
+      router.refresh(); // Clear cache and sync session
+      router.push("/"); // Navigate to home
     } catch (error: any) {
       const message = error.message || "An unexpected error occurred";
       toast.error(message);

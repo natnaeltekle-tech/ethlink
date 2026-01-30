@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +63,11 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
-      router.push("/auth/sign-up-success");
+
+      // Success: show notification and redirect
+      toast.success("Account created successfully!");
+      router.refresh(); // Clear cache and sync session
+      router.push("/"); // Navigate to home
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -184,7 +189,7 @@ export function SignUpForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              
+
               {/* Terms & Conditions Checkbox */}
               <div className="flex items-start gap-2">
                 <Checkbox
@@ -207,7 +212,7 @@ export function SignUpForm({
                   .
                 </label>
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={isLoading || !agreedToTerms}>
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
