@@ -4,7 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Haptics } from '@/lib/haptics'
+import { useHaptics } from '@/lib/hooks/useHaptics'
 
 interface BottomSheetProps {
   isOpen: boolean
@@ -27,6 +27,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const [currentSnap, setCurrentSnap] = React.useState(initialSnap)
   const constraintsRef = React.useRef<HTMLDivElement>(null)
+  const haptics = useHaptics()
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y
@@ -35,7 +36,7 @@ export function BottomSheet({
 
     // If dragged down significantly or with high velocity, close
     if (offset > sheetHeight * 0.15 || velocity > 300) {
-      Haptics.medium()
+      haptics.medium()
       onClose()
       return
     }
@@ -47,11 +48,11 @@ export function BottomSheet({
     // If dragged up significantly, go to next snap point
     if (velocity < -300 && currentSnap < snapPoints.length - 1) {
       targetSnap = currentSnap + 1
-      Haptics.light()
+      haptics.light()
     } else if (velocity > 300 && currentSnap > 0) {
       // If dragged down, go to previous snap point
       targetSnap = currentSnap - 1
-      Haptics.light()
+      haptics.light()
     } else {
       // Find the closest snap point based on position
       for (let i = 0; i < snapPoints.length; i++) {
@@ -109,7 +110,7 @@ export function BottomSheet({
                 <h2 className="text-xl font-bold text-foreground">{title}</h2>
                 <button
                   onClick={() => {
-                    Haptics.light()
+                    haptics.light()
                     onClose()
                   }}
                   className="p-2 rounded-full hover:bg-secondary transition-colors"

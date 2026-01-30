@@ -7,6 +7,7 @@ import { MapPin, Building2, Star, Heart } from 'lucide-react'
 import { toggleFavorite } from '@/lib/actions'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useHaptics } from '@/lib/hooks/useHaptics'
 
 // Category-specific placeholder images from Unsplash
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
@@ -14,6 +15,7 @@ import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 export function ServiceCard({ service, distance, isFavorite = false }: { service: any, distance?: number, isFavorite?: boolean }) {
     const [isFavorited, setIsFavorited] = useState(isFavorite)
     const [isPending, setIsPending] = useState(false)
+    const haptics = useHaptics()
 
     // Determine the image to display
     const getImageSrc = () => {
@@ -46,6 +48,9 @@ export function ServiceCard({ service, distance, isFavorite = false }: { service
 
         if (isPending) return
 
+        // Haptic feedback
+        haptics.light()
+
         // Optimistic Update
         const previousState = isFavorited
         setIsFavorited(!previousState)
@@ -55,18 +60,15 @@ export function ServiceCard({ service, distance, isFavorite = false }: { service
             const result = await toggleFavorite(service.id)
             setIsFavorited(result.isFavorite)
 
-            // Optional: Toast for feedback (maybe too noisy if uncached?)
-            /* 
+            // Success haptic
             if (result.isFavorite) {
-                toast.success('Added to favorites')
-            } else {
-                toast.success('Removed from favorites')
-            } 
-            */
+                haptics.success()
+            }
         } catch (error) {
             // Revert
             setIsFavorited(previousState)
             toast.error('Failed to update favorites. Please login first.')
+            haptics.error()
         } finally {
             setIsPending(false)
         }
@@ -101,13 +103,14 @@ export function ServiceCard({ service, distance, isFavorite = false }: { service
                     {/* Favorite Button */}
                     <button
                         onClick={handleToggleFavorite}
-                        className="absolute top-3 right-3 p-2 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all z-20 group/heart"
+                        className="absolute top-3 right-3 p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all z-20 group/heart min-h-[44px] min-w-[44px] active:scale-90"
+                        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
                     >
                         <Heart
                             className={cn(
                                 "w-5 h-5 transition-all duration-300",
                                 isFavorited
-                                    ? "fill-red-500 text-red-500 scale-110 animate-pulse"
+                                    ? "fill-red-500 text-red-500 scale-110"
                                     : "text-white group-hover/heart:scale-110"
                             )}
                         />

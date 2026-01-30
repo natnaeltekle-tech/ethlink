@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, PlusCircle, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useHaptics } from '@/lib/hooks/useHaptics'
 
 export function MobileNav() {
     const pathname = usePathname()
+    const haptics = useHaptics()
 
     const links = [
         {
@@ -31,6 +33,10 @@ export function MobileNav() {
         }
     ]
 
+    const handleNavClick = () => {
+        haptics.light()
+    }
+
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border md:hidden supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-around h-16">
@@ -43,14 +49,15 @@ export function MobileNav() {
                             key={link.href}
                             href={link.href}
                             prefetch={true}
+                            onClick={handleNavClick}
                             className={cn(
-                                "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors min-h-[44px] min-w-[44px]",
+                                "flex flex-col items-center justify-center w-full h-full gap-1 transition-all min-h-[44px] min-w-[44px] active:scale-90",
                                 isActive
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            <Icon className={cn("w-6 h-6", isActive && "fill-current")} />
+                            <Icon className={cn("w-6 h-6 transition-transform", isActive && "fill-current scale-110")} />
                             <span className="text-[10px] font-medium">{link.label}</span>
                         </Link>
                     )

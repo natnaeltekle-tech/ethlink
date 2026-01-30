@@ -128,3 +128,32 @@
     will-change: transform;
   }
 }
+
+@layer utilities {
+  /* Mobile Typography Scale - Optimized for readability on small screens */
+  .text-mobile-xs { font-size: 12px; line-height: 16px; }
+  .text-mobile-sm { font-size: 14px; line-height: 20px; }
+  .text-mobile-base { font-size: 16px; line-height: 24px; }
+  .text-mobile-lg { font-size: 18px; line-height: 28px; }
+  .text-mobile-xl { font-size: 20px; line-height: 28px; }
+  .text-mobile-2xl { font-size: 24px; line-height: 32px; }
+  .text-mobile-3xl { font-size: 30px; line-height: 36px; }
+  
+  /* Native-feeling shadows - Subtle depth without heavy borders */
+  .shadow-mobile-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.15); }
+  .shadow-mobile { box-shadow: 0 2px 8px 0 rgb(0 0 0 / 0.2); }
+  .shadow-mobile-lg { box-shadow: 0 4px 16px 0 rgb(0 0 0 / 0.25); }
+  
+  /* Safe area utilities - Respect device notches and home indicators */
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-left { padding-left: env(safe-area-inset-left); }
+  .safe-area-right { padding-right: env(safe-area-inset-right); }
+  
+  /* Touch-optimized spacing */
+  .touch-spacing { padding: 12px 16px; }
+  .touch-spacing-lg { padding: 16px 20px; }
+  
+  /* GPU acceleration for smooth animations */
+  .transform-gpu { transform: translate3d(0, 0, 0); }
+}
