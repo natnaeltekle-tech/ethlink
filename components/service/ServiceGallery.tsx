@@ -66,35 +66,23 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
     // Use gallery images if available, otherwise fallback to legacy imageUrl
     const displayImages = images && images.length > 0 ? images : (imageUrl ? [imageUrl] : [])
 
-    // Empty state for non-owners
+    // Empty state for non-owners - Return high-quality placeholder
     if (displayImages.length === 0 && !isOwner) {
         return (
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-muted flex items-center justify-center text-muted-foreground mb-6">
-                <div className="flex flex-col items-center gap-2">
-                    <span className="text-4xl opacity-50">📷</span>
-                    <span className="text-sm md:text-base">No photos available</span>
-                </div>
+            <div className="relative w-full h-[300px] md:h-[500px] overflow-hidden rounded-xl bg-muted mb-6">
+                <Image
+                    src={DEFAULT_SERVICE_IMAGE}
+                    alt={title}
+                    fill
+                    className="object-cover"
+                    priority
+                />
             </div>
         )
     }
 
-    // Empty state for owners - large upload prompt
-    if (displayImages.length === 0 && isOwner && serviceId) {
-        return (
-            <div className="relative w-full overflow-hidden rounded-xl border-2 border-dashed border-primary/30 bg-muted/50 mb-6">
-                <label className="cursor-pointer flex flex-col items-center justify-center gap-4 p-12 md:p-16 hover:bg-muted/80 transition-colors group/upload min-h-[300px]">
-                    <div className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-primary/10 group-hover/upload:bg-primary/20 flex items-center justify-center text-primary transition-colors">
-                        {isUploading ? <Loader2 className="w-10 h-10 md:w-12 md:h-12 animate-spin" /> : <Plus className="w-10 h-10 md:w-12 md:h-12" />}
-                    </div>
-                    <div className="flex flex-col items-center gap-2">
-                        <span className="text-lg md:text-xl font-semibold text-foreground group-hover/upload:text-primary transition-colors">Upload First Photo</span>
-                        <span className="text-sm text-muted-foreground">Tap to add your first service photo</span>
-                    </div>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
-                </label>
-            </div>
-        )
-    }
+    // Owner view always falls through to the editable grid below
+
 
     return (
         <div className="relative mb-6">
