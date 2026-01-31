@@ -62,7 +62,7 @@ export function ServicePageClient({
                     <ServiceGallery
                         images={service.images || service.gallery || []}
                         title={service.title}
-                        isOwner={user?.id === service.user_id}
+                        isOwner={user?.id && service.user_id && String(user.id) === String(service.user_id)}
                         serviceId={service.id}
                         imageUrl={service.image_url}
                     />
