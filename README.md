@@ -1,31 +1,79 @@
-# market-ai-v3
+# Eth-Links: The AI-Powered Service Marketplace of Ethiopia 🇪🇹
 
-**market-ai-v3** is a simple, modern platform designed to help people in Ethiopia find local businesses and services fast.
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
+![Supabase](https://img.shields.io/badge/Supabase-Database-blueviolet?style=for-the-badge&logo=supabase)
+![PWA](https://img.shields.io/badge/PWA-Ready-green?style=for-the-badge&logo=pwa)
+![Fintech Ready](https://img.shields.io/badge/Fintech-Ready-gold?style=for-the-badge)
 
-## Vision
+**A decentralized service economy connecting 120M+ Ethiopians with verified providers via AI and Escrow payments.**
 
-- **Connect**: Users can browse listings and find what they need quickly.
-- **Communicate**: Instant chat allows users to connect with sellers directly.
-- **Empower**: Business owners can easily post their offers and reach a wider audience.
-- **AI-Powered**: An integrated AI helper answers questions and provides personalized recommendations.
+---
 
-## Features
+## 🚀 Core Modules (The 'Big 4')
 
-- **Listings**: Browse and search for local businesses and services.
-- **Real-time Chat**: Direct communication between buyers and sellers.
-- **Saved Listings**: Keep track of favorite services.
-- **AI Assistant**: Smart recommendations and support.
+### 🧠 AI Concierge
+Powered by custom algorithms and Gemini AI, our hybrid search engine combines tradition keyword Matching with Fuzzy logic to help users find local services instantly.
 
-## Tech Stack
+### 🏦 Fintech Engine
+Fully integrated **Telebirr H5** and **CBE Birr** payment flows with an internal Escrow Ledger. Money is held securely in the platform until the job is marked as complete, ensuring trust for both parties.
 
-- **Framework**: Next.js (App Router)
-- **Database**: Supabase (PostgreSQL)
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
+### 📱 Native PWA
+A premium mobile-first experience. Installable on iOS and Android with Haptic Feedback, smooth Bottom Navigation, and Offline-first capabilities for low-connectivity areas.
 
-## Getting Started
+### 🤝 Realtime Negotiation
+Direct peer-to-peer chat system with presence indicators ('Online/Offline'), realtime message delivery via Supabase, and integrated image sharing for project requirements.
 
-1.  Clone the repository.
-2.  Install dependencies: `npm install`
-3.  Set up environment variables in `.env.local`.
-4.  Run the development server: `npm run dev`
+---
+
+## 🏗️ Technical Architecture
+
+*   **Frontend**: Next.js 16 (App Router), Tailwind CSS, Shadcn UI (Premium Dark/Luxury Theme).
+*   **Backend**: Supabase (PostgreSQL, Row Level Security, Realtime, Storage).
+*   **Security**: Admin-only Actions, Automated Profile Creation Triggers, and Strict RLS policies.
+
+---
+
+## ✨ Features List
+
+*   **Provider Dashboard**: Comprehensive earnings tracking, Escrow balance management, and booking scheduling.
+*   **Smart Listing**: Interactive Map Pins (Leaflet), High-res Photo Galleries, and Detailed Service Specs.
+*   **Review System**: Verified-only feedback loop to maintain high service standards.
+*   **Admin Control Center**: 'God Mode' for platform moderation, user verification, and dispute resolution.
+
+---
+
+## 🛠️ Setup & Local Development
+
+### Prerequisites
+- Node.js 18+ 
+- Supabase Account
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/your-repo/eth-links-v2.git
+
+# Install dependencies
+npm install
+
+# Run the development server
+npm run dev
+```
+
+### Environment Variables
+Create a `.env.local` file in the root directory and add the following:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Fintech & AI
+TELEBIRR_APP_ID=your_telebirr_id
+GOOGLE_API_KEY=your_gemini_api_key
+```
+
+---
+
+*Built with ❤️ for the Ethiopian Digital Economy.*

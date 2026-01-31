@@ -114,6 +114,12 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                                 className="object-cover"
                                 priority={index === 0}
                                 sizes="100vw"
+                                onError={(e) => {
+                                    const target = e.currentTarget as HTMLImageElement;
+                                    if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                        target.src = DEFAULT_SERVICE_IMAGE;
+                                    }
+                                }}
                             />
                         </div>
                     ))}
@@ -153,6 +159,12 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                                 className="object-cover transition-transform duration-500 hover:scale-105"
                                 priority
                                 sizes="50vw"
+                                onError={(e) => {
+                                    const target = e.currentTarget as HTMLImageElement;
+                                    if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                        target.src = DEFAULT_SERVICE_IMAGE;
+                                    }
+                                }}
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
@@ -182,6 +194,12 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                                     fill
                                     className="object-cover transition-transform duration-500 hover:scale-105"
                                     sizes="25vw"
+                                    onError={(e) => {
+                                        const target = e.currentTarget as HTMLImageElement;
+                                        if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                            target.src = DEFAULT_SERVICE_IMAGE;
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
@@ -209,6 +227,12 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
                                     fill
                                     className="object-cover transition-transform duration-500 hover:scale-105"
                                     sizes="25vw"
+                                    onError={(e) => {
+                                        const target = e.currentTarget as HTMLImageElement;
+                                        if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                            target.src = DEFAULT_SERVICE_IMAGE;
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">

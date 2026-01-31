@@ -1,22 +1,14 @@
-'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { MapPin, Building2, Star, Heart } from 'lucide-react'
-import { toggleFavorite } from '@/lib/actions'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { useHaptics } from '@/lib/hooks/useHaptics'
+import { MapPin, Building2, Star } from 'lucide-react'
 
 // Category-specific placeholder images from Unsplash
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 
-export function ServiceCard({ service, distance, isFavorite = false }: { service: any, distance?: number, isFavorite?: boolean }) {
-    const [isFavorited, setIsFavorited] = useState(isFavorite)
-    const [isPending, setIsPending] = useState(false)
-    const haptics = useHaptics()
 
+
+export function ServiceCard({ service, distance }: { service: any, distance?: number }) {
     // Determine the image to display
     const getImageSrc = () => {
         let imageSrc;
@@ -42,38 +34,6 @@ export function ServiceCard({ service, distance, isFavorite = false }: { service
         return imageSrc;
     }
 
-    const handleToggleFavorite = async (e: React.MouseEvent) => {
-        e.preventDefault() // Prevent navigation
-        e.stopPropagation()
-
-        if (isPending) return
-
-        // Haptic feedback
-        haptics.light()
-
-        // Optimistic Update
-        const previousState = isFavorited
-        setIsFavorited(!previousState)
-        setIsPending(true)
-
-        try {
-            const result = await toggleFavorite(service.id)
-            setIsFavorited(result.isFavorite)
-
-            // Success haptic
-            if (result.isFavorite) {
-                haptics.success()
-            }
-        } catch (error) {
-            // Revert
-            setIsFavorited(previousState)
-            toast.error('Failed to update favorites. Please login first.')
-            haptics.error()
-        } finally {
-            setIsPending(false)
-        }
-    }
-
     return (
         <Link href={`/services/${service.id}`} className="group block">
             <Card className="h-full overflow-hidden border-border bg-card transition-all hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/50 relative">
@@ -85,36 +45,13 @@ export function ServiceCard({ service, distance, isFavorite = false }: { service
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
 
-                    {/* Pending Spinner Overlay */}
-                    {isPending && (
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-10">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        </div>
-                    )}
-
                     {/* Top Right Badge - Rating (only if reviews exist) */}
                     {service.avg_rating && service.avg_rating > 0 && (
-                        <div className="absolute top-3 left-3 bg-white text-black px-2 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1 z-20">
+                        <div className="absolute top-3 right-3 bg-white text-black px-2 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1">
                             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                             {service.avg_rating.toFixed(1)}
                         </div>
                     )}
-
-                    {/* Favorite Button */}
-                    <button
-                        onClick={handleToggleFavorite}
-                        className="absolute top-3 right-3 p-3 rounded-full bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all z-20 group/heart min-h-[44px] min-w-[44px] active:scale-90"
-                        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-                    >
-                        <Heart
-                            className={cn(
-                                "w-5 h-5 transition-all duration-300",
-                                isFavorited
-                                    ? "fill-red-500 text-red-500 scale-110"
-                                    : "text-white group-hover/heart:scale-110"
-                            )}
-                        />
-                    </button>
                 </div>
 
                 {/* Details Area */}
