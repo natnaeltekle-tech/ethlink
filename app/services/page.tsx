@@ -7,14 +7,15 @@ import { getFilteredServices } from '@/lib/actions';
 import { ArrowRight } from 'lucide-react';
 import ServiceListing from '@/components/service/ServiceListing';
 
+import { searchParamsSchema } from '@/lib/validations';
+
 export default async function ServicesPage({
     searchParams,
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
     const resolvedSearchParams = await searchParams;
-    const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : '';
-    const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : '';
+    const { search, category } = searchParamsSchema.parse(resolvedSearchParams);
 
     // Use the optimized server action for filtering
     const services = await getFilteredServices(category, search);

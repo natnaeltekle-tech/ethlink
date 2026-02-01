@@ -250,6 +250,9 @@ export async function sendMessage(serviceId: string, receiverId: string, content
     })
 }
 
+import { serviceSchema, bookingSchema } from '@/lib/validations';
+import { revalidatePath } from 'next/cache'
+
 import { redirect } from 'next/navigation'
 
 export async function createService(formData: FormData) {
@@ -260,48 +263,48 @@ export async function createService(formData: FormData) {
         redirect('/auth/login')
     }
 
-    const title = formData.get('title') as string
-    const category = formData.get('category') as string
-    const location = formData.get('location') as string
-    const price = parseFloat(formData.get('price') as string)
-    const description = formData.get('description') as string
-    const imageUrl = formData.get('image_url') as string
+    // Parse and validate with Zod
+    const rawData = {
+        title: formData.get('title'),
+        category: formData.get('category'),
+        location: formData.get('location'),
+        price: formData.get('price'),
+        description: formData.get('description'),
+        image_url: formData.get('image_url') || '', // Handle empty string as optional
+        latitude: formData.get('latitude'),
+        longitude: formData.get('longitude'),
+    };
 
-    // Extract coordinates if available
-    const latitudeStr = formData.get('latitude') as string
-    const longitudeStr = formData.get('longitude') as string
-    const latitude = latitudeStr ? parseFloat(latitudeStr) : null
-    const longitude = longitudeStr ? parseFloat(longitudeStr) : null
+    try {
+        const validatedData = serviceSchema.parse(rawData);
 
-    if (!title || !category || !location || isNaN(price) || !description) {
-        throw new Error('Missing required fields')
+        const { data, error } = await supabase
+            .from('services')
+            .insert({
+                ...validatedData,
+                user_id: user.id
+            })
+            .select()
+            .single()
+
+        if (error) {
+            console.error('Error creating service:', error)
+            throw new Error('Failed to create service')
+        }
+
+        revalidatePath('/services');
+        revalidatePath('/dashboard');
+        redirect(`/services/${data.id}`)
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Validation/Creation Error:', error.message)
+            // We can't easily return errors to the form with generic redirect, 
+            // but we're enhancing security. Ideally, this should be a client-side call or return state.
+            throw error;
+        }
+        throw new Error('An unexpected error occurred');
     }
-
-    const { data, error } = await supabase
-        .from('services')
-        .insert({
-            title,
-            category,
-            location,
-            price,
-            description,
-            image_url: imageUrl,
-            user_id: user.id,
-            latitude,
-            longitude
-        })
-        .select()
-        .single()
-
-    if (error) {
-        console.error('Error creating service:', error)
-        throw new Error('Failed to create service')
-    }
-
-    redirect(`/services/${data.id}`)
 }
-
-import { revalidatePath } from 'next/cache'
 
 export async function submitReview(serviceId: string, rating: number, comment: string) {
     const supabase = await createClient()
@@ -340,73 +343,79 @@ export async function createBooking(formData: FormData) {
         redirect('/auth/login')
     }
 
-    const serviceId = formData.get('serviceId') as string
-    const date = formData.get('date') as string
+    const rawData = {
+        serviceId: formData.get('serviceId'),
+        date: formData.get('date'),
+    };
 
-    if (!serviceId || !date) {
-        throw new Error('Missing required fields')
-    }
-
-    // Check availability
-    const { data: existingBooking } = await supabase
-        .from('bookings')
-        .select('id')
-        .eq('service_id', serviceId)
-        .eq('date', date)
-        .eq('status', 'confirmed')
-        .single()
-
-    if (existingBooking) {
-        throw new Error('This slot is already booked. Please pick another time.')
-    }
-
-    let data;
     try {
+        // Basic validation first
+        const { serviceId, date } = bookingSchema.omit({ guests: true }).parse(rawData);
+
+        // Check availability
+        const { data: existingBooking } = await supabase
+            .from('bookings')
+            .select('id')
+            .eq('service_id', serviceId)
+            .eq('date', date)
+            .eq('status', 'confirmed')
+            .single()
+
+        if (existingBooking) {
+            throw new Error('This slot is already booked. Please pick another time.')
+        }
+
+        let data;
+
         const result = await supabase
             .from('bookings')
             .insert({
                 service_id: serviceId,
                 user_id: user.id,
                 // Ensure we save the literal time as UTC to avoid shifts
-                // Input is usually YYYY-MM-DDTHH:mm
                 date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
                 status: 'pending'
             })
             .select()
             .single()
 
-        if (result.error) throw result.error
-        data = result.data
-    } catch (error: any) {
-        if (error.code === '23505') {
-            throw new Error('This time slot is no longer available. Please choose another.')
+        if (result.error) {
+            if (result.error.code === '23505') {
+                throw new Error('This time slot is no longer available. Please choose another.')
+            }
+            throw result.error
         }
+        data = result.data
+
+        // Fetch Service Owner's ID for notification
+        const { data: service } = await supabase
+            .from('services')
+            .select('user_id, title')
+            .eq('id', serviceId)
+            .single()
+
+        if (service && service.user_id) {
+            // Use admin client to bypass RLS and insert notification for provider
+            const adminSupabase = createAdminClient()
+            await adminSupabase
+                .from('notifications')
+                .insert({
+                    user_id: service.user_id,
+                    content: `New booking request for ${service.title}`,
+                    type: 'booking',
+                    link: '/dashboard'
+                })
+                .select()
+        }
+
+        revalidatePath('/dashboard');
+        redirect(`/payment/${data.id}`)
+
+    } catch (error: any) {
         console.error('Error creating booking:', error)
-        throw new Error('Failed to create booking')
+        // Re-throw to be handled by error boundary or UI
+        throw new Error(error.message || 'Failed to create booking');
     }
-
-    // Fetch Service Owner's ID for notification
-    const { data: service } = await supabase
-        .from('services')
-        .select('user_id, title')
-        .eq('id', serviceId)
-        .single()
-
-    if (service && service.user_id) {
-        // Use admin client to bypass RLS and insert notification for provider
-        const adminSupabase = createAdminClient()
-        await adminSupabase
-            .from('notifications')
-            .insert({
-                user_id: service.user_id,
-                content: `New booking request for ${service.title}`,
-                type: 'booking',
-                link: '/dashboard'
-            })
-            .select()
-    }
-
-    redirect(`/payment/${data.id}`)
 }
 
 
@@ -418,13 +427,20 @@ export async function createBookingJson(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
-    const serviceId = formData.get('serviceId') as string
-    const date = formData.get('date') as string
-    const guests = parseInt(formData.get('guests') as string) || 1
+    const rawData = {
+        serviceId: formData.get('serviceId'),
+        date: formData.get('date'),
+        guests: formData.get('guests'),
+    };
 
-    if (!serviceId || !date) {
-        return { error: 'Missing required fields' }
+    // We can use safe parse here for better error returning
+    const parsed = bookingSchema.safeParse(rawData);
+
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0]?.message || 'Validation error' };
     }
+
+    const { serviceId, date, guests } = parsed.data;
 
     if (isNaN(new Date(date).getTime())) {
         return { error: 'Invalid date format' }
@@ -482,6 +498,7 @@ export async function createBookingJson(formData: FormData) {
             .select()
     }
 
+    revalidatePath('/dashboard');
     return { success: true, bookingId: data.id }
 }
 

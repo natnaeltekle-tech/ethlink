@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
+import { searchParamsSchema } from "@/lib/validations";
+
 export default async function ListingsPage({ searchParams }: { searchParams: Promise<{ search?: string, category?: string }> }) {
-    const { search, category } = await searchParams;
+    const resolvedSearchParams = await searchParams;
+    const { search, category } = searchParamsSchema.parse(resolvedSearchParams);
     const supabase = await createClient();
 
     let query = supabase
