@@ -14,22 +14,26 @@ export function MobileNav() {
         {
             href: '/',
             label: 'Home',
-            icon: Home
+            icon: Home,
+            exact: true
         },
         {
             href: '/services',
             label: 'Explore',
-            icon: Search
+            icon: Search,
+            exact: false
         },
         {
             href: '/services/new',
             label: 'Add',
-            icon: PlusCircle
+            icon: PlusCircle,
+            exact: true
         },
         {
             href: '/dashboard',
             label: 'Profile',
-            icon: User
+            icon: User,
+            exact: false
         }
     ]
 
@@ -42,7 +46,10 @@ export function MobileNav() {
             <div className="flex items-center justify-around h-16">
                 {links.map((link) => {
                     const Icon = link.icon
-                    const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href))
+                    // Strict path matching: exact match for exact routes, startsWith for non-exact
+                    const isActive = link.exact 
+                        ? pathname === link.href 
+                        : pathname === link.href || pathname?.startsWith(link.href + '/')
 
                     return (
                         <Link

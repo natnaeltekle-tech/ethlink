@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -28,7 +28,13 @@ interface ServiceMapProps {
 }
 
 export default function ServiceMap({ services, userLocation }: ServiceMapProps) {
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<L.Map | null>(null);
+    const [isClient, setIsClient] = useState(false);
+
     useEffect(() => {
+        setIsClient(true);
+        
         // This effect runs only once on client-side mount to fix the icons
         (async function init() {
             delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -38,6 +44,14 @@ export default function ServiceMap({ services, userLocation }: ServiceMapProps) 
                 shadowUrl,
             });
         })();
+
+        return () => {
+            // Cleanup: Remove map instance on unmount to prevent "container reused" error
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+            }
+        };
     }, []);
 
     // Filter services that have valid location data
@@ -51,15 +65,23 @@ export default function ServiceMap({ services, userLocation }: ServiceMapProps) 
     // Default center: Addis Ababa
     const center: [number, number] = [9.005401, 38.763611];
 
-    if (typeof window === 'undefined') return null;
+    // Prevent rendering on server and ensure DOM element exists
+    if (!isClient || typeof window === 'undefined') {
+        return (
+            <div className="h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-sm z-0 relative">
+                <div className="h-full w-full bg-muted animate-pulse" />
+            </div>
+        );
+    }
 
     return (
-        <div className="h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-sm z-0 relative">
+        <div ref={mapContainerRef} className="h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-sm z-0 relative">
             <MapContainer
                 center={center}
                 zoom={13}
                 scrollWheelZoom={false}
                 style={{ height: '100%', width: '100%' }}
+                ref={mapInstanceRef}
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

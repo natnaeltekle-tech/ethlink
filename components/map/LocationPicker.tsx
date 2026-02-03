@@ -17,9 +17,14 @@ export default function LocationPicker({
 }) {
     // Default: Addis Ababa
     const [position, setPosition] = useState<L.LatLng | null>(null);
+    const [isClient, setIsClient] = useState(false);
     const defaultCenter: [number, number] = [9.005401, 38.763611];
+    const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapInstanceRef = useRef<L.Map | null>(null);
 
     useEffect(() => {
+        setIsClient(true);
+        
         (async function init() {
             delete (L.Icon.Default.prototype as any)._getIconUrl;
             L.Icon.Default.mergeOptions({
@@ -28,6 +33,14 @@ export default function LocationPicker({
                 shadowUrl,
             });
         })();
+
+        return () => {
+            // Cleanup: Remove map instance on unmount
+            if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+            }
+        };
     }, []);
 
     // Reverse geocode coordinates to get address
@@ -74,13 +87,23 @@ export default function LocationPicker({
         ) : null;
     }
 
+    // Prevent rendering on server and ensure DOM element exists
+    if (!isClient || typeof window === 'undefined') {
+        return (
+            <div className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
+                <div className="h-full w-full bg-muted animate-pulse" />
+            </div>
+        );
+    }
+
     return (
-        <div className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
+        <div ref={mapContainerRef} className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
             <MapContainer
                 center={defaultCenter}
                 zoom={13}
                 scrollWheelZoom={false}
                 style={{ height: '100%', width: '100%' }}
+                ref={mapInstanceRef}
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
