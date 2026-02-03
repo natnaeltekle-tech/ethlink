@@ -1,1 +1,1 @@
-export const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800';
+export const DEFAULT_SERVICE_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%231f2937"%3E%3C/rect%3E%3Ctext x="50%" y="50%" font-family="sans-serif" font-size="48" fill="%239ca3af" text-anchor="middle" dy=".3em"%3EEth-Links%3C/text%3E%3C/svg%3E';

@@ -1,20 +1,17 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { MapPin, Star, Calendar, User } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 import { Haptics } from '@/lib/haptics'
 import Link from 'next/link'
-// Using regular img tag for external URLs
-import { useState } from 'react'
+import { SafeImage } from '@/components/ui/safe-image'
 
 interface ServiceDetailsProps {
   service: any
 }
 
 export function ServiceDetails({ service }: ServiceDetailsProps) {
-  const [imageLoaded, setImageLoaded] = useState(false)
-
   const getImageSrc = () => {
     if (service.gallery && service.gallery.length > 0) {
       return service.gallery[0].startsWith('/')
@@ -35,20 +32,13 @@ export function ServiceDetails({ service }: ServiceDetailsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Image */}
-      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 min-h-[300px]">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 animate-pulse" />
-        )}
-        {getImageSrc() && (
-          <img
-            src={getImageSrc()}
-            alt={service.title}
-            className="w-full h-full object-cover"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageLoaded(true)}
-          />
-        )}
+      {/* Image - Bulletproof with SafeImage component */}
+      <div className="rounded-xl overflow-hidden">
+        <SafeImage
+          src={getImageSrc()}
+          alt={service.title}
+          containerClassName="aspect-video w-full min-h-[300px] bg-muted relative overflow-hidden"
+        />
       </div>
 
       {/* Title and Rating */}
