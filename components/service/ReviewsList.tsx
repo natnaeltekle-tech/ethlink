@@ -9,7 +9,9 @@ interface Review {
     profiles?: {
         first_name: string | null
         last_name: string | null
+        username: string | null
         avatar_url: string | null
+        full_name?: string | null
     } | null
 }
 
@@ -33,8 +35,23 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
                 {reviews.map((review) => {
                     const firstName = review.profiles?.first_name || '';
                     const lastName = review.profiles?.last_name || '';
-                    const fullName = `${firstName} ${lastName}`.trim() || 'Anonymous User';
+                    const username = review.profiles?.username;
+                    const fullNameFromProfile = review.profiles?.full_name;
                     const avatarUrl = review.profiles?.avatar_url;
+                    
+                    // Determine the best display name
+                    let displayName: string;
+                    if (fullNameFromProfile && !fullNameFromProfile.startsWith('User ')) {
+                        // Use full_name if it's a real name (not the "User {id}" fallback)
+                        displayName = fullNameFromProfile;
+                    } else if (username) {
+                        // Use username if available
+                        displayName = username;
+                    } else {
+                        // Fallback to first_name + last_name, or Anonymous
+                        const combinedName = `${firstName} ${lastName}`.trim();
+                        displayName = combinedName || 'Anonymous User';
+                    }
 
                     return (
                         <Card key={review.id} className="border-border bg-card">
@@ -43,12 +60,12 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
                                     <div className="flex items-center gap-2">
                                         <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
                                             {avatarUrl ? (
-                                                <img src={avatarUrl} alt={fullName} className="h-full w-full object-cover" />
+                                                <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
                                             ) : (
                                                 <User className="h-4 w-4 text-primary" />
                                             )}
                                         </div>
-                                        <span className="font-semibold text-foreground">{fullName}</span>
+                                        <span className="font-semibold text-foreground">{displayName}</span>
                                     </div>
                                     <div className="flex items-center">
                                         {Array.from({ length: 5 }).map((_, i) => (

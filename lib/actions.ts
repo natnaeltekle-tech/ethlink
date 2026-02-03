@@ -163,7 +163,7 @@ export async function getReviews(serviceId: string) {
         try {
             const { data: profiles, error: profilesError } = await supabase
                 .from('public_profiles')
-                .select('id, full_name, avatar_url')
+                .select('id, full_name, username, avatar_url')
                 .in('id', userIds)
 
             if (profilesError) {
@@ -198,18 +198,28 @@ export async function getReviews(serviceId: string) {
             formattedProfile = {
                 first_name: firstName,
                 last_name: lastName,
+                username: profile.username,
                 avatar_url: profile.avatar_url,
                 full_name: profile.full_name
             }
+        } else if (profile && profile.username) {
+            // Fallback: User has a username but no full name
+            formattedProfile = {
+                first_name: profile.username,
+                last_name: '',
+                username: profile.username,
+                avatar_url: profile.avatar_url,
+                full_name: profile.username
+            }
         } else {
-            // Fallback: User hasn't set up their profile yet
-            // Show a friendly name based on user_id (first 8 chars) or generic name
+            // Last resort: Show a friendly name based on user_id (first 8 chars)
             const shortId = r.user_id ? r.user_id.substring(0, 8) : 'Unknown'
             const fallbackName = `User ${shortId}`
             
             formattedProfile = {
                 first_name: fallbackName,
                 last_name: '',
+                username: null,
                 avatar_url: profile?.avatar_url || null,
                 full_name: fallbackName
             }
