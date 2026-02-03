@@ -159,15 +159,21 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
                         }}
                     />
 
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {/* Delete button - Always visible on mobile, hover on desktop */}
+                    <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Button
                             type="button"
                             variant="destructive"
-                            className="gap-2 min-h-[44px]"
-                            onClick={removeImage}
+                            size="sm"
+                            className="gap-2 min-h-[44px] min-w-[44px] touch-manipulation"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeImage();
+                            }}
                         >
                             <X className="h-4 w-4" />
-                            Remove Photo
+                            <span className="hidden sm:inline">Remove Photo</span>
                         </Button>
                     </div>
                 </div>
