@@ -21,7 +21,9 @@ export function MobileNav() {
             href: '/services',
             label: 'Explore',
             icon: Search,
-            exact: false
+            exact: false,
+            // Explicit exclusion: Don't highlight Explore when on /services/new
+            exclude: (path: string) => path === '/services/new' || path?.startsWith('/services/new/')
         },
         {
             href: '/services/new',
@@ -46,10 +48,18 @@ export function MobileNav() {
             <div className="flex items-center justify-around h-16">
                 {links.map((link) => {
                     const Icon = link.icon
-                    // Strict path matching: exact match for exact routes, startsWith for non-exact
-                    const isActive = link.exact 
-                        ? pathname === link.href 
-                        : pathname === link.href || pathname?.startsWith(link.href + '/')
+                    // Strict path matching with explicit exclusion logic
+                    let isActive: boolean
+                    if (link.exact) {
+                        isActive = pathname === link.href
+                    } else {
+                        // Strict equality for Explore route + startsWith for sub-routes
+                        isActive = pathname === link.href || pathname?.startsWith(link.href + '/')
+                    }
+                    // Apply explicit exclusion if defined (e.g., don't highlight Explore on /services/new)
+                    if (link.exclude && pathname && link.exclude(pathname)) {
+                        isActive = false
+                    }
 
                     return (
                         <Link

@@ -36,16 +36,19 @@ export function ServiceDetails({ service }: ServiceDetailsProps) {
   return (
     <div className="space-y-6">
       {/* Image */}
-      <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-secondary/50">
+      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 min-h-[300px]">
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary/50 to-secondary animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 animate-pulse" />
         )}
-        <img
-          src={getImageSrc()}
-          alt={service.title}
-          className="w-full h-full object-cover"
-          onLoad={() => setImageLoaded(true)}
-        />
+        {getImageSrc() && (
+          <img
+            src={getImageSrc()}
+            alt={service.title}
+            className="w-full h-full object-cover"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
+          />
+        )}
       </div>
 
       {/* Title and Rating */}

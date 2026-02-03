@@ -1,21 +1,26 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function AddLinkButton() {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
 
+  // Prefetch the route on component mount for instant navigation
+  useEffect(() => {
+    router.prefetch('/services/new')
+  }, [router])
+
   const handleClick = useCallback(() => {
+    // Set pending state FIRST for instant feedback
+    setIsPending(true)
+    
     // Prevent double-clicks by checking if already pending
     if (isPending) return
-    
-    // Set pending state to prevent multiple triggers
-    setIsPending(true)
     
     // Navigate to service creation page
     try {
@@ -40,7 +45,7 @@ export function AddLinkButton() {
       className="bg-primary text-black rounded-full h-12 w-12 flex items-center justify-center shadow-lg hover:scale-105 transition-transform disabled:opacity-70 disabled:cursor-not-allowed"
     >
       {isPending ? (
-        <span className="animate-spin" aria-hidden="true">⌛</span>
+        <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
       ) : (
         <Plus className="h-6 w-6" aria-hidden="true" />
       )}

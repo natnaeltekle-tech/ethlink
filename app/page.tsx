@@ -7,6 +7,7 @@ import { ServiceCard } from '@/components/service/ServiceCard'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { PrefetchAddRoute } from '@/components/PrefetchAddRoute'
 
 // IMPORTANT: We use the Single Responsive Layout (No separate MobileHome component)
 // This ensures both Phone and PC see the same beautiful Dark Theme site.
@@ -17,6 +18,9 @@ export default async function Index() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
+      {/* Prefetch /services/new route for instant Add button navigation */}
+      <PrefetchAddRoute />
+      
       {/* Header */}
       <Navbar />
 
