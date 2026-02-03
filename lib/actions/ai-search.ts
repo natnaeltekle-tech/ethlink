@@ -1,9 +1,11 @@
 'use server';
 
-import { model } from "@/lib/gemini";
+import { getModel, GEMINI_MODEL_VERSION, logAIRequest } from "@/lib/gemini";
 import { searchServicesAdvanced } from "@/lib/actions";
 
-export async function processUserMessage(userMessage: string) {
+export async function processUserMessage(userMessage: string): Promise<string> {
+    const model = getModel();
+    
     try {
         // 1. Extract Search Criteria
         const extractionPrompt = `
@@ -22,7 +24,15 @@ export async function processUserMessage(userMessage: string) {
             Output ONLY raw JSON. Do not use markdown blocks.
         `;
 
-        const extractionResult = await model.generateContent(extractionPrompt);
+        let extractionResult;
+        try {
+            extractionResult = await model.generateContent(extractionPrompt);
+            logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, true);
+        } catch (error) {
+            logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+            throw new Error(`AI extraction failed: ${(error as Error).message}`);
+        }
+        
         const criteriaText = extractionResult.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
 
         let criteria;
@@ -49,7 +59,17 @@ export async function processUserMessage(userMessage: string) {
                 Example: "Here are some taxi services I found for you in Addis Ababa:"
                 Do NOT list the services.
             `;
-            const introResult = await model.generateContent(introPrompt);
+            
+            let introResult;
+            try {
+                introResult = await model.generateContent(introPrompt);
+                logAIRequest(introPrompt, GEMINI_MODEL_VERSION, true);
+            } catch (error) {
+                logAIRequest(introPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+                // Use a generic intro if AI fails
+                introResult = { response: { text: () => `I found ${services.length} services for you:` } };
+            }
+            
             const intro = introResult.response.text();
 
             const formattedServices = services.slice(0, 3).map((s: any) => {
@@ -63,12 +83,22 @@ export async function processUserMessage(userMessage: string) {
                 We searched for: ${JSON.stringify(criteria)} but found 0 results.
                 Write a helpful, polite response explaining we couldn't find anything and suggesting they try broader terms or check the spelling.
             `;
-            const result = await model.generateContent(noResultsPrompt);
+            
+            let result;
+            try {
+                result = await model.generateContent(noResultsPrompt);
+                logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, true);
+            } catch (error) {
+                logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+                return `I couldn't find any services matching "${criteria.query || userMessage}"${criteria.location ? ` in ${criteria.location}` : ''}. Try searching with different keywords or browse all services.`;
+            }
+            
             return result.response.text();
         }
 
     } catch (error) {
         console.error("AI Processing Error:", error);
-        return "I'm having a bit of trouble connecting to my AI brain right now. Please try searching with simple keywords like 'taxi' or 'cleaning'.";
+        // Re-throw the error so the caller can fallback to rule-based
+        throw error;
     }
 }

@@ -2,6 +2,112 @@
 
 import { createClient } from "@/lib/supabase/server";
 
+// Levenshtein distance calculation for fuzzy matching
+function levenshteinDistance(a: string, b: string): number {
+    const matrix: number[][] = [];
+    
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                );
+            }
+        }
+    }
+    
+    return matrix[b.length][a.length];
+}
+
+// Fuzzy match function - returns true if strings are similar enough
+function fuzzyMatch(str1: string, str2: string, threshold: number = 2): boolean {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+    
+    // Exact match
+    if (s1 === s2) return true;
+    
+    // Substring match
+    if (s1.includes(s2) || s2.includes(s1)) return true;
+    
+    // Levenshtein distance check (for typos)
+    const distance = levenshteinDistance(s1, s2);
+    const maxLength = Math.max(s1.length, s2.length);
+    
+    // Allow more distance for longer strings (as a percentage)
+    const normalizedThreshold = Math.max(threshold, Math.floor(maxLength * 0.3));
+    
+    return distance <= normalizedThreshold;
+}
+
+// Enhanced category matching with fuzzy logic
+function findCategoryWithFuzzyMatching(message: string): string | null {
+    const lowerMsg = message.toLowerCase();
+    
+    const categoryMap: { [key: string]: string } = {
+        // Events
+        'fun': 'Events', 'party': 'Events', 'wedding': 'Events', 'event': 'Events', 'concert': 'Events',
+        'celebration': 'Events', 'birthday': 'Events', 'ceremony': 'Events',
+        // Hospitality
+        'sleep': 'Hospitality', 'stay': 'Hospitality', 'hotel': 'Hospitality', 'bnb': 'Hospitality', 
+        'room': 'Hospitality', 'bed': 'Hospitality', 'accommodation': 'Hospitality', 'hostel': 'Hospitality',
+        'guest': 'Hospitality', 'lodge': 'Hospitality',
+        // Transport
+        'ride': 'Transport', 'bus': 'Transport', 'car': 'Transport', 'transportation': 'Transport', 
+        'transport': 'Transport', 'taxi': 'Transport', 'drive': 'Transport', 'shuttle': 'Transport',
+        'vehicle': 'Transport', 'airport': 'Transport', 'pickup': 'Transport',
+        // Home Services
+        'fix': 'Home Services', 'repair': 'Home Services', 'clean': 'Home Services', 
+        'plumber': 'Home Services', 'electrician': 'Home Services', 'house': 'Home Services',
+        'maintenance': 'Home Services', 'painting': 'Home Services', 'gardening': 'Home Services',
+        'carpenter': 'Home Services', 'handyman': 'Home Services',
+        // Tourism
+        'food': 'Tourism', 'eat': 'Tourism', 'restaurant': 'Tourism', 'dinner': 'Tourism', 
+        'lunch': 'Tourism', 'tour': 'Tourism', 'guide': 'Tourism', 'sightseeing': 'Tourism',
+        'attraction': 'Tourism', 'cafe': 'Tourism', 'dining': 'Tourism',
+        // Beauty & Wellness
+        'hair': 'Beauty', 'salon': 'Beauty', 'spa': 'Beauty', 'massage': 'Beauty',
+        'makeup': 'Beauty', 'nail': 'Beauty', 'barber': 'Beauty', 'grooming': 'Beauty',
+        // Tech Services
+        'computer': 'Tech', 'laptop': 'Tech', 'phone': 'Tech', 'repair tech': 'Tech',
+        'software': 'Tech', 'developer': 'Tech', 'website': 'Tech', 'app': 'Tech'
+    };
+
+    // First try exact word matching
+    for (const [key, category] of Object.entries(categoryMap)) {
+        const regex = new RegExp(`\\b${key}\\b`, 'gi');
+        if (regex.test(lowerMsg)) {
+            return category;
+        }
+    }
+    
+    // Fallback to fuzzy matching for typos
+    const words = lowerMsg.split(/\s+/);
+    for (const word of words) {
+        if (word.length < 3) continue; // Skip very short words
+        
+        for (const [key, category] of Object.entries(categoryMap)) {
+            if (fuzzyMatch(word, key, 2)) {
+                console.log(`Fuzzy match found: "${word}" ~ "${key}" -> ${category}`);
+                return category;
+            }
+        }
+    }
+    
+    return null;
+}
+
 export async function getChatResponse(userMessage: string) {
     try {
         const supabase = await createClient();
@@ -10,34 +116,25 @@ export async function getChatResponse(userMessage: string) {
         let pSearch = userMessage;
         const lowerMsg = userMessage.toLowerCase();
 
-        // --- 1. Smart Category Mapping (Synonym Dictionary) ---
-        let category_filter: string | null = null;
+        // --- 1. Smart Category Mapping with Fuzzy Logic ---
+        const category_filter = findCategoryWithFuzzyMatching(userMessage);
 
-        const categoryMap: { [key: string]: string } = {
-            // Events
-            'fun': 'Events', 'party': 'Events', 'wedding': 'Events', 'event': 'Events', 'concert': 'Events',
-            // Hospitality
-            'sleep': 'Hospitality', 'stay': 'Hospitality', 'hotel': 'Hospitality', 'bnb': 'Hospitality', 'room': 'Hospitality', 'bed': 'Hospitality',
-            // Transport
-            'ride': 'Transport', 'bus': 'Transport', 'car': 'Transport', 'transportation': 'Transport', 'transport': 'Transport', 'taxi': 'Transport', 'drive': 'Transport',
-            // Home Services
-            'fix': 'Home Services', 'repair': 'Home Services', 'clean': 'Home Services', 'plumber': 'Home Services', 'electrician': 'Home Services', 'house': 'Home Services',
-            // Tourism
-            'food': 'Tourism', 'eat': 'Tourism', 'restaurant': 'Tourism', 'dinner': 'Tourism', 'lunch': 'Tourism', 'tour': 'Tourism'
-        };
-
-        // Check for category keywords
-        // Check for category keywords
-        for (const [key, category] of Object.entries(categoryMap)) {
-            // Use regex to match whole word to avoid partial matches (e.g. 'car' in 'scar')
-            // Add 'g' flag to remove ALL occurrences of the synonym
-            const regex = new RegExp(`\\b${key}\\b`, 'gi');
-            if (regex.test(lowerMsg)) {
-                category_filter = category;
-                // Remove the keyword from the search string so we don't text-search for it
-                // e.g. "Find me a ride" -> "Find me a" (Category=Transport) -> Text search is empty -> Returns all Transport
+        // If we found a category, remove the keyword from search
+        if (category_filter) {
+            const categoryMap: { [key: string]: string[] } = {
+                'Events': ['fun', 'party', 'wedding', 'event', 'concert', 'celebration', 'birthday', 'ceremony'],
+                'Hospitality': ['sleep', 'stay', 'hotel', 'bnb', 'room', 'bed', 'accommodation', 'hostel', 'guest', 'lodge'],
+                'Transport': ['ride', 'bus', 'car', 'transportation', 'transport', 'taxi', 'drive', 'shuttle', 'vehicle', 'airport', 'pickup'],
+                'Home Services': ['fix', 'repair', 'clean', 'plumber', 'electrician', 'house', 'maintenance', 'painting', 'gardening', 'carpenter', 'handyman'],
+                'Tourism': ['food', 'eat', 'restaurant', 'dinner', 'lunch', 'tour', 'guide', 'sightseeing', 'attraction', 'cafe', 'dining'],
+                'Beauty': ['hair', 'salon', 'spa', 'massage', 'makeup', 'nail', 'barber', 'grooming'],
+                'Tech': ['computer', 'laptop', 'phone', 'repair tech', 'software', 'developer', 'website', 'app']
+            };
+            
+            const keywords = categoryMap[category_filter] || [];
+            for (const key of keywords) {
+                const regex = new RegExp(`\\b${key}\\b`, 'gi');
                 pSearch = pSearch.replace(regex, '').trim();
-                break; // Prioritize first match
             }
         }
 

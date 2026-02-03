@@ -8,6 +8,7 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { getChatResponse } from '@/lib/actions/chat';
+import { processUserMessage } from '@/lib/actions/ai-search';
 import ReactMarkdown from 'react-markdown';
 import { ChatBookingForm } from './chat-booking-form';
 import { toast } from 'sonner';
@@ -73,7 +74,17 @@ export function FloatingChat() {
         setIsTyping(true);
 
         try {
-            const responseText = await getChatResponse(String(userMessage.content));
+            // HYBRID SEARCH: Try AI first, fallback to rule-based on error
+            let responseText: string;
+            
+            try {
+                // Attempt AI-powered search first
+                responseText = await processUserMessage(String(userMessage.content));
+            } catch (aiError) {
+                // Fallback to rule-based search if AI fails
+                console.log('AI search failed, falling back to rule-based search:', aiError);
+                responseText = await getChatResponse(String(userMessage.content));
+            }
 
             const aiChatMessage: Message = {
                 id: (Date.now() + 1).toString(),

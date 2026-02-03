@@ -11,8 +11,14 @@
 
 ## 🚀 Core Modules (The 'Big 4')
 
-### 🧠 AI Concierge
-Powered by custom algorithms and Gemini AI, our hybrid search engine combines tradition keyword Matching with Fuzzy logic to help users find local services instantly.
+### 🧠 AI Concierge - Hybrid Search Architecture
+Powered by a production-ready **Hybrid Search** system that combines Gemini AI with intelligent rule-based fallback:
+
+- **AI-First Strategy**: Primary queries are processed by Gemini AI for natural language understanding
+- **Intelligent Fallback**: Rule-based system with fuzzy logic activates when AI is unavailable
+- **Fuzzy Matching**: Levenshtein distance algorithm handles typos and approximate keyword matching
+- **Error Resilience**: Graceful degradation ensures 24/7 service availability
+- **Observability**: Structured logging of all AI requests with model version, prompt length, and success metrics
 
 ### 🏦 Fintech Engine
 Fully integrated **Telebirr H5** and **CBE Birr** payment flows with an internal Escrow Ledger. Money is held securely in the platform until the job is marked as complete, ensuring trust for both parties.
@@ -72,6 +78,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 # Fintech & AI
 TELEBIRR_APP_ID=your_telebirr_id
 GOOGLE_API_KEY=your_gemini_api_key
+
+# AI Configuration (Optional - defaults provided)
+GEMINI_MODEL_VERSION=gemini-pro        # Model version to use
+AI_TEMPERATURE=0.7                     # Response creativity (0.0 - 1.0)
+AI_MAX_TOKENS=2048                     # Maximum response length
+AI_TOP_P=0.9                          # Nucleus sampling parameter
+AI_TOP_K=40                           # Top-k sampling parameter
 ```
 
 ---
