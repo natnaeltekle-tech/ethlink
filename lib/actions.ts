@@ -149,6 +149,10 @@ export async function getReviews(serviceId: string) {
         return []
     }
 
+    if (!reviews || reviews.length === 0) {
+        return []
+    }
+
     // 2. Fetch user profiles manually to avoid relying on 'profiles' join which might be locked down
     // or to ensure we only get safe public data.
     const userIds = [...new Set(reviews.map(r => r.user_id))]
@@ -156,29 +160,38 @@ export async function getReviews(serviceId: string) {
     let profilesMap: Record<string, any> = {}
 
     if (userIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-            .from('public_profiles')
-            .select('id, full_name, avatar_url')
-            .in('id', userIds)
+        try {
+            const { data: profiles, error: profilesError } = await supabase
+                .from('public_profiles')
+                .select('id, full_name, avatar_url')
+                .in('id', userIds)
 
-        if (profiles) {
-            profiles.forEach(p => {
-                profilesMap[p.id] = p
-            })
+            if (profilesError) {
+                console.error('Error fetching profiles:', profilesError)
+            }
+
+            if (profiles) {
+                profiles.forEach(p => {
+                    profilesMap[p.id] = p
+                })
+            }
+        } catch (profileError) {
+            console.error('Exception fetching profiles:', profileError)
         }
     }
 
-    // 3. Merge data
-    // The Frontend often expects { profiles: { first_name, last_name, avatar_url } }
-    // We will attempt to split full_name into first/last to maintain backward compatibility if needed,
-    // or just pass full_name if the component supports it.
-
+    // 3. For any users without profiles, try to get email from auth.users (if we have access)
+    // This requires service role key, so we'll skip it for now and use a placeholder
+    
+    // 4. Merge data
+    // The Frontend expects { profiles: { first_name, last_name, avatar_url } }
     return reviews.map(r => {
         const profile = profilesMap[r.user_id]
 
         let formattedProfile = null
-        if (profile) {
-            const nameParts = (profile.full_name || 'Anonymous User').split(' ')
+        if (profile && profile.full_name) {
+            // User has a profile with a name
+            const nameParts = profile.full_name.split(' ')
             const firstName = nameParts[0]
             const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ''
 
@@ -187,6 +200,18 @@ export async function getReviews(serviceId: string) {
                 last_name: lastName,
                 avatar_url: profile.avatar_url,
                 full_name: profile.full_name
+            }
+        } else {
+            // Fallback: User hasn't set up their profile yet
+            // Show a friendly name based on user_id (first 8 chars) or generic name
+            const shortId = r.user_id ? r.user_id.substring(0, 8) : 'Unknown'
+            const fallbackName = `User ${shortId}`
+            
+            formattedProfile = {
+                first_name: fallbackName,
+                last_name: '',
+                avatar_url: profile?.avatar_url || null,
+                full_name: fallbackName
             }
         }
 

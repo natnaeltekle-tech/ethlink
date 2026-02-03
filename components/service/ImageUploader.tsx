@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { UploadCloud, X, Loader2, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 
 interface ImageUploaderProps {
     defaultValue?: string
@@ -63,6 +63,11 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
             const { data: { publicUrl } } = supabase.storage
                 .from('service-images')
                 .getPublicUrl(filePath)
+
+            // Validate that we got a valid URL
+            if (!publicUrl || !publicUrl.startsWith('http')) {
+                throw new Error('Failed to get valid public URL from storage')
+            }
 
             setImageUrl(publicUrl)
             toast.success("Image uploaded successfully!")
@@ -146,6 +151,12 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
                         src={imageUrl}
                         alt="Service preview"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                            const target = e.currentTarget as HTMLImageElement;
+                            if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                target.src = DEFAULT_SERVICE_IMAGE;
+                            }
+                        }}
                     />
 
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
