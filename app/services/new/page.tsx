@@ -10,14 +10,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
-import { ImageUploader } from '@/components/service/ImageUploader'
+import { ImageUploader } from '@/components/service/image-uploader'
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
 
 
 // Dynamic import for LocationPicker
-const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), {
+const LocationPicker = dynamic(() => import('@/components/map/location-picker'), {
     ssr: false,
     loading: () => <div className="h-[300px] w-full bg-secondary/20 animate-pulse rounded-md" />
 });

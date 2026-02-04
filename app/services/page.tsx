@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getFilteredServices } from '@/lib/actions';
 
 import { ArrowRight } from 'lucide-react';
-import ServiceListing from '@/components/service/ServiceListing';
+import { ServiceListing } from '@/components/service/service-listing';
 
 import { searchParamsSchema } from '@/lib/validations';
-import { PrefetchAddRoute } from '@/components/PrefetchAddRoute';
+import { PrefetchAddRoute } from '@/components/prefetch-add-route';
 
 export default async function ServicesPage({
     searchParams,

@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { ServiceCard } from '@/components/service/ServiceCard';
+import { ServiceCard } from '@/components/service/service-card';
 import { Button } from '@/components/ui/button';
 import { Map, List, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 // Dynamic import for the Map component with SSR disabled
-const ServiceMap = dynamic(() => import('@/components/map/ServiceMap'), {
+const ServiceMap = dynamic(() => import('@/components/map/service-map'), {
     ssr: false,
     loading: () => (
         <div className="h-[600px] w-full flex items-center justify-center bg-secondary/20 rounded-lg border border-border animate-pulse">
@@ -37,7 +37,7 @@ function deg2rad(deg: number) {
     return deg * (Math.PI / 180)
 }
 
-export default function ServiceListing({ services }: { services: any[] }) {
+export function ServiceListing({ services }: { services: any[] }) {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [sortedServices, setSortedServices] = useState<any[]>(services);

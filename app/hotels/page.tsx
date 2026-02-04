@@ -1,5 +1,6 @@
 import { getServicesByCategoryStrict } from '@/lib/actions'
-import { ServiceCard } from '@/components/service/ServiceCard'
+import { ServiceListing } from '@/components/service/service-listing'
+import { ServiceCard } from '@/components/service/service-card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 

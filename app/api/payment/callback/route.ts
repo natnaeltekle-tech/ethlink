@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CONFIG } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
     try {
         // Parse incoming JSON body from payment provider
         const body = await request.json()
 
-        // TODO: Verify Signature
+        // TODO: Production signature verification
         // In production, verify the webhook signature using the payment provider's secret key
         // Example: const signature = request.headers.get('x-signature')
         // if (!verifySignature(body, signature)) {
@@ -41,10 +42,9 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Calculate commission (10%) and provider earnings (90%)
+        // Calculate commission and provider earnings
         const price = booking.services.price
-        const commissionRate = 0.10
-        const commission = price * commissionRate
+        const commission = price * CONFIG.COMMISSION_RATE
         const earnings = price - commission
 
         // Update booking status to 'paid' and store commission details

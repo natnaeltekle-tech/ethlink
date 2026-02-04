@@ -6,7 +6,7 @@ import { Search as SearchIcon, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import dynamic from 'next/dynamic'
 
-const ServiceMap = dynamic(() => import('@/components/map/ServiceMap'), {
+const ServiceMap = dynamic(() => import('@/components/map/service-map'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-secondary/20 animate-pulse rounded-lg" />
 })

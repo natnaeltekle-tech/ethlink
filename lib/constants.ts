@@ -1,1 +1,9 @@
-export const DEFAULT_SERVICE_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"%3E%3Crect width="800" height="600" fill="%231f2937"%3E%3C/rect%3E%3Ctext x="50%" y="50%" font-family="sans-serif" font-size="48" fill="%239ca3af" text-anchor="middle" dy=".3em"%3EEth-Links%3C/text%3E%3C/svg%3E';
+export const CONFIG = {
+    COMMISSION_RATE: 0.10, // 10%
+    GEMINI_DEFAULT_MODEL: 'gemini-1.5-pro',
+    SUPPORTED_CURRENCIES: ['ETB'],
+
+    // Add other constants as needed
+    DATE_FORMAT: 'MMM dd, yyyy',
+    TIME_FORMAT: 'hh:mm a',
+};
