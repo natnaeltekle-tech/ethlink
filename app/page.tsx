@@ -1,35 +1,19 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Search, Handshake, CalendarCheck, User } from 'lucide-react'
-import { getServicesByCategory, getLatestServices } from '@/lib/actions'
-import { ServiceCard } from '@/components/service/ServiceCard'
+import { Search, Handshake, CalendarCheck } from 'lucide-react'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { PrefetchAddRoute } from '@/components/PrefetchAddRoute'
 
-// IMPORTANT: We use the Single Responsive Layout (No separate MobileHome component)
-// This ensures both Phone and PC see the same beautiful Dark Theme site.
-
-export default async function Index() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
+export default function Index() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      {/* Prefetch /services/new route for instant Add button navigation */}
-      <PrefetchAddRoute />
-      
-      {/* Header */}
+    <div className="flex flex-col min-h-screen">
       <Navbar />
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-12 md:py-24 lg:py-32 relative overflow-hidden">
-          {/* Background decorative elements */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background -z-10"></div>
-
           <div className="container mx-auto px-4 flex flex-col items-center text-center">
             <div className="space-y-6 max-w-3xl">
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-gradient-gold pb-2">
