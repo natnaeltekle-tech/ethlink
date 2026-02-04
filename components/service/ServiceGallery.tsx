@@ -253,19 +253,7 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
             </div>
 
             {/* Floating Add Button - Owner Only */}
-            {isOwner && serviceId && (
-                <label
-                    className="absolute bottom-4 right-4 z-20 h-14 w-14 rounded-full bg-primary text-black shadow-[0_4px_12px_rgba(0,0,0,0.25)] flex items-center justify-center cursor-pointer hover:bg-primary/90 hover:scale-105 transition-all duration-200 active:scale-95"
-                    title="Add Photo"
-                >
-                    {isUploading ? (
-                        <Loader2 className="w-7 h-7 animate-spin" />
-                    ) : (
-                        <Plus className="w-8 h-8 stroke-[2.5]" />
-                    )}
-                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={isUploading} />
-                </label>
-            )}
+
         </div>
     )
 }
