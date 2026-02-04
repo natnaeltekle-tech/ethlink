@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { SettingsTab } from '@/components/dashboard/SettingsTab'
-import { ProviderPanel } from '@/components/dashboard/ProviderPanel'
+import { SettingsTab } from '@/components/dashboard/settings-tab'
+import { ProviderPanel } from '@/components/dashboard/provider-panel'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { User, Shield, Handshake, Check } from "lucide-react"
 import Link from "next/link"

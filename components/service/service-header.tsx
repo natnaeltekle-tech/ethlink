@@ -1,6 +1,6 @@
 import { MapPin, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { ServiceActions } from './serviceActions';
+import { ServiceActions } from './service-actions';
 
 interface ServiceHeaderProps {
     title: string

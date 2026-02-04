@@ -1,6 +1,6 @@
 'use client'
 
-import { DashboardTabs } from "@/components/dashboard/DashboardTabs"
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 import { PullToRefresh } from "@/components/pull-to-refresh"
 import { useProfile } from "@/lib/hooks/use-profile"
 import { useBookings } from "@/lib/hooks/use-bookings"
