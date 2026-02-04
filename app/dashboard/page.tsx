@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getUserBookings, getProviderStats, getProviderServices, getProfile } from "@/lib/actions";
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
+import DashboardClient from '@/components/dashboard/dashboardClient';
 import { Navbar } from "@/components/navbar";
 
 
