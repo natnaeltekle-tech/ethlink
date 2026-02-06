@@ -26,6 +26,7 @@ export function FloatingChat() {
     const [isTyping, setIsTyping] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [bookingServiceId, setBookingServiceId] = useState<string | null>(null);
+    const [showNudge, setShowNudge] = useState(false);
 
     useEffect(() => {
         if (messages.length === 0) {
@@ -38,6 +39,17 @@ export function FloatingChat() {
             ]);
         }
     }, [messages.length]);
+
+    // Show nudge after 3 seconds
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!isOpen) {
+                setShowNudge(true);
+            }
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [isOpen]);
 
     // Reset chat when closed
     useEffect(() => {
@@ -76,7 +88,7 @@ export function FloatingChat() {
         try {
             // HYBRID SEARCH: Try AI first, fallback to rule-based on error
             let responseText: string;
-            
+
             try {
                 // Attempt AI-powered search first
                 responseText = await processUserMessage(String(userMessage.content));
@@ -127,8 +139,30 @@ export function FloatingChat() {
                 dragConstraints={constraintsRef}
                 dragMomentum={false}
                 dragElastic={0.1}
-                className="fixed bottom-32 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-4"
+                className="fixed bottom-32 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-3"
             >
+                {/* Nudge Bubble */}
+                {showNudge && !isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-2xl rounded-br-none shadow-xl text-sm font-medium relative mb-1"
+                    >
+                        How can I help you?
+                        <motion.button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowNudge(false);
+                            }}
+                            className="absolute -top-2 -right-2 bg-muted text-muted-foreground rounded-full p-0.5 border border-border hover:bg-muted/80 transition-colors"
+                        >
+                            <X className="h-3 w-3" />
+                        </motion.button>
+                        <div className="absolute -bottom-2 right-4 w-4 h-4 bg-primary rotate-45 -z-10" />
+                    </motion.div>
+                )}
+
                 {isOpen && (
                     <div className="w-[300px] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
                         {/* Header */}
@@ -245,16 +279,36 @@ export function FloatingChat() {
                     </div>
                 )}
 
-                <Button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 transition-all duration-200 hover:scale-105"
+                <motion.div
+                    animate={!isOpen ? {
+                        scale: [1, 1.05, 1],
+                        boxShadow: [
+                            "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+                            "0 0 20px 2px rgba(37, 99, 235, 0.4)",
+                            "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
+                        ]
+                    } : {}}
+                    transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                    className="rounded-full"
                 >
-                    {isOpen ? (
-                        <X className="h-6 w-6" />
-                    ) : (
-                        <MessageCircle className="h-6 w-6" />
-                    )}
-                </Button>
+                    <Button
+                        onClick={() => {
+                            setIsOpen(!isOpen);
+                            setShowNudge(false);
+                        }}
+                        className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+                    >
+                        {isOpen ? (
+                            <X className="h-6 w-6" />
+                        ) : (
+                            <MessageCircle className="h-6 w-6" />
+                        )}
+                    </Button>
+                </motion.div>
             </motion.div>
         </>
     );
