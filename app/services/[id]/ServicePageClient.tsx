@@ -54,6 +54,7 @@ export function ServicePageClient({
                 isLoggedIn={!!user}
                 rating={averageRating}
                 reviewCount={reviewCount}
+                description={service.description}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -67,12 +68,7 @@ export function ServicePageClient({
                         imageUrl={service.image_url}
                     />
 
-                    <div className="prose dark:prose-invert max-w-none">
-                        <h2 className="text-2xl font-bold mb-4">About this Service</h2>
-                        <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
-                            {service.description}
-                        </p>
-                    </div>
+
                 </div>
 
                 {/* Right Column: The Deal Zone */}

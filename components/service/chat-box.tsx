@@ -188,7 +188,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     // }
 
     return (
-        <Card className="flex flex-col h-[400px]">
+        <Card className="flex flex-col h-[50vh] min-h-[400px] shadow-sm">
             <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-lg">Direct Chat</CardTitle>
                 <div className="flex items-center gap-2">
@@ -209,9 +209,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
                 {messages.length === 0 && (
-                    <div className="text-center text-muted-foreground text-sm py-4">
-                        No messages yet. Say hello!
-                    </div>
+                    <div className="flex-1" />
                 )}
                 {messages.map((msg) => {
                     const isMe = msg.sender_id === currentUserId

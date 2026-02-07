@@ -1,5 +1,7 @@
-import { MapPin, Star } from 'lucide-react'
+import { MapPin, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
 import { ServiceActions } from './service-actions';
 
 interface ServiceHeaderProps {
@@ -12,6 +14,7 @@ interface ServiceHeaderProps {
     isLoggedIn: boolean
     rating: number
     reviewCount: number
+    description: string | null
 }
 
 export function ServiceHeader({
@@ -23,8 +26,13 @@ export function ServiceHeader({
     isFavorite,
     isLoggedIn,
     rating,
-    reviewCount
+    reviewCount,
+    description
 }: ServiceHeaderProps) {
+    const [isExpanded, setIsExpanded] = useState(false)
+    const MAX_LENGTH = 150
+    const shouldTruncate = description && description.length > MAX_LENGTH
+
     return (
         <div className="mb-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -44,7 +52,7 @@ export function ServiceHeader({
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-4">
                 <Badge variant="secondary">{category}</Badge>
                 {location && (
                     <div className="flex items-center gap-1">
@@ -65,6 +73,34 @@ export function ServiceHeader({
                     </div>
                 )}
             </div>
+
+            {description && (
+                <div className="mt-4">
+                    <p className={`text-muted-foreground leading-relaxed whitespace-pre-wrap ${!isExpanded ? 'line-clamp-3' : ''}`}>
+                        {shouldTruncate && !isExpanded
+                            ? `${description.slice(0, MAX_LENGTH)}...`
+                            : description}
+                    </p>
+                    {shouldTruncate && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2 text-primary p-0 h-auto hover:bg-transparent hover:text-primary/80"
+                            onClick={() => setIsExpanded(!isExpanded)}
+                        >
+                            {isExpanded ? (
+                                <div className="flex items-center gap-1">
+                                    Show Less <ChevronUp className="w-4 h-4" />
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1">
+                                    Read More <ChevronDown className="w-4 h-4" />
+                                </div>
+                            )}
+                        </Button>
+                    )}
+                </div>
+            )}
         </div>
     )
 }
