@@ -96,15 +96,12 @@ export default function LocationPicker({
         );
     }
 
-    // Use a ref to hold a stable unique ID
-    const mapId = useRef(`location-picker-${Date.now()}`);
-
     return (
         <div ref={mapContainerRef} className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
             <MapContainer
-                key={mapId.current}
                 center={defaultCenter}
                 zoom={13}
+                scrollWheelZoom={false}
                 style={{ height: '100%', width: '100%' }}
                 ref={mapInstanceRef}
             >

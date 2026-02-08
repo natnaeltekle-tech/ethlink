@@ -74,15 +74,12 @@ export default function ServiceMap({ services, userLocation }: ServiceMapProps) 
         );
     }
 
-    // Use a ref to hold a stable unique ID for the map container
-    const mapId = useRef(`map-${Date.now()}`);
-
     return (
         <div ref={mapContainerRef} className="h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-sm z-0 relative">
             <MapContainer
-                key={mapId.current}
                 center={center}
                 zoom={13}
+                scrollWheelZoom={false}
                 style={{ height: '100%', width: '100%' }}
                 ref={mapInstanceRef}
             >
