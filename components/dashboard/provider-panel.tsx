@@ -31,15 +31,15 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
     const router = useRouter()
     const [isUpdating, setIsUpdating] = useState<string | null>(null)
     // Local state for immediate UI updates
-    const [bookings, setBookings] = useState(stats.pendingBookings)
+    const [bookings, setBookings] = useState(stats?.pendingBookings || [])
     // Upcoming jobs (confirmed or paid)
-    const [upcomingJobs, setUpcomingJobs] = useState(stats.allBookings.filter((b: any) => b.status === 'confirmed' || b.status === 'paid'))
+    const [upcomingJobs, setUpcomingJobs] = useState((stats?.allBookings || []).filter((b: any) => b.status === 'confirmed' || b.status === 'paid'))
 
     // Sync with server state if it changes (e.g. revalidation)
     useEffect(() => {
-        setBookings(stats.pendingBookings)
-        setUpcomingJobs(stats.allBookings.filter((b: any) => b.status === 'confirmed' || b.status === 'paid'))
-    }, [stats.pendingBookings, stats.allBookings])
+        setBookings(stats?.pendingBookings || [])
+        setUpcomingJobs((stats?.allBookings || []).filter((b: any) => b.status === 'confirmed' || b.status === 'paid'))
+    }, [stats?.pendingBookings, stats?.allBookings])
 
     const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
         setIsUpdating(bookingId)
