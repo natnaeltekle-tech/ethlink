@@ -6,6 +6,7 @@ import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "@/components/mobile-nav";
 import { GlobalBanner } from "@/components/global-banner";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -52,14 +53,21 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <GlobalBanner />
+          <ErrorBoundary name="Global Banner">
+            <GlobalBanner />
+          </ErrorBoundary>
           <div className="flex flex-col min-h-screen">
             {children}
           </div>
-          <Suspense fallback={null}>
-            <MobileNav />
-          </Suspense>
-          <FloatingChat />
+          <ErrorBoundary name="Mobile Navigation">
+            <Suspense fallback={null}>
+              <MobileNav />
+            </Suspense>
+          </ErrorBoundary>
+
+          <ErrorBoundary name="AI Chat">
+            <FloatingChat />
+          </ErrorBoundary>
           <Toaster />
         </ThemeProvider>
       </body>
