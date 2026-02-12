@@ -46,6 +46,8 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
                                     <span className="hidden sm:inline">Dashboard</span>
                                 </Button>
                             </Link>
+                            {/* Optionally show user email or avatar */}
+                            <span className="hidden md:inline text-xs text-muted-foreground ml-2 max-w-[120px] truncate">{user?.email || user?.user_metadata?.email || 'User'}</span>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">

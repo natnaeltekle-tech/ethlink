@@ -6,9 +6,26 @@ import { Home, Search, PlusCircle, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHaptics } from '@/lib/hooks/useHaptics'
 
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
 export function MobileNav() {
     const pathname = usePathname()
     const haptics = useHaptics()
+    const [user, setUser] = useState<any>(null)
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const supabase = createClient()
+                const { data: { user } } = await supabase.auth.getUser()
+                setUser(user)
+            } catch {
+                setUser(null)
+            }
+        }
+        fetchUser()
+    }, [])
 
     const links = [
         {
@@ -22,7 +39,6 @@ export function MobileNav() {
             label: 'Explore',
             icon: Search,
             exact: false,
-            // Explicit exclusion: Don't highlight Explore when on /services/new
             exclude: (path: string) => path === '/services/new' || path?.startsWith('/services/new/')
         },
         {
@@ -31,12 +47,20 @@ export function MobileNav() {
             icon: PlusCircle,
             exact: true
         },
-        {
-            href: '/dashboard',
-            label: 'Profile',
-            icon: User,
-            exact: false
-        }
+        // Profile tab logic
+        user
+            ? {
+                href: '/dashboard',
+                label: 'Profile',
+                icon: User,
+                exact: false
+            }
+            : {
+                href: '/auth/login',
+                label: 'Login',
+                icon: User,
+                exact: false
+            }
     ]
 
     const handleNavClick = () => {
@@ -47,20 +71,17 @@ export function MobileNav() {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border md:hidden supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-around h-16">
                 {links.map((link) => {
+                    if (!link) return null
                     const Icon = link.icon
-                    // Strict path matching with explicit exclusion logic
                     let isActive: boolean
                     if (link.exact) {
                         isActive = pathname === link.href
                     } else {
-                        // Strict equality for Explore route + startsWith for sub-routes
                         isActive = pathname === link.href || pathname?.startsWith(link.href + '/')
                     }
-                    // Apply explicit exclusion if defined (e.g., don't highlight Explore on /services/new)
                     if (link.exclude && pathname && link.exclude(pathname)) {
                         isActive = false
                     }
-
                     return (
                         <Link
                             key={link.href}
@@ -80,7 +101,6 @@ export function MobileNav() {
                     )
                 })}
             </div>
-            {/* Safe area padding for newer iPhones */}
             <div className="h-[env(safe-area-inset-bottom)] bg-background/80 backdrop-blur-md" />
         </div>
     )

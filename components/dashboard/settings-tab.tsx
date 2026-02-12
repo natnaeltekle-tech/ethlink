@@ -30,7 +30,7 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
     // Pre-fill logic helpers
     const getFirstName = () => {
         if (profile?.first_name) return profile.first_name
-        if (user.user_metadata?.full_name) {
+        if (user?.user_metadata?.full_name) {
             return user.user_metadata.full_name.split(' ')[0] || ''
         }
         return ''
@@ -38,7 +38,7 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
 
     const getLastName = () => {
         if (profile?.last_name) return profile.last_name
-        if (user.user_metadata?.full_name) {
+        if (user?.user_metadata?.full_name) {
             const parts = user.user_metadata.full_name.split(' ')
             return parts.length > 1 ? parts.slice(1).join(' ') : ''
         }
@@ -105,14 +105,14 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                     <div className="flex items-center gap-6">
                         {/* Large Avatar */}
                         <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl shadow-sm border border-primary/10">
-                            {user.email?.[0].toUpperCase()}
+                            {(user?.email && user.email[0]) ? user.email[0].toUpperCase() : 'U'}
                         </div>
 
                         <div className="space-y-2">
                             {/* Email with Icon */}
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <Mail className="h-4 w-4" />
-                                <span className="font-medium">{user.email}</span>
+                                <span className="font-medium">{user?.email || 'User'}</span>
                             </div>
 
                             {/* Role Badge */}

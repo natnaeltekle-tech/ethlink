@@ -70,7 +70,7 @@ export function ProfileContent({
               <User className="w-8 h-8 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold">{user.email}</h2>
+              <h2 className="text-xl font-bold">{user?.email || 'User'}</h2>
               <p className="text-sm text-muted-foreground">
                 {profile?.full_name || 'User'}
               </p>

@@ -19,7 +19,7 @@ export default async function ProtectedPage() {
       <div className="w-full max-w-2xl text-center">
         <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
         <p className="text-xl text-gray-500 mb-8">
-          You are logged in as <span className="font-bold text-foreground">{user.email}</span>
+          You are logged in as <span className="font-bold text-foreground">{user?.email || 'User'}</span>
         </p>
 
         <div className="grid gap-4 md:grid-cols-2">

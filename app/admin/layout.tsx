@@ -25,7 +25,7 @@ export default async function AdminLayout({
                         Admin Dashboard
                     </h1>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Logged in as {user.email}
+                        Logged in as {user?.email ?? 'Admin'}
                     </div>
                 </div>
             </header>
