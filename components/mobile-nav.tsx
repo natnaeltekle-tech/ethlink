@@ -15,16 +15,19 @@ export function MobileNav() {
     const [user, setUser] = useState<any>(null)
 
     useEffect(() => {
-        async function fetchUser() {
-            try {
-                const supabase = createClient()
-                const { data: { user } } = await supabase.auth.getUser()
-                setUser(user)
-            } catch {
-                setUser(null)
-            }
-        }
-        fetchUser()
+        const supabase = createClient()
+
+        // Initial fetch
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user)
+        })
+
+        // Listen for changes (login/logout)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null)
+        })
+
+        return () => subscription.unsubscribe()
     }, [])
 
     const links = [
