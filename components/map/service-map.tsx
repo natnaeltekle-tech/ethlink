@@ -30,6 +30,7 @@ interface ServiceMapProps {
 export default function ServiceMap({ services, userLocation }: ServiceMapProps) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
+    const [mapKey] = useState(() => `map-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
@@ -77,6 +78,7 @@ export default function ServiceMap({ services, userLocation }: ServiceMapProps) 
     return (
         <div ref={mapContainerRef} className="h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-sm z-0 relative">
             <MapContainer
+                key={mapKey}
                 center={center}
                 zoom={13}
                 scrollWheelZoom={false}

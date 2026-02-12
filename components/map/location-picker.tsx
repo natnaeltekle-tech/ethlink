@@ -21,6 +21,7 @@ export default function LocationPicker({
     const defaultCenter: [number, number] = [9.005401, 38.763611];
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
+    const [mapKey] = useState(() => `map-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
     useEffect(() => {
         setIsClient(true);
@@ -99,6 +100,7 @@ export default function LocationPicker({
     return (
         <div ref={mapContainerRef} className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
             <MapContainer
+                key={mapKey}
                 center={defaultCenter}
                 zoom={13}
                 scrollWheelZoom={false}

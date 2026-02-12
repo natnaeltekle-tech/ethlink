@@ -13,28 +13,26 @@ export default function Error({
     useEffect(() => {
         console.error(error)
     }, [error])
-
     return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 space-y-4">
-            <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold">Something went wrong!</h2>
-                <p className="text-sm text-muted-foreground bg-secondary/50 p-2 rounded font-mono max-w-lg mx-auto overflow-auto">
-                    {error.message || 'An unexpected error occurred'}
-                </p>
-            </div>
-            <div className="flex gap-3">
-                <Button
-                    onClick={() => reset()}
-                    variant="default"
-                >
-                    Try again
-                </Button>
-                <Button
-                    onClick={() => window.location.href = '/'}
-                    variant="outline"
-                >
-                    Go Home
-                </Button>
+        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-6">
+            <div className="max-w-xl w-full bg-slate-800/60 border border-slate-700 rounded-lg p-8 text-center">
+                <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
+                <p className="text-sm text-slate-300 mb-6">An unexpected error occurred. You can reload the page to try again.</p>
+                <div className="flex items-center justify-center gap-3">
+                    <Button
+                        onClick={() => {
+                            try { reset() } catch (e) { /* ignore */ }
+                            window.location.reload()
+                        }}
+                        variant="default"
+                    >
+                        Reload
+                    </Button>
+                </div>
+                <details className="mt-4 text-left text-xs text-slate-400 font-mono p-2 bg-slate-900/30 rounded">
+                    <summary className="cursor-pointer">Error details</summary>
+                    <div className="mt-2 break-words">{error?.message}</div>
+                </details>
             </div>
         </div>
     )
