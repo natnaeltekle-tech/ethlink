@@ -21,9 +21,12 @@ export default function LocationPicker({
     const defaultCenter: [number, number] = [9.005401, 38.763611];
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
-    const [mapKey] = useState(() => `map-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    // Force a unique key on every mount to prevent "Map container is already initialized"
+    const [remountId, setRemountId] = useState(0);
 
     useEffect(() => {
+        // Generate a fresh key every time this component mounts
+        setRemountId(Date.now());
         setIsClient(true);
 
         (async function init() {
@@ -36,10 +39,14 @@ export default function LocationPicker({
         })();
 
         return () => {
-            // Cleanup: Remove map instance on unmount
-            if (mapInstanceRef.current) {
-                mapInstanceRef.current.remove();
-                mapInstanceRef.current = null;
+            // Cleanup: Remove map instance on unmount to prevent stale references
+            try {
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.remove();
+                    mapInstanceRef.current = null;
+                }
+            } catch {
+                // Ignore errors during cleanup (map may already be disposed)
             }
         };
     }, []);
@@ -100,7 +107,7 @@ export default function LocationPicker({
     return (
         <div ref={mapContainerRef} className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
             <MapContainer
-                key={mapKey}
+                key={remountId}
                 center={defaultCenter}
                 zoom={13}
                 scrollWheelZoom={false}

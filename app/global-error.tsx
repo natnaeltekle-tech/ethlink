@@ -10,10 +10,7 @@ export default function GlobalError({
     reset: () => void
 }) {
     useEffect(() => {
-        // Log error details for debugging
         console.error('Global Error:', error)
-        console.error('Error Digest:', error.digest)
-        console.error('Error Stack:', error.stack)
     }, [error])
 
     return (
@@ -21,48 +18,79 @@ export default function GlobalError({
             <head>
                 <title>Error - Eth-Links</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <style>{`
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif;
+                        background: #0a0a0a; color: #fafafa;
+                        display: flex; align-items: center; justify-content: center;
+                        min-height: 100vh; padding: 1.5rem;
+                    }
+                    .container { max-width: 28rem; width: 100%; text-align: center; }
+                    .icon {
+                        width: 4rem; height: 4rem; margin: 0 auto 1.5rem;
+                        border-radius: 50%; background: rgba(239,68,68,0.1);
+                        display: flex; align-items: center; justify-content: center;
+                    }
+                    .icon svg { width: 2rem; height: 2rem; color: #ef4444; }
+                    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+                    p { color: #a1a1aa; font-size: 0.875rem; margin-bottom: 1.5rem; }
+                    .btn-primary {
+                        width: 100%; padding: 0.75rem 1.5rem; margin-bottom: 0.75rem;
+                        background: #F5C518; color: #0a0a0a; font-weight: 600;
+                        border: none; border-radius: 0.5rem; cursor: pointer;
+                        font-size: 1rem; transition: opacity 0.2s;
+                    }
+                    .btn-primary:hover { opacity: 0.9; }
+                    .btn-secondary {
+                        width: 100%; padding: 0.75rem 1.5rem;
+                        background: #27272a; color: #fafafa; font-weight: 500;
+                        border: none; border-radius: 0.5rem; cursor: pointer;
+                        font-size: 0.875rem; transition: opacity 0.2s;
+                    }
+                    .btn-secondary:hover { opacity: 0.8; }
+                    details {
+                        margin-top: 1.5rem; text-align: left; font-size: 0.75rem;
+                        color: #71717a; font-family: monospace; padding: 0.75rem;
+                        background: rgba(39,39,42,0.5); border-radius: 0.5rem;
+                    }
+                    summary { cursor: pointer; user-select: none; }
+                    .detail-text { margin-top: 0.5rem; word-break: break-word; }
+                `}</style>
             </head>
-            <body className="flex min-h-screen flex-col items-center justify-center p-4 bg-background text-foreground">
-                <div className="max-w-lg w-full p-6 bg-card rounded-lg border border-border shadow-lg space-y-4">
-                    <h2 className="text-2xl font-bold text-red-500">Application Error</h2>
-                    
-                    <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                            The application encountered an unexpected error. This might be due to:
-                        </p>
-                        <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                            <li>Missing environment variables in Vercel dashboard</li>
-                            <li>Database connection issues</li>
-                            <li>API service unavailability</li>
-                        </ul>
+            <body>
+                <div className="container">
+                    <div className="icon">
+                        <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                        </svg>
                     </div>
 
-                    <div className="p-4 bg-red-500/10 rounded text-sm font-mono overflow-auto max-h-48 border border-red-500/20">
-                        <p className="font-bold text-red-400">{error.message || 'Unknown error'}</p>
-                        {error.digest && (
-                            <p className="text-xs mt-1 text-red-300">Digest: {error.digest}</p>
-                        )}
-                        {error.stack && (
-                            <pre className="mt-2 text-xs opacity-70 whitespace-pre-wrap">
-                                {error.stack}
-                            </pre>
-                        )}
-                    </div>
+                    <h1>Something went wrong</h1>
+                    <p>An unexpected error occurred. Reload the app to try again.</p>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => reset()}
-                            className="flex-1 py-2 px-4 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-                        >
-                            Try again
-                        </button>
-                        <button
-                            onClick={() => window.location.href = '/'}
-                            className="flex-1 py-2 px-4 bg-secondary text-secondary-foreground rounded hover:bg-secondary/90 transition-colors"
-                        >
-                            Go Home
-                        </button>
-                    </div>
+                    <button
+                        className="btn-primary"
+                        onClick={() => {
+                            try { reset() } catch { /* ignore */ }
+                            window.location.reload()
+                        }}
+                    >
+                        Reload App
+                    </button>
+
+                    <button
+                        className="btn-secondary"
+                        onClick={() => window.location.href = '/'}
+                    >
+                        Go to Home
+                    </button>
+
+                    <details>
+                        <summary>Error details</summary>
+                        <div className="detail-text">{error?.message || 'Unknown error'}</div>
+                        {error?.digest && <div className="detail-text" style={{ opacity: 0.6 }}>Digest: {error.digest}</div>}
+                    </details>
                 </div>
             </body>
         </html>

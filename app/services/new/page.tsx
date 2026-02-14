@@ -114,7 +114,7 @@ export default function NewServicePage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Email</Label>
-                                <Input disabled value={userAuth.email || ''} />
+                                <Input disabled value={userAuth?.email || ''} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="phoneNumber">Phone Number</Label>

@@ -8,7 +8,7 @@ import { useProviderData } from "@/lib/hooks/use-provider-data"
 import { User } from "@supabase/supabase-js"
 
 interface DashboardClientProps {
-    user: User
+    user: User | null
     initialProfile: any
     initialBookings: any[]
     initialProviderServices: any[]
@@ -26,6 +26,9 @@ export function DashboardClient({
     const { profile, refresh: refreshProfile } = useProfile()
     const { bookings, refresh: refreshBookings } = useBookings()
     const { services, stats, refresh: refreshProvider } = useProviderData()
+
+    // Defensive guard: if user is null (e.g. during logout), render nothing
+    if (!user) return null
 
     const handleRefresh = async () => {
         await Promise.all([
