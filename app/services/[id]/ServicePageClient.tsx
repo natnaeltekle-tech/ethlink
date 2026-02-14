@@ -61,7 +61,7 @@ export function ServicePageClient({
                 {/* Left Column: Description and Images */}
                 <div className="lg:col-span-2 space-y-8">
                     <ServiceGallery
-                        images={service.images || service.gallery || []}
+                        images={service.gallery || []}
                         title={service.title}
                         isOwner={user?.id && service.user_id && String(user.id) === String(service.user_id)}
                         serviceId={service.id}

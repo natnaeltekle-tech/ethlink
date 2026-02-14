@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Database } from '@/lib/database.types'
+
+type ServiceUpdate = Database['public']['Tables']['services']['Update']
 
 export async function addImageToGallery(serviceId: string, imageUrl: string) {
     const supabase = await createClient()
@@ -9,10 +12,10 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
 
     if (!user) throw new Error('Not authenticated')
 
-    // 1. Get current service to check ownership and existing images
+    // 1. Get current service to check ownership and existing gallery
     const { data: service, error: fetchError } = await supabase
         .from('services')
-        .select('user_id, images, image_url')
+        .select('user_id, gallery, image_url')
         .eq('id', serviceId)
         .single()
 
@@ -24,17 +27,12 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
         throw new Error('Unauthorized')
     }
 
-    // 2. Prepare new images array
-    // Note: We prioritize the 'images' array column. 
-    // If it's null, we might need to initialize it, potentially including the legacy 'image_url' if desired, 
-    // but usually 'image_url' is kept as the main thumbnail. 
-    // Let's assume 'images' is the gallery.
-
-    const currentImages = service.images || []
+    // 2. Prepare new gallery array
+    const currentGallery = service.gallery || []
 
     // Check if we should also add to 'image_url' if it's empty (first image)
-    let updates: any = {
-        images: [...currentImages, imageUrl]
+    let updates: ServiceUpdate = {
+        gallery: [...currentGallery, imageUrl]
     }
 
     if (!service.image_url) {
@@ -64,7 +62,7 @@ export async function removeImageFromGallery(serviceId: string, imageUrlToRemove
 
     const { data: service } = await supabase
         .from('services')
-        .select('user_id, images, image_url')
+        .select('user_id, gallery, image_url')
         .eq('id', serviceId)
         .single()
 
@@ -72,19 +70,16 @@ export async function removeImageFromGallery(serviceId: string, imageUrlToRemove
         throw new Error('Unauthorized')
     }
 
-    const currentImages = service.images || []
-    const newImages = currentImages.filter((img: string) => img !== imageUrlToRemove)
+    const currentGallery = service.gallery || []
+    const newGallery = currentGallery.filter((img: string) => img !== imageUrlToRemove)
 
-    let updates: any = {
-        images: newImages
+    let updates: ServiceUpdate = {
+        gallery: newGallery
     }
 
     // If we removed the main image_url, update it?
-    // For now, let's just update the gallery array. 
-    // If the user actively removed the image that is currently image_url, 
-    // we might want to pick the first one from newImages or set to null.
     if (service.image_url === imageUrlToRemove) {
-        updates.image_url = newImages.length > 0 ? newImages[0] : null
+        updates.image_url = newGallery.length > 0 ? newGallery[0] : null
     }
 
     const { error } = await supabase

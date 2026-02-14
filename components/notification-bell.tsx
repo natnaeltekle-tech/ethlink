@@ -16,15 +16,9 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-interface Notification {
-    id: string
-    user_id?: string // Added for client-side filtering
-    content: string
-    link?: string
-    type: 'booking' | 'payment' | 'message' | 'info'
-    is_read: boolean
-    created_at: string
-}
+import { Database } from '@/lib/database.types'
+
+type Notification = Database['public']['Tables']['notifications']['Row']
 
 export function NotificationBell({ userId }: { userId: string | null }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
@@ -95,6 +89,7 @@ export function NotificationBell({ userId }: { userId: string | null }) {
     }
 
     const handleMarkAllRead = async () => {
+        if (!userId) return
         setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
         setUnreadCount(0)
 
@@ -147,7 +142,7 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
                                     !notification.is_read && "bg-secondary/50"
                                 )}
-                                onClick={() => handleMarkAsRead(notification.id, notification.link)}
+                                onClick={() => handleMarkAsRead(notification.id, notification.link ?? undefined)}
                             >
                                 <div className="font-medium text-sm leading-none">
                                     {notification.content}

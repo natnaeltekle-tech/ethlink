@@ -12,7 +12,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
     const supabase = await createClient();
 
     let query = supabase
-        .from("listings")
+        .from("services")
         .select("*")
         .order("created_at", { ascending: false });
 

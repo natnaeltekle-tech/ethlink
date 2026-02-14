@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { Database } from "../database.types";
 
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -11,5 +12,5 @@ export function createClient() {
     throw new Error('Missing required Supabase environment variables. Please check your .env.local file or Vercel environment settings.');
   }
 
-  return createBrowserClient(supabaseUrl, supabaseKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey);
 }

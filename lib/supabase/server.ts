@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { Database } from "../database.types";
 
 /**
  * Especially important if using Fluid compute: Don't put this client in a
@@ -19,7 +20,7 @@ export async function createClient() {
 
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     supabaseUrl,
     supabaseKey,
     {

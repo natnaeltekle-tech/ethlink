@@ -21,7 +21,7 @@ export async function updateProfile(formData: FormData) {
             id: user.id,
             first_name: firstName,
             last_name: lastName,
-            phone: phoneNumber,
+            phone_number: phoneNumber,
         })
 
     if (error) {

@@ -49,7 +49,6 @@ export async function getAdminStats() {
 
     let totalRevenue = 0
     if (!revenueError && revenueData) {
-        // @ts-ignore - commission_amount might not be typed yet if types aren't updated, but it exists in DB
         totalRevenue = revenueData.reduce((sum, booking) => sum + (booking.commission_amount || 0), 0)
     }
 

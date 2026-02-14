@@ -35,7 +35,7 @@ export default function NewListingPage() {
             return;
         }
 
-        const { error } = await supabase.from("listings").insert({
+        const { error } = await supabase.from("services").insert({
             title,
             description,
             price: parseFloat(price),

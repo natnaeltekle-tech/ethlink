@@ -62,7 +62,6 @@ export default async function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-green-600">
-                            {/* @ts-ignore - totalRevenue added dynamically */}
                             {stats.totalRevenue?.toFixed(2) || '0.00'}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -117,8 +116,7 @@ export default async function AdminDashboard() {
                                     <div key={booking.id} className="flex items-center">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium leading-none">
-                                                {/* @ts-ignore - services is joined */}
-                                                {booking.services?.title || 'Unknown Service'}
+                                                {Array.isArray(booking.services) ? booking.services[0]?.title : booking.services?.title || 'Unknown Service'}
                                             </p>
                                             <p className="text-sm text-muted-foreground">
                                                 {new Date(booking.date).toLocaleDateString()} •

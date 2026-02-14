@@ -10,7 +10,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
     const supabase = await createClient();
 
     const { data: listing } = await supabase
-        .from("listings")
+        .from("services")
         .select("*")
         .eq("id", id)
         .single();
