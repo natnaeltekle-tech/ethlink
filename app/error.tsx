@@ -33,8 +33,12 @@ export default function Error({
                 {/* Primary: Reload App */}
                 <button
                     onClick={() => {
-                        try { reset() } catch { /* ignore */ }
-                        window.location.reload()
+                        try {
+                            reset?.()
+                        } catch (err) {
+                            console.error('Error during reset, falling back to reload', err)
+                            window.location.reload()
+                        }
                     }}
                     className="w-full py-3 px-6 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors text-base"
                 >

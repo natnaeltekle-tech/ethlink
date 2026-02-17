@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff } from 'lucide-react'
+import { LogoutButton } from '@/components/logout-button'
 import { deleteService, updateProfile, resetServiceImage } from '@/lib/actions'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -256,13 +257,9 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                 </CardContent>
             </Card>
 
-            {/* Log Out Button - Moved here */}
+            {/* Log Out Button */}
             <div className="flex justify-end pt-4 border-t border-border">
-                <form action="/auth/signout" method="post">
-                    <Button variant="destructive" size="lg" className="w-full sm:w-auto">
-                        Log Out
-                    </Button>
-                </form>
+                <LogoutButton />
             </div>
         </div>
     )

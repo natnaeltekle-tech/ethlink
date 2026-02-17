@@ -31,7 +31,9 @@ export {
     getUserBookings,
     getProviderStats,
     updateBookingStatus,
-    completeJob
+    completeJob,
+    checkServiceAvailability,
+    getAvailableServices
 } from './actions/bookings'
 
 export {
@@ -43,5 +45,6 @@ export {
 export {
     updateProfile,
     getProfile,
-    updateProviderProfile
+    updateProviderProfile,
+    safeSignOut
 } from './actions/auth'

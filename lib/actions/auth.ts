@@ -80,3 +80,29 @@ export async function updateProviderProfile(formData: FormData) {
 
     revalidatePath('/services/new')
 }
+
+/**
+ * Safe server-side sign out.
+ * Uses try/catch to ensure the session is always invalidated,
+ * even if Supabase throws an error.
+ */
+export async function safeSignOut(): Promise<{ success: boolean; error?: string }> {
+    const supabase = await createClient()
+
+    try {
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+            console.warn('[safeSignOut] Supabase signOut error:', error.message)
+            return { success: false, error: error.message }
+        }
+    } catch (err: any) {
+        console.warn('[safeSignOut] Exception during signOut:', err?.message)
+        return { success: false, error: err?.message || 'Unknown error' }
+    } finally {
+        // Always revalidate to clear cached user data from server components
+        revalidatePath('/', 'layout')
+    }
+
+    return { success: true }
+}
+

@@ -2,24 +2,40 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-    const supabase = await createClient();
+async function handleSignOut(req: NextRequest) {
+    const redirectUrl = new URL("/auth/login", req.url);
 
-    // Check if a user's logged in
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    try {
+        const supabase = await createClient();
 
-    if (user) {
-        await supabase.auth.signOut();
+        // Check if user is logged in
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+            await supabase.auth.signOut();
+        }
+    } catch (err) {
+        // Log but never block — the redirect MUST happen
+        console.warn("[signout/route] Error during sign out:", err);
+    } finally {
+        // Always purge the server-side cache
+        try {
+            revalidatePath("/", "layout");
+        } catch {
+            // revalidatePath can fail in edge cases, don't block redirect
+        }
     }
 
-    revalidatePath("/", "layout");
-    return NextResponse.redirect(new URL("/", req.url), {
-        status: 302,
-    });
+    // GUARANTEED redirect — even if everything above failed
+    return NextResponse.redirect(redirectUrl, { status: 302 });
+}
+
+export async function GET(req: NextRequest) {
+    return handleSignOut(req);
 }
 
 export async function POST(req: NextRequest) {
-    return GET(req);
+    return handleSignOut(req);
 }

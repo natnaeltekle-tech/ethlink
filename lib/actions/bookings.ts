@@ -6,6 +6,63 @@ import { bookingSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+export async function checkServiceAvailability(serviceId: string, date: string): Promise<boolean> {
+    const supabase = await createClient()
+
+    // normalize date to UTC ISO string if not already
+    const checkDate = new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`
+
+    const { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('service_id', serviceId)
+        .eq('date', checkDate)
+        .in('status', ['confirmed', 'pending', 'paid']) // All valid states that block a slot
+        .single()
+
+    return !existingBooking
+}
+
+export async function getAvailableServices(date: string, category?: string) {
+    const supabase = await createClient()
+
+    // normalize date
+    const checkDate = new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`
+
+    // 1. Get all active services (optionally filtered by category)
+    let query = supabase
+        .from('services')
+        .select('*, bookings(date, status)')
+        .eq('is_active', true)
+
+    if (category) {
+        query = query.eq('category', category)
+    }
+
+    const { data: services, error } = await query
+
+    if (error) {
+        console.error('Error fetching available services:', error)
+        return []
+    }
+
+    // 2. Filter out services that have a booking collision at the requested time
+    const availableServices = services.filter(service => {
+        // If no bookings, it's available
+        if (!service.bookings || service.bookings.length === 0) return true
+
+        // Check if any booking overlaps with our requested time
+        const hasCollision = service.bookings.some((booking: any) =>
+            booking.date === checkDate &&
+            ['confirmed', 'pending', 'paid'].includes(booking.status)
+        )
+
+        return !hasCollision
+    })
+
+    return availableServices
+}
+
 export async function createBooking(formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -23,17 +80,13 @@ export async function createBooking(formData: FormData) {
         // Basic validation first
         const { serviceId, date } = bookingSchema.omit({ guests: true }).parse(rawData);
 
-        // Check availability
-        const { data: existingBooking } = await supabase
-            .from('bookings')
-            .select('id')
-            .eq('service_id', serviceId)
-            .eq('date', date)
-            .eq('status', 'confirmed')
-            .single()
+        // Atomic Check: Availability
+        // Note: The unique constraint in DB on (service_id, date) is the ultimate safeguard.
+        // But we check here to give a polite message before hitting the DB error if possible.
+        const isAvailable = await checkServiceAvailability(serviceId, date)
 
-        if (existingBooking) {
-            throw new Error('This slot is already booked. Please pick another time.')
+        if (!isAvailable) {
+            throw new Error('This service is already booked. Please explore our other available services.')
         }
 
         let data;
@@ -51,8 +104,9 @@ export async function createBooking(formData: FormData) {
             .single()
 
         if (result.error) {
+            // Handle Race Condition / Unique Constraint Violation
             if (result.error.code === '23505') {
-                throw new Error('This time slot is no longer available. Please choose another.')
+                throw new Error('This service is already booked. Please explore our other available services.')
             }
             throw result.error
         }
@@ -77,6 +131,7 @@ export async function createBooking(formData: FormData) {
                     link: '/dashboard'
                 })
                 .select()
+                .single() // We don't really use the result but good practice
         }
 
         revalidatePath('/dashboard');
@@ -84,7 +139,11 @@ export async function createBooking(formData: FormData) {
 
     } catch (error: any) {
         console.error('Error creating booking:', error)
-        // Re-throw to be handled by error boundary or UI
+        // Pass the error message through so the UI can display it
+        // The error boundary or form handler should catch this.
+        // For server actions used in forms, simple throwing works if we use `useFormState` or similar,
+        // but here we are just redirecting or throwing.
+        // If this is called from a client component wrapper, it will catch the error.
         throw new Error(error.message || 'Failed to create booking');
     }
 }
@@ -117,17 +176,12 @@ export async function createBookingJson(formData: FormData) {
         return { error: 'Invalid date format' }
     }
 
-    // Check availability
-    const { data: existingBooking } = await supabase
-        .from('bookings')
-        .select('id')
-        .eq('service_id', serviceId)
-        .eq('date', date)
-        .eq('status', 'confirmed')
-        .single()
+    // Availability Check
+    const isAvailable = await checkServiceAvailability(serviceId, date)
 
-    if (existingBooking) {
-        return { error: 'This slot is already booked. Please pick another time.' }
+    if (!isAvailable) {
+        // Return 409 Conflict-style message
+        return { error: 'This service is already booked. Please explore our other available services.' }
     }
 
     const { data, error } = await supabase
@@ -144,19 +198,18 @@ export async function createBookingJson(formData: FormData) {
         .single()
 
     if (error) {
+        // Handle Race Condition / Unique Constraint Violation
         if (error.code === '23505') {
-            return { error: 'This time slot is no longer available. Please choose another.' }
+            return { error: 'This service is already booked. Please explore our other available services.' }
         }
         console.error('Error creating booking:', error)
         return { error: 'Failed to create booking' }
     }
 
     // Trigger Notification for Provider
-    // 1. Get Provider ID
     const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
 
     if (service && service.user_id !== user.id) {
-        // Use admin client to bypass RLS and insert notification for provider
         const adminSupabase = createAdminClient()
         await adminSupabase
             .from('notifications')

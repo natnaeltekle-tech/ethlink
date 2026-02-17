@@ -72,8 +72,12 @@ export default function GlobalError({
                     <button
                         className="btn-primary"
                         onClick={() => {
-                            try { reset() } catch { /* ignore */ }
-                            window.location.reload()
+                            try {
+                                reset?.()
+                            } catch (err) {
+                                console.error('Error during reset, falling back to reload', err)
+                                window.location.reload()
+                            }
                         }}
                     >
                         Reload App
