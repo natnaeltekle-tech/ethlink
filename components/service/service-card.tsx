@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 
 interface ServiceCardProps {
     service: {
@@ -28,8 +29,17 @@ interface ServiceCardProps {
 }
 
 export function ServiceCard({ service, className, distance }: ServiceCardProps) {
+    // Helper to get full URL for relative paths
+    const getFullUrl = (path: string | null | undefined) => {
+        if (!path) return null
+        return path.startsWith('http')
+            ? path
+            : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${path}`
+    }
+
     // Determine image source with fallback
-    const mainImage = service.images?.[0] || service.image_url
+    const rawImage = service.images?.[0] || service.image_url
+    const mainImage = getFullUrl(rawImage)
 
     return (
         <motion.div
@@ -44,15 +54,20 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
 
                     {/* Image Container */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                        {mainImage ? (
-                            <Image
-                                src={mainImage}
-                                alt={service.title}
-                                fill
-                                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            />
-                        ) : (
+                        <Image
+                            src={mainImage || DEFAULT_SERVICE_IMAGE}
+                            alt={service.title}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            onError={(e) => {
+                                const target = e.currentTarget as HTMLImageElement;
+                                if (target.src !== DEFAULT_SERVICE_IMAGE) {
+                                    target.src = DEFAULT_SERVICE_IMAGE;
+                                }
+                            }}
+                        />
+                        {!mainImage && (
                             <div className="flex h-full w-full items-center justify-center text-muted-foreground/20">
                                 <Building2 className="h-16 w-16" />
                             </div>
