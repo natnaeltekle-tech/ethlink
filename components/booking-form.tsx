@@ -39,6 +39,13 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
             formData.set('guests', '1')
         }
 
+        // Convert datetime-local value to proper ISO string
+        const rawDate = formData.get('date') as string
+        if (rawDate) {
+            const isoDate = new Date(rawDate).toISOString()
+            formData.set('date', isoDate)
+        }
+
         try {
             const result = await createBookingJson(formData)
 

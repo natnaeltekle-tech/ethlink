@@ -172,7 +172,9 @@ export async function createBookingJson(formData: FormData) {
 
     const { serviceId, date, guests } = parsed.data;
 
-    if (isNaN(new Date(date).getTime())) {
+    // Validate the date is valid
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) {
         return { error: 'Invalid date format' }
     }
 
@@ -189,8 +191,8 @@ export async function createBookingJson(formData: FormData) {
         .insert({
             service_id: serviceId,
             user_id: user.id,
-            // Ensure we save the literal time as UTC to avoid shifts
-            date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
+            // Date is already a proper ISO string from the form
+            date: parsedDate.toISOString(),
             guests,
             status: 'pending'
         })
