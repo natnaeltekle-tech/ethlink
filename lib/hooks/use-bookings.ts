@@ -11,6 +11,14 @@ export function useBookings() {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 2000,
+            // Prevent ghost-state retries after logout — server action returns []
+            // when session is gone, so no crash, but we avoid unnecessary calls.
+            shouldRetryOnError: false,
+            onError: (err) => {
+                // Silently ignore auth errors during logout transition
+                if (err?.message?.includes('auth') || err?.message?.includes('session')) return
+                console.error('[useBookings] SWR error:', err)
+            },
         }
     )
 

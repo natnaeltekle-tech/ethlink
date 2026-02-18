@@ -11,6 +11,12 @@ export function useProfile() {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 2000,
+            // Prevent ghost-state retries after logout
+            shouldRetryOnError: false,
+            onError: (err) => {
+                if (err?.message?.includes('auth') || err?.message?.includes('session')) return
+                console.error('[useProfile] SWR error:', err)
+            },
         }
     )
 

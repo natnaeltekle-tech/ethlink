@@ -11,6 +11,12 @@ export function useProviderData() {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 2000,
+            // Prevent ghost-state retries after logout
+            shouldRetryOnError: false,
+            onError: (err) => {
+                if (err?.message?.includes('auth') || err?.message?.includes('session')) return
+                console.error('[useProviderData] services SWR error:', err)
+            },
         }
     )
 
@@ -21,6 +27,12 @@ export function useProviderData() {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
             dedupingInterval: 2000,
+            // Prevent ghost-state retries after logout
+            shouldRetryOnError: false,
+            onError: (err) => {
+                if (err?.message?.includes('auth') || err?.message?.includes('session')) return
+                console.error('[useProviderData] stats SWR error:', err)
+            },
         }
     )
 
