@@ -7,6 +7,17 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://ethlink-app.vercel.app', // Your Live URL
     cleartext: true
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 0, // Show indefinitely until we hide it
+      backgroundColor: '#0B0C15', // Match app's dark background
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
+    }
   }
 };
 

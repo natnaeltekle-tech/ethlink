@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary brand colors -->
+    <color name="colorPrimary">#F5C518</color>
+    <color name="colorPrimaryDark">#0B0C15</color>
+    <color name="colorAccent">#F5C518</color>
+    
+    <!-- Splash screen background - matches app's dark theme -->
+    <color name="splashBackground">#0B0C15</color>
+</resources>

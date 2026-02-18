@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
+import { SplashScreen } from '@capacitor/splash-screen'
+import { Capacitor } from '@capacitor/core'
 
 export default function GlobalError({
     error,
@@ -11,6 +13,17 @@ export default function GlobalError({
 }) {
     useEffect(() => {
         console.error('Global Error:', error)
+        // Hide splash screen on error to prevent hanging
+        const hideSplash = async () => {
+            try {
+                if (Capacitor.isNativePlatform()) {
+                    await SplashScreen.hide({ fadeOutDuration: 300 })
+                }
+            } catch (err) {
+                console.log('Splash screen hide on error:', err)
+            }
+        }
+        hideSplash()
     }, [error])
 
     return (
@@ -22,7 +35,7 @@ export default function GlobalError({
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body {
                         font-family: system-ui, -apple-system, sans-serif;
-                        background: #0a0a0a; color: #fafafa;
+                        background: #0B0C15; color: #fafafa;
                         display: flex; align-items: center; justify-content: center;
                         min-height: 100vh; padding: 1.5rem;
                     }
@@ -37,7 +50,7 @@ export default function GlobalError({
                     p { color: #a1a1aa; font-size: 0.875rem; margin-bottom: 1.5rem; }
                     .btn-primary {
                         width: 100%; padding: 0.75rem 1.5rem; margin-bottom: 0.75rem;
-                        background: #F5C518; color: #0a0a0a; font-weight: 600;
+                        background: #F5C518; color: #0B0C15; font-weight: 600;
                         border: none; border-radius: 0.5rem; cursor: pointer;
                         font-size: 1rem; transition: opacity 0.2s;
                     }
