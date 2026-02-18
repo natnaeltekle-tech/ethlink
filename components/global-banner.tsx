@@ -18,6 +18,7 @@ export function GlobalBanner() {
                     onClick={() => setIsVisible(false)}
                     className="hover:bg-black/10 rounded-full p-1 transition-colors"
                     aria-label="Close banner"
+                    suppressHydrationWarning
                 >
                     <X className="h-4 w-4" />
                 </button>

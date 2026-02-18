@@ -24,9 +24,14 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export function SettingsTab({ services, user, profile }: { services: any[], user: any, profile: any }) {
+    // All hooks must be declared before any conditional returns (Rules of Hooks)
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [isResetting, setIsResetting] = useState<string | null>(null)
     const [isUpdating, setIsUpdating] = useState(false)
+
+    // Guard against null user during logout transition to prevent white screen crash.
+    // Placed after all hooks to comply with React's Rules of Hooks.
+    if (!user) return null
 
     // Pre-fill logic helpers
     const getFirstName = () => {

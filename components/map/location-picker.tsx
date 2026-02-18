@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -21,29 +21,34 @@ export default function LocationPicker({
     const defaultCenter: [number, number] = [9.005401, 38.763611];
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
-    // Force a unique key on every mount to prevent "Map container is already initialized"
-    const [remountId, setRemountId] = useState(0);
+    // Stable unique key per component instance — prevents double-mount race condition.
+    // useId() is stable across renders (unlike Date.now() in useEffect which caused
+    // a second render and a "Map container is being reused" crash).
+    const mapId = useId();
 
     useEffect(() => {
-        // Generate a fresh key every time this component mounts
-        setRemountId(Date.now());
         setIsClient(true);
 
-        (async function init() {
-            delete (L.Icon.Default.prototype as any)._getIconUrl;
-            L.Icon.Default.mergeOptions({
-                iconRetinaUrl,
-                iconUrl,
-                shadowUrl,
-            });
-        })();
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl,
+            iconUrl,
+            shadowUrl,
+        });
 
         return () => {
-            // Cleanup: Remove map instance on unmount to prevent stale references
+            // Cleanup: fully destroy the map instance on unmount to prevent
+            // "Map container is being reused" on the next mount.
             try {
                 if (mapInstanceRef.current) {
-                    mapInstanceRef.current.remove();
+                    mapInstanceRef.current.off();   // Remove all event listeners first
+                    mapInstanceRef.current.remove(); // Destroy the Leaflet map
                     mapInstanceRef.current = null;
+                }
+                // Clear Leaflet's internal container reference so the DOM node
+                // can be safely reused if the component remounts.
+                if (mapContainerRef.current) {
+                    (mapContainerRef.current as any)._leaflet_id = undefined;
                 }
             } catch {
                 // Ignore errors during cleanup (map may already be disposed)
@@ -107,7 +112,7 @@ export default function LocationPicker({
     return (
         <div ref={mapContainerRef} className="h-[300px] w-full rounded-md border border-input bg-background overflow-hidden relative z-0">
             <MapContainer
-                key={remountId}
+                key={mapId}
                 center={defaultCenter}
                 zoom={13}
                 scrollWheelZoom={false}
