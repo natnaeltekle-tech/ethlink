@@ -5,6 +5,9 @@ import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
 import { getProviderInfo } from '@/lib/admin-actions'
 import { ServicePageClient } from './ServicePageClient'
 
+// Opt out of static generation since the page uses cookies for auth
+export const dynamic = 'force-dynamic'
+
 interface ServicePageProps {
     params: Promise<{ id: string }>
 }
