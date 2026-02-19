@@ -6,7 +6,6 @@ import { Capacitor } from '@capacitor/core'
 
 export default function GlobalError({
     error,
-    reset,
 }: {
     error: Error & { digest?: string }
     reset: () => void
@@ -27,51 +26,96 @@ export default function GlobalError({
     }, [error])
 
     return (
-        <html>
+        <html lang="en" className="dark">
             <head>
                 <title>Error - Eth-Links</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="theme-color" content="#0B0C15" />
                 <style>{`
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body {
+                    html, body {
                         font-family: system-ui, -apple-system, sans-serif;
-                        background: #0B0C15; color: #fafafa;
-                        display: flex; align-items: center; justify-content: center;
-                        min-height: 100vh; padding: 1.5rem;
+                        background: #0B0C15;
+                        color: #fafafa;
+                        min-height: 100vh;
                     }
-                    .container { max-width: 28rem; width: 100%; text-align: center; }
+                    body {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 1.5rem;
+                    }
+                    .container {
+                        max-width: 28rem;
+                        width: 100%;
+                        text-align: center;
+                    }
                     .icon {
-                        width: 4rem; height: 4rem; margin: 0 auto 1.5rem;
-                        border-radius: 50%; background: rgba(239,68,68,0.1);
-                        display: flex; align-items: center; justify-content: center;
+                        width: 4rem;
+                        height: 4rem;
+                        margin: 0 auto 1.5rem;
+                        border-radius: 50%;
+                        background: rgba(239,68,68,0.1);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     }
-                    .icon svg { width: 2rem; height: 2rem; color: #ef4444; }
-                    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
-                    p { color: #a1a1aa; font-size: 0.875rem; margin-bottom: 1.5rem; }
-                    .btn-primary {
-                        width: 100%; padding: 0.75rem 1.5rem; margin-bottom: 0.75rem;
-                        background: #F5C518; color: #0B0C15; font-weight: 600;
-                        border: none; border-radius: 0.5rem; cursor: pointer;
-                        font-size: 1rem; transition: opacity 0.2s;
+                    .icon svg {
+                        width: 2rem;
+                        height: 2rem;
+                        color: #ef4444;
                     }
-                    .btn-primary:hover { opacity: 0.9; }
-                    .btn-secondary {
-                        width: 100%; padding: 0.75rem 1.5rem;
-                        background: #27272a; color: #fafafa; font-weight: 500;
-                        border: none; border-radius: 0.5rem; cursor: pointer;
-                        font-size: 0.875rem; transition: opacity 0.2s;
+                    h1 {
+                        font-size: 1.5rem;
+                        font-weight: 700;
+                        margin-bottom: 0.5rem;
+                        color: #fafafa;
                     }
-                    .btn-secondary:hover { opacity: 0.8; }
+                    p {
+                        color: #a1a1aa;
+                        font-size: 0.875rem;
+                        margin-bottom: 1.5rem;
+                    }
+                    .btn-gold {
+                        width: 100%;
+                        padding: 0.75rem 1.5rem;
+                        margin-bottom: 0.75rem;
+                        background: #F5C518;
+                        color: #0B0C15;
+                        font-weight: 600;
+                        border: none;
+                        border-radius: 0.5rem;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        transition: opacity 0.2s, transform 0.1s;
+                    }
+                    .btn-gold:hover {
+                        opacity: 0.9;
+                    }
+                    .btn-gold:active {
+                        transform: scale(0.98);
+                    }
                     details {
-                        margin-top: 1.5rem; text-align: left; font-size: 0.75rem;
-                        color: #71717a; font-family: monospace; padding: 0.75rem;
-                        background: rgba(39,39,42,0.5); border-radius: 0.5rem;
+                        margin-top: 1.5rem;
+                        text-align: left;
+                        font-size: 0.75rem;
+                        color: #71717a;
+                        font-family: monospace;
+                        padding: 0.75rem;
+                        background: rgba(39,39,42,0.5);
+                        border-radius: 0.5rem;
                     }
-                    summary { cursor: pointer; user-select: none; }
-                    .detail-text { margin-top: 0.5rem; word-break: break-word; }
+                    summary {
+                        cursor: pointer;
+                        user-select: none;
+                    }
+                    .detail-text {
+                        margin-top: 0.5rem;
+                        word-break: break-word;
+                    }
                 `}</style>
             </head>
-            <body>
+            <body className="bg-background text-foreground">
                 <div className="container">
                     <div className="icon">
                         <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -80,27 +124,13 @@ export default function GlobalError({
                     </div>
 
                     <h1>Something went wrong</h1>
-                    <p>An unexpected error occurred. Reload the app to try again.</p>
+                    <p>An unexpected error occurred. Tap the button below to reload the app.</p>
 
                     <button
-                        className="btn-primary"
-                        onClick={() => {
-                            try {
-                                reset?.()
-                            } catch (err) {
-                                console.error('Error during reset, falling back to reload', err)
-                                window.location.reload()
-                            }
-                        }}
+                        className="btn-gold"
+                        onClick={() => window.location.reload()}
                     >
                         Reload App
-                    </button>
-
-                    <button
-                        className="btn-secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        Go to Home
                     </button>
 
                     <details>
