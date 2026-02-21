@@ -45,7 +45,14 @@ export async function updateSession(request: NextRequest) {
   // IMPORTANT: If you remove getClaims() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
   // Switched to getUser() for more reliable session verification
-  const { data: { user } } = await supabase.auth.getUser();
+  // Wrap in try/catch — stale/invalid cookies must never crash the middleware
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (!error) user = data.user;
+  } catch {
+    // Treat any failure as "logged out" — never throw from middleware
+  }
 
   // Protected Routes Configuration
   // Add paths here that require authentication
@@ -57,6 +64,11 @@ export async function updateSession(request: NextRequest) {
     '/profile'
   ];
 
+  // Never redirect on auth routes — prevents infinite redirect loops
+  if (request.nextUrl.pathname.startsWith('/auth')) {
+    return supabaseResponse;
+  }
+
   const isProtected = protectedPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -66,7 +78,12 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/auth/login";
     // Add next param for redirect back after login
     url.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    // Preserve Supabase cookies on redirect to keep session in sync
+    supabaseResponse.cookies.getAll().forEach(cookie =>
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    );
+    return redirectResponse;
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
