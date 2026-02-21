@@ -50,7 +50,7 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
         throw new Error('Failed to add image')
     }
 
-    revalidatePath(`/services/${serviceId}`)
+    revalidatePath(`/services/${serviceId}`, 'page')
     return { success: true }
 }
 
@@ -91,6 +91,6 @@ export async function removeImageFromGallery(serviceId: string, imageUrlToRemove
         throw new Error('Failed to remove image')
     }
 
-    revalidatePath(`/services/${serviceId}`)
+    revalidatePath(`/services/${serviceId}`, 'page')
     return { success: true }
 }

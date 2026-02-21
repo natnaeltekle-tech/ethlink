@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,16 @@ interface ServiceGalleryProps {
 export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: ServiceGalleryProps) {
     const [isUploading, setIsUploading] = useState(false)
     const router = useRouter()
+
+    // Local gallery state for optimistic UI updates
+    const initialImages = images && images.length > 0 ? images : (imageUrl ? [imageUrl] : [])
+    const [localImages, setLocalImages] = useState<string[]>(initialImages)
+
+    // Keep local state in sync when server props change (e.g. after router.refresh)
+    useEffect(() => {
+        const incoming = images && images.length > 0 ? images : (imageUrl ? [imageUrl] : [])
+        setLocalImages(incoming)
+    }, [images, imageUrl])
 
     // Helper to get full URL
     const getFullUrl = (path: string | null) => {
@@ -53,8 +63,13 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
             // 2. Add to Gallery in DB
             await addImageToGallery(serviceId, filePath)
 
-            router.refresh()
+            // 3. Optimistically update local state so the image appears instantly
+            setLocalImages(prev => [...prev, filePath])
+
             toast.success('Image added successfully!')
+
+            // 4. Refresh server data in the background to stay in sync
+            router.refresh()
         } catch (error: any) {
             console.error('Upload failed:', error)
             toast.error(`Failed to upload image: ${error.message || 'Unknown error'}`)
@@ -63,8 +78,8 @@ export function ServiceGallery({ images, title, isOwner, serviceId, imageUrl }: 
         }
     }
 
-    // Use gallery images if available, otherwise fallback to legacy imageUrl
-    const displayImages = images && images.length > 0 ? images : (imageUrl ? [imageUrl] : [])
+    // Use the optimistic local state for rendering
+    const displayImages = localImages
 
     // Empty state for non-owners - Return high-quality placeholder
     if (displayImages.length === 0 && !isOwner) {
