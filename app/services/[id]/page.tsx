@@ -36,7 +36,13 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
 export default async function ServicePage({ params }: ServicePageProps) {
     const { id } = await params
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        // Expired/corrupt session — render as guest
+    }
 
     const service = await getServiceDetails(id)
 

@@ -10,7 +10,13 @@ interface NavbarProps {
 
 export async function Navbar({ hideSearch = false }: NavbarProps) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        // Expired/corrupt session — render as guest, never crash
+    }
 
     return (
         <header className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-border/50 select-none">

@@ -6,9 +6,13 @@ export default async function ProtectedPage() {
   const supabase = await createClient()
 
   // Check if user is logged in
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Expired/corrupt session — treat as logged out
+  }
 
   if (!user) {
     return redirect('/auth/login')
