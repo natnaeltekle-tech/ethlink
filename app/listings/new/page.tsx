@@ -26,8 +26,14 @@ export default function NewListingPage() {
 
         const supabase = createClient();
 
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
+        // Get current user — guard against expired/corrupt session
+        let user = null;
+        try {
+            const { data } = await supabase.auth.getUser();
+            user = data.user;
+        } catch {
+            // Expired or corrupt session
+        }
 
         if (!user) {
             alert("You must be logged in to post a listing.");

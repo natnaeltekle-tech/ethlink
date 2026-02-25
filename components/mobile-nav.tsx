@@ -17,10 +17,10 @@ export function MobileNav() {
     useEffect(() => {
         const supabase = createClient()
 
-        // Initial fetch
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user)
-        })
+        // Initial fetch — .catch() prevents unhandled rejection on expired tokens
+        supabase.auth.getUser()
+            .then(({ data: { user } }) => { setUser(user) })
+            .catch(() => { /* expired/corrupt session — stay as guest */ })
 
         // Listen for changes (login/logout)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
