@@ -28,6 +28,7 @@ export default function NewServicePage() {
     const [loading, setLoading] = useState(true);
     const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [locationName, setLocationName] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     useEffect(() => {
         async function loadData() {
@@ -157,23 +158,32 @@ export default function NewServicePage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Category</Label>
-                                    <Input
+                                    <select
                                         id="category"
                                         name="category"
-                                        list="category-options"
-                                        className="w-full"
-                                        placeholder="Select or type a category (e.g., Hospitality, Gym, Photography)"
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         required
-                                    />
-                                    <datalist id="category-options">
-                                        <option value="Hospitality" />
-                                        <option value="Transport" />
-                                        <option value="Real Estate" />
-                                        <option value="Professional Services" />
-                                        <option value="Cleaning" />
-                                        <option value="Tech" />
-                                        <option value="Events" />
-                                    </datalist>
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="" disabled>Select a category</option>
+                                        <option value="Hospitality">Hospitality</option>
+                                        <option value="Transport">Transport</option>
+                                        <option value="Real Estate">Real Estate</option>
+                                        <option value="Professional Services">Professional Services</option>
+                                        <option value="Cleaning">Cleaning</option>
+                                        <option value="Tech">Tech</option>
+                                        <option value="Events">Events</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    {selectedCategory === 'Other' && (
+                                        <Input
+                                            name="custom_category"
+                                            className="w-full mt-2"
+                                            placeholder="Please specify your category..."
+                                            required
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">

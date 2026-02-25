@@ -573,7 +573,9 @@ export async function createServiceWithProfile(formData: FormData) {
 
     // 2. Extract Service Details
     const title = formData.get('title') as string
-    const category = formData.get('category') as string
+    const rawCategory = formData.get('category') as string
+    const customCategory = formData.get('custom_category') as string
+    const category = rawCategory === 'Other' && customCategory ? customCategory : rawCategory
     const location = formData.get('location') as string
     const price = parseFloat(formData.get('price') as string)
     const description = formData.get('description') as string
