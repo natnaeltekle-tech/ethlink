@@ -6,7 +6,8 @@ import { CONFIG } from '@/lib/constants'
 
 export async function initiatePayment(bookingId: string, paymentMethod: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -36,7 +37,8 @@ export async function initiatePayment(bookingId: string, paymentMethod: string) 
 
 export async function verifyPayment(bookingId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 

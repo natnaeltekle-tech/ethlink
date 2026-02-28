@@ -9,7 +9,8 @@ const ADMIN_EMAIL = 'natnaeltekle236@gmail.com'
 
 async function checkAdmin() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user || user.email !== ADMIN_EMAIL) {
         return false

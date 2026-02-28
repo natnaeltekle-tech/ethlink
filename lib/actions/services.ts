@@ -225,7 +225,8 @@ export async function getReviews(serviceId: string) {
 
 export async function getMessages(serviceId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return []
 
@@ -246,7 +247,8 @@ export async function getMessages(serviceId: string) {
 
 export async function sendMessage(serviceId: string, receiverId: string, content: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -276,7 +278,8 @@ export async function sendMessage(serviceId: string, receiverId: string, content
 
 export async function createService(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         redirect('/auth/login')
@@ -325,7 +328,8 @@ export async function createService(formData: FormData) {
 
 export async function submitReview(serviceId: string, rating: number, comment: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         throw new Error('Not authenticated')
@@ -354,7 +358,8 @@ export async function submitReview(serviceId: string, rating: number, comment: s
 
 export async function toggleFavorite(serviceId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         throw new Error('Not authenticated')
@@ -394,7 +399,8 @@ export async function toggleFavorite(serviceId: string) {
 
 export async function getFavoriteStatus(serviceId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return false
 
@@ -410,7 +416,8 @@ export async function getFavoriteStatus(serviceId: string) {
 
 export async function getProviderServices() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return []
 
@@ -425,7 +432,8 @@ export async function getProviderServices() {
 
 export async function toggleServiceStatus(serviceId: string, isActive: boolean) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -498,7 +506,8 @@ export async function getBuses(limit: number = 24) {
 
 export async function deleteService(serviceId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -525,7 +534,8 @@ export async function deleteService(serviceId: string) {
 
 export async function resetServiceImage(serviceId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -559,7 +569,8 @@ export async function resetServiceImage(serviceId: string) {
 
 export async function createServiceWithProfile(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         redirect('/auth/login')

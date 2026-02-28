@@ -65,7 +65,8 @@ export async function getAvailableServices(date: string, category?: string) {
 
 export async function createBooking(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         redirect('/auth/login')
@@ -151,7 +152,8 @@ export async function createBooking(formData: FormData) {
 
 export async function createBookingJson(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         return { error: 'Not authenticated' }
@@ -230,7 +232,8 @@ export async function createBookingJson(formData: FormData) {
 
 export async function getBookingDetails(id: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return null
 
@@ -255,7 +258,8 @@ export async function getBookingDetails(id: string) {
 
 export async function getUserBookings() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return []
 
@@ -275,7 +279,8 @@ export async function getUserBookings() {
 
 export async function getProviderStats() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return null
 
@@ -351,7 +356,8 @@ export async function getProviderStats() {
 
 export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled') {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -406,7 +412,8 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
 
 export async function completeJob(bookingId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         throw new Error('Not authenticated')

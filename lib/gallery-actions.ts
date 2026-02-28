@@ -8,7 +8,8 @@ type ServiceUpdate = Database['public']['Tables']['services']['Update']
 
 export async function addImageToGallery(serviceId: string, imageUrl: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -56,7 +57,8 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
 
 export async function removeImageFromGallery(serviceId: string, imageUrlToRemove: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 

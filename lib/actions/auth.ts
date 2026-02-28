@@ -7,7 +7,8 @@ import { revalidatePath } from 'next/cache'
 
 export async function updateProfile(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
@@ -35,7 +36,8 @@ export async function updateProfile(formData: FormData) {
 
 export async function getProfile() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) return null
 
@@ -50,7 +52,8 @@ export async function getProfile() {
 
 export async function updateProviderProfile(formData: FormData) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let user = null
+    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) throw new Error('Not authenticated')
 
