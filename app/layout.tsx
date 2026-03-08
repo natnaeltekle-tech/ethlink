@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { AppInitializer } from "@/components/app-initializer";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
+import { CapacitorBackButton } from "@/components/capacitor-back-button";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -56,6 +57,7 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
+          <CapacitorBackButton />
           <ClientErrorBoundary>
             <AppInitializer>
               <AuthGate>
