@@ -44,6 +44,9 @@ export class ClientErrorBoundary extends React.Component<ClientErrorBoundaryProp
         if (this.state.hasError) {
             return (
                 <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-4 z-[9999]">
+                    <div className="text-red-500 font-bold p-10">
+                        CRITICAL CRASH: {this.state.error?.message}
+                    </div>
                     <div className="text-center max-w-md">
                         <div className="mb-6">
                             <svg
@@ -73,10 +76,10 @@ export class ClientErrorBoundary extends React.Component<ClientErrorBoundaryProp
                         >
                             Reload App
                         </button>
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                        {this.state.error && (
                             <div className="mt-6 p-4 bg-red-950/50 rounded-lg text-left overflow-auto max-h-40">
                                 <p className="text-red-400 text-xs font-mono">
-                                    {this.state.error.message}
+                                    {this.state.error.stack || this.state.error.message}
                                 </p>
                             </div>
                         )}

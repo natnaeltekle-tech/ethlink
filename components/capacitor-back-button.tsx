@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
 export function CapacitorBackButton() {
@@ -9,17 +10,25 @@ export function CapacitorBackButton() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const listener = App.addListener('backButton', () => {
-      if (pathname === '/') {
-        App.exitApp();
-      } else {
-        router.back();
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return;
       }
-    });
 
-    return () => {
-      listener.then((l) => l.remove());
-    };
+      const listener = App.addListener('backButton', () => {
+        if (pathname === '/') {
+          App.exitApp();
+        } else {
+          router.back();
+        }
+      });
+
+      return () => {
+        listener.then((l) => l.remove());
+      };
+    } catch (error) {
+      console.error('CapacitorBackButton: Failed to register listener', error);
+    }
   }, [pathname, router]);
 
   return null;

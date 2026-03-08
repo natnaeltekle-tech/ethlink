@@ -51,14 +51,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <CapacitorBackButton />
-          <ClientErrorBoundary>
+        <ClientErrorBoundary>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <CapacitorBackButton />
             <AppInitializer>
               <AuthGate>
                 <ErrorBoundary name="Global Banner">
@@ -79,8 +79,8 @@ export default function RootLayout({
                 <Toaster />
               </AuthGate>
             </AppInitializer>
-          </ClientErrorBoundary>
-        </ThemeProvider>
+          </ThemeProvider>
+        </ClientErrorBoundary>
       </body>
     </html>
   );
