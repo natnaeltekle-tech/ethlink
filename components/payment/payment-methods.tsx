@@ -84,7 +84,7 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
             setLoadingMessage("Verifying payment...")
             await new Promise(resolve => setTimeout(resolve, 1500))
 
-            const verifyResult = await verifyPayment(bookingId)
+            const verifyResult = await verifyPayment(bookingId, 'simulated_txn_' + Date.now())
 
             if (verifyResult.success) {
                 toast.success("Payment Successful!")
