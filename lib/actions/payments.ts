@@ -35,7 +35,7 @@ export async function initiatePayment(bookingId: string, paymentMethod: string) 
     return { success: true, message: 'Payment initiated' }
 }
 
-export async function verifyPayment(bookingId: string) {
+export async function verifyPayment(bookingId: string, transactionRef: string) {
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
@@ -53,6 +53,18 @@ export async function verifyPayment(bookingId: string) {
     if (fetchError || !booking) {
         throw new Error('Booking verification failed: Booking not found')
     }
+
+    // Idempotency check: if booking is already paid, return early
+    if (booking.status === 'paid') {
+        return { success: true, message: 'Already processed' }
+    }
+
+    // TODO: VERIFY transactionRef WITH TELEBIRR/CHAPA API HERE before updating DB.
+    // Example:
+    // const verification = await paymentProvider.verify(transactionRef);
+    // if (!verification.success || verification.amount !== booking.services.price) {
+    //     throw new Error('Payment verification failed');
+    // }
 
     const price = booking.services.price
     const commission = price * CONFIG.COMMISSION_RATE
@@ -86,6 +98,6 @@ export async function verifyPayment(bookingId: string) {
 }
 
 // Deprecated: Use initiatePayment + verifyPayment instead
-export async function processPayment(bookingId: string) {
-    return verifyPayment(bookingId)
+export async function processPayment(bookingId: string, transactionRef?: string) {
+    return verifyPayment(bookingId, transactionRef || '')
 }

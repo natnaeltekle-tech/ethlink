@@ -378,9 +378,8 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         throw new Error('Cannot cancel a paid booking. Please contact support for a refund.')
     }
 
-    // Use admin client to bypass RLS for status update (ownership already validated above)
-    const adminSupabase = createAdminClient()
-    const { error } = await adminSupabase
+    // Use standard authenticated client (RLS policies will enforce permissions)
+    const { error } = await supabase
         .from('bookings')
         .update({ status })
         .eq('id', bookingId)
@@ -444,10 +443,8 @@ export async function completeJob(bookingId: string) {
         throw new Error('Only paid bookings can be marked as completed')
     }
 
-    // Use admin client to bypass RLS for status update
-    const adminSupabase = createAdminClient()
-
-    const { error } = await adminSupabase
+    // Use standard authenticated client - now protected by RLS
+    const { error } = await supabase
         .from('bookings')
         .update({ status: 'completed' })
         .eq('id', bookingId)
