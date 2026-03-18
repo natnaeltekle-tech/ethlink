@@ -5,7 +5,11 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const ADMIN_EMAIL = 'natnaeltekle236@gmail.com'
+let ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+if (!process.env.ADMIN_EMAIL) {
+    console.warn("ADMIN_EMAIL env var missing — using default for dev");
+    ADMIN_EMAIL = 'natnaeltekle236@gmail.com';
+}
 
 async function checkAdmin() {
     const supabase = await createClient()
