@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ethlink.app',
-  appName: 'EthLink',
+  appName: 'Eth-Links',
   webDir: 'public', // This doesn't matter if we use server url
   server: {
     url: 'https://ethlink-app.vercel.app', // Your Live URL
