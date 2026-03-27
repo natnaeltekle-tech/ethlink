@@ -39,7 +39,6 @@ export {
 export {
     initiatePayment,
     verifyPayment,
-    processPayment
 } from './actions/payments'
 
 export {

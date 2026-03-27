@@ -22,7 +22,7 @@ export default function PrivacyPage() {
                         </p>
 
                         <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                            We do not sell your data. All payments are processed securely via Telebirr.
+                            We do not sell your data. All payments are processed securely via Chapa.
                         </p>
 
                         <div className="mt-8 p-6 bg-secondary/50 rounded-lg border border-border/50">
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
                         <div className="mt-6 p-6 bg-secondary/50 rounded-lg border border-border/50">
                             <h2 className="text-xl font-semibold mb-3 text-foreground">How We Use Your Data</h2>
                             <p className="text-muted-foreground">
-                                Your information is used exclusively to facilitate connections between you and service providers on our platform. We ensure secure payment processing through Telebirr.
+                                Your information is used exclusively to facilitate connections between you and service providers on our platform. We ensure secure payment processing through Chapa.
                             </p>
                         </div>
 

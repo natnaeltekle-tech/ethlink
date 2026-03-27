@@ -21,7 +21,7 @@ Powered by a production-ready **Hybrid Search** system that combines Gemini AI w
 - **Observability**: Structured logging of all AI requests with model version, prompt length, and success metrics
 
 ### 🏦 Fintech Engine
-Fully integrated **Telebirr H5** and **CBE Birr** payment flows with an internal Escrow Ledger. Money is held securely in the platform until the job is marked as complete, ensuring trust for both parties.
+Fully integrated **Chapa** payment gateway supporting TeleBirr, CBE Birr, bank cards, and more — all through a single redirect checkout. Money is held securely in the platform via an internal Escrow Ledger until the job is marked as complete, ensuring trust for both parties.
 
 ### 📱 Native PWA
 A premium mobile-first experience. Installable on iOS and Android with Haptic Feedback, smooth Bottom Navigation, and Offline-first capabilities for low-connectivity areas.
@@ -75,8 +75,9 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Fintech & AI
-TELEBIRR_APP_ID=your_telebirr_id
+# Payments & AI
+CHAPA_SECRET_KEY=your_chapa_secret_key
+CHAPA_WEBHOOK_SECRET=your_chapa_webhook_secret  # Optional
 GOOGLE_API_KEY=your_gemini_api_key
 
 # AI Configuration (Optional - defaults provided)
