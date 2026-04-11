@@ -30,13 +30,13 @@ export function AppInitializer({ children }: AppInitializerProps) {
       if (Capacitor.isNativePlatform()) {
         const platform = Capacitor.getPlatform();
         if (platform === 'android') {
-          // Artificial delay for Android to avoid race condition rendering blank
-          await new Promise((resolve) => setTimeout(resolve, 400));
+          // Allow extra time for Android WebView to paint first frame
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
         
-        console.log("🚀 SPLASH HIDDEN");
+        console.log("🚀 SPLASH HIDDEN - smooth transition to UI");
         await SplashScreen.hide({
-          fadeOutDuration: 300, // Smooth fade transition
+          fadeOutDuration: 500, // Premium smooth fade transition
         });
       }
     } catch (error) {
