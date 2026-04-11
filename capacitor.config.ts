@@ -6,7 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'public', // This doesn't matter if we use server url
   server: {
     url: 'https://ethlink-app.vercel.app', // Your Live URL
-    cleartext: true
+    cleartext: true,
+    android: {
+      allowMixedContent: true
+    }
   },
   plugins: {
     SplashScreen: {
@@ -18,6 +21,9 @@ const config: CapacitorConfig = {
       showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
+    },
+    CapacitorHttp: {
+      enabled: true,
     }
   },
   android: {

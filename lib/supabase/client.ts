@@ -1,5 +1,48 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { Database } from "../database.types";
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
+
+const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const headers: Record<string, string> = {};
+      
+      if (init?.headers) {
+        new Headers(init.headers).forEach((value, key) => {
+          headers[key] = value;
+        });
+      }
+
+      // Convert body to appropriate format if it exists
+      let requestData = init?.body;
+      if (typeof requestData === 'string') {
+        try { requestData = JSON.parse(requestData); } catch {}
+      }
+
+      const response = await CapacitorHttp.request({
+        url,
+        method: init?.method || 'GET',
+        headers,
+        data: requestData
+      });
+
+      // Capacitor parses json responses automatically. If it's an object, stringify it
+      // so we can construct a Response.
+      const bodyData = typeof response.data === 'object' ? JSON.stringify(response.data) : response.data;
+
+      return new Response(bodyData, {
+        status: response.status,
+        headers: new Headers(response.headers as Record<string, string>)
+      });
+    }
+
+    return await fetch(input, init);
+  } catch (error) {
+    console.error("[Supabase Fetch Error]:", error);
+    throw error;
+  }
+};
 
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -12,5 +55,9 @@ export function createClient() {
     throw new Error('Missing required Supabase environment variables. Please check your .env.local file or Vercel environment settings.');
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseKey, {
+    global: {
+      fetch: customFetch
+    }
+  });
 }
