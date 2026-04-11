@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Handshake } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { SplashScreen } from "@capacitor/splash-screen";
-import { Capacitor } from "@capacitor/core";
 
 function Loading() {
   return (
@@ -31,19 +29,6 @@ interface AuthGateProps {
 
 export function AuthGate({ children, onReady }: AuthGateProps) {
   const [isReady, setIsReady] = useState(false);
-
-  const hideSplashScreen = useCallback(async () => {
-    try {
-      if (Capacitor.isNativePlatform()) {
-        await SplashScreen.hide({
-          fadeOutDuration: 300,
-        });
-      }
-    } catch (err) {
-      // Splash screen might already be hidden or not available
-      console.log("Splash screen hide:", err);
-    }
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -84,13 +69,6 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
     };
   }, [onReady]);
 
-  // Hide splash screen when ready
-  useEffect(() => {
-    if (isReady) {
-      hideSplashScreen();
-    }
-  }, [isReady, hideSplashScreen]);
-
   if (!isReady) {
     return <Loading />;
   }
@@ -99,3 +77,4 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
   // The error can be handled by the app's error boundary
   return <>{children}</>;
 }
+

@@ -28,6 +28,13 @@ export function AppInitializer({ children }: AppInitializerProps) {
   const hideSplashScreen = useCallback(async () => {
     try {
       if (Capacitor.isNativePlatform()) {
+        const platform = Capacitor.getPlatform();
+        if (platform === 'android') {
+          // Artificial delay for Android to avoid race condition rendering blank
+          await new Promise((resolve) => setTimeout(resolve, 400));
+        }
+        
+        console.log("🚀 SPLASH HIDDEN");
         await SplashScreen.hide({
           fadeOutDuration: 300, // Smooth fade transition
         });
@@ -79,7 +86,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
 
   // Show loading state with dark background to prevent white flash
   if (!state.isReady) {
-    return <AppLoadingScreen />;
+    return null; // Return null so the native splash stays visible
   }
 
   // Show error state if initialization failed

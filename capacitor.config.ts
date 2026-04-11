@@ -11,6 +11,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0, // Show indefinitely until we hide it
+      launchAutoHide: false,
       backgroundColor: '#0B0C15', // Match app's dark background
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
@@ -18,6 +19,11 @@ const config: CapacitorConfig = {
       splashFullScreen: true,
       splashImmersive: true,
     }
+  },
+  android: {
+    backgroundColor: '#0B0C15',
+    allowMixedContent: true,
+    webContentsDebuggingEnabled: true,
   }
 };
 

@@ -49,8 +49,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
-      <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`}>
+    <html lang="en" suppressHydrationWarning className="dark" style={{ backgroundColor: '#0B0C15' }}>
+      <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`} style={{ backgroundColor: '#0B0C15', minHeight: '100vh' }}>
         <ClientErrorBoundary>
           <ThemeProvider
             attribute="class"
