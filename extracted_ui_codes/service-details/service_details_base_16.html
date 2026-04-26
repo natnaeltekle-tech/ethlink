@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create New Listing - Step 1</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f5c619",
+              "primary-dark": "#b38f0d",
+              "background-light": "#f8f8f5",
+              "background-dark": "#181611",
+              "surface-dark": "#27251b",
+              "border-gold": "#544f3b",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-input {
+            background-color: rgba(39, 37, 27, 0.6);
+            backdrop-filter: blur(8px);
+        }
+        /* Hide scrollbar for cleaner mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body>
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-[#181611] dark group/design-root overflow-x-hidden font-display">
+<!-- Header -->
+<div class="flex items-center bg-[#181611]/90 backdrop-blur-md sticky top-0 z-20 p-4 pb-2 justify-between border-b border-white/5">
+<button class="text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Create Listing</h2>
+</div>
+<!-- Progress Indicator -->
+<div class="flex w-full flex-col items-center justify-center gap-2 py-6 px-6 bg-[#181611]">
+<div class="flex w-full items-center justify-between gap-2">
+<!-- Active Step -->
+<div class="h-1.5 flex-1 rounded-full bg-primary shadow-[0_0_10px_rgba(245,198,25,0.4)]"></div>
+<!-- Inactive Steps -->
+<div class="h-1.5 flex-1 rounded-full bg-[#544f3b]/50"></div>
+<div class="h-1.5 flex-1 rounded-full bg-[#544f3b]/50"></div>
+<div class="h-1.5 flex-1 rounded-full bg-[#544f3b]/50"></div>
+</div>
+<div class="flex w-full justify-between items-center mt-1">
+<span class="text-primary text-xs font-bold tracking-widest uppercase">Step 1</span>
+<span class="text-[#bab39c] text-xs font-medium">Basic Info</span>
+</div>
+</div>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col px-4 pb-32">
+<!-- Headline -->
+<h2 class="text-white tracking-tight text-[28px] font-bold leading-tight text-left pb-6 pt-2">
+                Tell us about your<br/><span class="text-primary">Premium Service</span>
+</h2>
+<!-- Form Fields -->
+<div class="flex flex-col gap-5">
+<!-- Service Title -->
+<label class="flex flex-col w-full">
+<p class="text-[#bab39c] text-sm font-semibold tracking-wide uppercase pb-2 pl-1">Service Title</p>
+<input class="glass-input flex w-full resize-none overflow-hidden rounded-2xl text-white focus:outline-0 focus:ring-1 focus:ring-primary/50 border border-[#544f3b] focus:border-primary h-[60px] placeholder:text-white/20 p-[18px] text-base font-medium leading-normal transition-all duration-300" placeholder="e.g. Bole Luxury Penthouse" value=""/>
+</label>
+<!-- Category Dropdown -->
+<label class="flex flex-col w-full relative">
+<p class="text-[#bab39c] text-sm font-semibold tracking-wide uppercase pb-2 pl-1">Category</p>
+<div class="relative">
+<select class="glass-input appearance-none flex w-full resize-none overflow-hidden rounded-2xl text-white focus:outline-0 focus:ring-1 focus:ring-primary/50 border border-[#544f3b] focus:border-primary h-[60px] placeholder:text-[#bab39c] p-[18px] pr-12 text-base font-medium leading-normal transition-all duration-300">
+<option disabled="" selected="" value="">Select Category</option>
+<option class="bg-[#221e10]" value="accommodation">Accommodation</option>
+<option class="bg-[#221e10]" value="transport">Luxury Transport</option>
+<option class="bg-[#221e10]" value="tours">Guided Tours</option>
+<option class="bg-[#221e10]" value="concierge">Concierge Service</option>
+</select>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary flex items-center">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</label>
+<!-- Price Input -->
+<label class="flex flex-col w-full">
+<p class="text-[#bab39c] text-sm font-semibold tracking-wide uppercase pb-2 pl-1">Price per Day</p>
+<div class="relative group">
+<div class="absolute left-5 top-1/2 -translate-y-1/2 text-primary font-bold text-lg pointer-events-none group-focus-within:text-white transition-colors">$</div>
+<input class="glass-input flex w-full resize-none overflow-hidden rounded-2xl text-white focus:outline-0 focus:ring-1 focus:ring-primary/50 border border-[#544f3b] focus:border-primary h-[60px] placeholder:text-white/20 pl-10 p-[18px] text-base font-medium leading-normal transition-all duration-300" placeholder="0.00" type="number" value=""/>
+</div>
+</label>
+<!-- Image Upload Area -->
+<div class="flex flex-col w-full mt-2">
+<p class="text-[#bab39c] text-sm font-semibold tracking-wide uppercase pb-2 pl-1">Gallery</p>
+<div aria-label="Upload listing images" class="relative w-full h-44 rounded-[2rem] border-2 border-dashed border-[#544f3b] hover:border-primary bg-[#27251b]/30 flex flex-col items-center justify-center cursor-pointer group transition-all duration-300 hover:bg-[#27251b]/60" role="button">
+<!-- Abstract pattern background for texture -->
+<img alt="Abstract background pattern" class="absolute inset-0 w-full h-full object-cover opacity-5 rounded-[2rem] pointer-events-none mix-blend-overlay" data-alt="Abstract dark luxury texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCShabGnvaakrqkNsPXrYqdKD64rvXzRSRz3sES4oK1O_knihgGv-jnzHtaCmAug96p6vP09PLEv2A2_-FxlWGSFEeb7BjrcnLFDdr3565GDyalut9XbRSn5GXQlvXoU0XzuUbMlL7Nq0BClk1_TKVXOTBlQzzeBNs816BrFC7TLyuAhnyHZo-FpbUoG_gXRKb02jrhsi3zMJ3VJIWHuC5pEBWVKHAIwMMGVzB0de5nLC-suOiAD-almnY49ZuIGDI9VJBqfPQQhRg"/>
+<div class="z-10 flex flex-col items-center gap-3">
+<div class="size-14 rounded-full bg-[#181611] border border-[#544f3b] group-hover:border-primary group-hover:scale-110 flex items-center justify-center transition-all duration-300 shadow-lg">
+<span class="material-symbols-outlined text-primary text-3xl">add_a_photo</span>
+</div>
+<div class="text-center">
+<span class="text-white font-bold block group-hover:text-primary transition-colors">Add Photos</span>
+<span class="text-[#bab39c] text-xs mt-1 block">Up to 10 images • Max 5MB each</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer / Sticky Button -->
+<div class="fixed bottom-0 left-0 w-full p-5 pt-8 bg-gradient-to-t from-[#181611] via-[#181611] to-transparent z-30">
+<button class="w-full h-16 bg-primary hover:bg-[#dcb015] active:scale-[0.98] rounded-full flex items-center justify-center gap-3 shadow-[0_4px_20px_rgba(245,198,25,0.25)] transition-all duration-200 group">
+<span class="text-[#181611] font-extrabold text-lg tracking-wide">Next Step</span>
+<span class="material-symbols-outlined text-[#181611] text-2xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</body></html>

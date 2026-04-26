@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CBE Payment &amp; Transfer View</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619", // Gold
+                        "primary-dark": "#cfa006",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0F1014", // Deep midnight
+                        "card-dark": "#1A1C23", // Slightly lighter for cards
+                        "border-gold": "#544f3b",
+                        "text-muted": "#bab39c",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "Noto Sans", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'gold-gradient': 'linear-gradient(135deg, #f5c619 0%, #d4a000 100%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Custom radio button styling for segmented control */
+        input[type="radio"]:checked + div {
+            background-color: #f5c619;
+            color: #0F1014;
+            font-weight: 700;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col max-w-md mx-auto overflow-hidden bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- Header -->
+<header class="flex items-center px-4 pt-6 pb-2 justify-between z-10 bg-background-light dark:bg-background-dark">
+<button class="text-gray-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Secure Checkout</h2>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-24">
+<!-- Segmented Buttons -->
+<div class="px-4 py-4 sticky top-0 bg-background-light dark:bg-background-dark z-10 backdrop-blur-sm bg-opacity-90 dark:bg-opacity-90">
+<div class="flex h-12 w-full items-center justify-center rounded-xl bg-gray-200 dark:bg-[#1A1C23] p-1 border border-transparent dark:border-[#2A2D36]">
+<!-- Option 1: CBE Birr -->
+<label class="flex-1 h-full relative cursor-pointer">
+<input checked="" class="peer sr-only" name="payment_method" onchange="document.getElementById('cbe-panel').classList.remove('hidden'); document.getElementById('bank-panel').classList.add('hidden');" type="radio" value="cbe"/>
+<div class="flex h-full w-full items-center justify-center rounded-lg text-gray-500 dark:text-[#bab39c] text-sm font-medium transition-all duration-200 hover:text-gray-900 dark:hover:text-white">
+                            CBE Birr Wallet
+                        </div>
+</label>
+<!-- Option 2: Bank Transfer -->
+<label class="flex-1 h-full relative cursor-pointer">
+<input class="peer sr-only" name="payment_method" onchange="document.getElementById('cbe-panel').classList.add('hidden'); document.getElementById('bank-panel').classList.remove('hidden');" type="radio" value="bank"/>
+<div class="flex h-full w-full items-center justify-center rounded-lg text-gray-500 dark:text-[#bab39c] text-sm font-medium transition-all duration-200 hover:text-gray-900 dark:hover:text-white">
+                            Bank Transfer
+                        </div>
+</label>
+</div>
+</div>
+<!-- Panel A: CBE Birr Wallet -->
+<div class="px-4 flex flex-col gap-6 animate-fade-in" id="cbe-panel">
+<!-- Instructions -->
+<div class="bg-primary/10 rounded-xl p-4 border border-primary/20">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<div>
+<p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                                Enter your CBE Birr registered mobile number below to initiate the transaction request.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Input Field -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Mobile Number</label>
+<div class="relative flex items-center">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+<span class="text-gray-400 font-medium">+251</span>
+</div>
+<input class="block w-full rounded-xl border-gray-300 dark:border-[#544f3b] bg-white dark:bg-[#1A1C23] py-4 pl-16 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-base transition-colors" placeholder="911 234 567" type="tel"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="material-symbols-outlined text-primary">smartphone</span>
+</div>
+</div>
+</div>
+<!-- Simulation Button -->
+<button class="group w-full flex items-center justify-between rounded-xl bg-[#2A2D36] border border-[#544f3b] p-4 hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">dialpad</span>
+</div>
+<div class="text-left">
+<p class="text-white font-semibold">Simulate USSD</p>
+<p class="text-xs text-gray-400">Dial *847# manually</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-gray-500 group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- Step Guide -->
+<div class="flex items-start gap-4 px-2 pt-2">
+<div class="flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-[#0F1014] text-xs font-bold">1</div>
+<div class="w-0.5 h-8 bg-gray-700"></div>
+<div class="w-6 h-6 rounded-full bg-[#2A2D36] border border-gray-600 flex items-center justify-center text-gray-400 text-xs font-bold">2</div>
+</div>
+<div class="flex flex-col gap-6 pt-0.5">
+<div>
+<h4 class="text-white text-sm font-bold">Push Request Sent</h4>
+<p class="text-xs text-gray-400 mt-1">Check your phone for a PIN prompt.</p>
+</div>
+<div>
+<h4 class="text-gray-400 text-sm font-medium">Confirm Payment</h4>
+<p class="text-xs text-gray-500 mt-1">Transaction completes automatically.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel B: Bank Transfer -->
+<div class="hidden px-4 flex flex-col gap-6 animate-fade-in" id="bank-panel">
+<!-- Bank Details Card -->
+<div class="rounded-xl bg-gradient-to-br from-[#1A1C23] to-[#141519] border border-[#544f3b] p-5 shadow-lg relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-xs text-primary font-bold tracking-wider uppercase mb-1">Bank Transfer</p>
+<h3 class="text-white text-lg font-bold">Commercial Bank of Ethiopia</h3>
+</div>
+<div class="bg-white p-1 rounded">
+<img class="h-8 w-auto object-contain" data-alt="CBE Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6hQFH4VjMtw8jguzwzso_Ngm2AczKxlSZMS3IoTNfGti0iPR1luBXb6UTVRwOTe2XulvL3Sl1NgKFPHgJTN4W_7C24j_0VSqt-t6pF_O20EbhB4yi3lccLnTIHKAJukCVZTsueBjb4qh9_4eU8Zj9ZcofF-wyl_HQF1tzF6pdzqDLTc-q9Aw5U2iznZ224goVIG6ABOzXDAOPT9nBPRZsGrwVjq0kdAd5vJPkwR65bWQ-6bFXYtc7rGY8PYbnBEwo8SXJ9RtiDaY"/>
+</div>
+</div>
+<div class="space-y-4">
+<div class="group">
+<p class="text-xs text-gray-500 mb-1">Account Number</p>
+<button class="flex items-center gap-2 w-full text-left active:scale-95 transition-transform">
+<span class="text-xl text-white font-mono tracking-wide">1000123456789</span>
+<span class="material-symbols-outlined text-primary text-sm opacity-50 group-hover:opacity-100">content_copy</span>
+</button>
+</div>
+<div class="flex gap-8">
+<div>
+<p class="text-xs text-gray-500 mb-1">Account Name</p>
+<p class="text-sm text-white font-medium">Premium Listings ET</p>
+</div>
+<div>
+<p class="text-xs text-gray-500 mb-1">Amount</p>
+<p class="text-sm text-primary font-bold">ETB 15,400.00</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Upload Dropzone -->
+<div class="relative">
+<input class="hidden" id="file-upload" type="file"/>
+<label class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-primary/40 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer group" for="file-upload">
+<div class="flex flex-col items-center justify-center pt-5 pb-6">
+<div class="mb-3 p-3 rounded-full bg-[#1A1C23] border border-[#544f3b] group-hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">cloud_upload</span>
+</div>
+<p class="mb-1 text-sm text-white font-medium">Upload Receipt</p>
+<p class="text-xs text-gray-400 font-display">የደረሰኝ ፎቶ ስቀል</p>
+</div>
+</label>
+</div>
+<!-- Security Note -->
+<div class="flex items-start gap-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+<span class="material-symbols-outlined text-blue-400 text-lg mt-0.5">security</span>
+<p class="text-xs text-blue-100/80 leading-relaxed">
+                        Transfers are manually verified. It may take up to 30 minutes for your booking to be confirmed.
+                     </p>
+</div>
+</div>
+</main>
+<!-- Footer / Sticky Actions -->
+<footer class="bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-[#2A2D36] p-4 pb-8 z-20">
+<!-- Trust Badge -->
+<div class="flex items-center justify-center gap-2 mb-4 opacity-80">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-xs font-semibold text-gray-500 dark:text-[#bab39c] tracking-wide uppercase">CBE Verified Secure Payment</span>
+</div>
+<button class="w-full flex items-center justify-center rounded-xl bg-gold-gradient py-4 px-6 text-[#0F1014] font-bold text-lg shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-[0.98] transition-all hover:brightness-110">
+                Confirm Payment
+                <span class="material-symbols-outlined ml-2">lock</span>
+</button>
+</footer>
+</div>
+</body></html>

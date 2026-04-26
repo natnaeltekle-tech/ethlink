@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile and Settings</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0B0C15",
+                        "glass": "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                    backdropBlur: {
+                        'xs': '2px',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar hiding for cleaner mobile look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display antialiased selection:bg-primary selection:text-background-dark">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl shadow-black">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background-dark/80 backdrop-blur-md border-b border-white/5">
+<button class="text-white/70 hover:text-white transition-colors p-2 -ml-2 rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h2 class="text-white text-lg font-bold tracking-tight">Profile</h2>
+<button class="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col items-center px-6 pt-6 pb-12 w-full">
+<!-- Profile Header -->
+<div class="flex flex-col items-center w-full mb-10 relative">
+<!-- Glow Effect -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-primary/20 rounded-full blur-3xl -z-10"></div>
+<div class="relative group cursor-pointer">
+<div class="h-32 w-32 rounded-full p-1 border-2 border-primary shadow-[0_0_15px_-3px_rgba(245,198,25,0.3)] bg-background-dark">
+<div class="h-full w-full rounded-full bg-cover bg-center overflow-hidden" data-alt="Portrait of a smiling man with a beard looking confident" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA0z0lCTGt_b650LtGgp18PcBgX0NhAFSaYJ2pFDFKYaHQgzaAr91_qz9__XvT5ERUhWd38YfXGycNPfp8WzTz6hxFBYHdbzKa6TCfDdiAjKFlt7-Ql2qkwmmE-RNRuJW-enmQQJ4RGrg81YtBPR9rryQBeRucRRb-mSsfniZyzjdBb7_pfp1ai5tO6ev6N3kpVSxteZ4MK6Kax9cAvdCMHFPr16BAdJpou4slvKh6gIwPsWzVySyrk86w43xGcPae8XW0DY0jy0fQ");'>
+</div>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-background-dark rounded-full p-1.5 border-4 border-background-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] font-bold">edit</span>
+</div>
+</div>
+<div class="mt-5 text-center">
+<h1 class="text-white text-2xl font-bold leading-tight tracking-tight">Alex Johnson</h1>
+<p class="text-slate-400 text-sm font-medium mt-1">Member since 2024</p>
+</div>
+</div>
+<!-- Menu List -->
+<div class="w-full flex flex-col gap-px bg-glass backdrop-blur-md rounded-2xl border border-glass-border overflow-hidden">
+<!-- My Listings -->
+<div class="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined">list_alt</span>
+</div>
+<span class="text-white text-base font-medium">My Listings</span>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-[20px]">chevron_right</span>
+</div>
+<!-- Payment Methods -->
+<div class="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-glass-border">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined">credit_card</span>
+</div>
+<span class="text-white text-base font-medium">Payment Methods</span>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-[20px]">chevron_right</span>
+</div>
+<!-- Notification Settings -->
+<div class="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-glass-border">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<span class="text-white text-base font-medium">Notification Settings</span>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-[20px]">chevron_right</span>
+</div>
+<!-- Identity Verification -->
+<div class="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-glass-border">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<div class="flex flex-col">
+<span class="text-white text-base font-medium">Identity Verification</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+<span class="material-symbols-outlined text-green-400 text-[14px]">check_circle</span>
+<span class="text-green-400 text-xs font-semibold uppercase tracking-wide">Verified</span>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-[20px]">chevron_right</span>
+</div>
+</div>
+<!-- Help & Support -->
+<div class="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-glass-border">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined">support_agent</span>
+</div>
+<span class="text-white text-base font-medium">Help &amp; Support</span>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-[20px]">chevron_right</span>
+</div>
+</div>
+<!-- Logout Button -->
+<div class="w-full mt-auto pt-10">
+<button class="w-full bg-primary hover:bg-[#e0b415] active:scale-[0.98] transition-all duration-200 text-background-dark font-bold text-base py-4 px-6 rounded-full flex items-center justify-center gap-2 shadow-[0_0_20px_-5px_rgba(245,198,25,0.4)]">
+<span class="material-symbols-outlined">logout</span>
+                    Log Out
+                </button>
+<p class="text-center text-slate-600 text-xs mt-6">Version 2.4.0 • Midnight Gold</p>
+</div>
+</main>
+<!-- Bottom Nav Bar Simulation (Optional context) -->
+<div class="bg-background-dark/90 backdrop-blur-xl border-t border-white/5 h-20 px-6 flex items-center justify-between sticky bottom-0 z-40">
+<div class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white">home</span>
+<span class="text-[10px] text-white font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white">search</span>
+<span class="text-[10px] text-white font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white">favorite</span>
+<span class="text-[10px] text-white font-medium">Saved</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary cursor-pointer">
+<span class="material-symbols-outlined fill-1">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</div>
+</div>
+</body></html>

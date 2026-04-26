@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Bookings - Midnight Gold</title>
+<!-- Material Symbols Link -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#f5c619", // Gold
+                "midnight": "#0B0C15", // Deep Midnight Background
+                "midnight-light": "#1A1C2E", // Lighter midnight for cards
+                "surface": "#12141F", // Surface color
+                },
+                fontFamily: {
+                "display": ["Plus Jakarta Sans", "sans-serif"]
+                },
+                borderRadius: {
+                "DEFAULT": "1rem", 
+                "lg": "1rem", 
+                "xl": "1.5rem", 
+                "2xl": "2rem",
+                "full": "9999px"
+                },
+                backgroundImage: {
+                    'gold-gradient': 'linear-gradient(135deg, #f5c619 0%, #e0b10d 100%)',
+                    'glass-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+                }
+            },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C15;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-midnight font-display text-slate-400 selection:bg-primary selection:text-midnight overflow-x-hidden w-full h-full min-h-screen">
+<div class="relative flex flex-col mx-auto max-w-[480px] w-full min-h-screen bg-midnight">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-midnight/80 backdrop-blur-lg border-b border-white/5 pt-4 pb-2 px-6">
+<div class="flex items-center justify-between mb-4">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+</button>
+<div class="flex gap-3">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px;">search</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors relative">
+<span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-primary rounded-full border border-midnight"></span>
+</button>
+</div>
+</div>
+<h1 class="text-3xl font-bold text-white tracking-tight">My Bookings</h1>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-5 pt-6 pb-24 space-y-8">
+<!-- Segmented Control Tabs -->
+<div class="p-1 rounded-full bg-glass-gradient glass-panel flex relative">
+<!-- Active Tab -->
+<button class="flex-1 py-2.5 px-4 rounded-full bg-primary text-midnight shadow-lg shadow-primary/20 text-sm font-bold text-center transition-all relative z-10">
+                    Active
+                </button>
+<!-- Pending Tab -->
+<button class="flex-1 py-2.5 px-4 rounded-full text-slate-400 hover:text-white text-sm font-medium text-center transition-all relative z-10">
+                    Pending
+                </button>
+<!-- Completed Tab -->
+<button class="flex-1 py-2.5 px-4 rounded-full text-slate-400 hover:text-white text-sm font-medium text-center transition-all relative z-10">
+                    Completed
+                </button>
+</div>
+<!-- Content List -->
+<div class="space-y-6">
+<!-- Card 1: Active -->
+<div class="group relative flex flex-col gap-4 p-4 rounded-[2rem] bg-[#13151f] border border-white/5 hover:border-primary/30 transition-all duration-300 shadow-xl shadow-black/40">
+<div class="flex gap-4">
+<!-- Image -->
+<div class="shrink-0 relative">
+<div class="size-[88px] rounded-2xl bg-cover bg-center overflow-hidden shadow-inner" data-alt="Modern luxury villa with pool" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDvz-PTX39_PFt8mk2_VP7Eic2otCDvhuX9q_CRwTqXpL9dtBkf0of6w92nTLc7yywwCF3wgSIq3j2G-c2zlHkISjk62ibmcfQsetP7Pw4eE52rYNCTtdsUsilgOCh7022MDkvNEXeVe7ndZBjN_pQFOkvO5v5bf6cOpC5MLOneF9O9mgJ3ePkevNYmSIlYkjEEl_WGKNnkGPSPsZH7XtWRWRLd1srFk9uNxhWVoBDwZ_PGA8Lzgc8MIW2U8y9Iw1dXa4xNjDVAVUc");'></div>
+<div class="absolute -bottom-2 -right-2 bg-midnight p-1 rounded-full">
+<div class="size-6 bg-emerald-500 rounded-full flex items-center justify-center text-midnight">
+<span class="material-symbols-outlined" style="font-size: 14px; font-weight: 800;">check</span>
+</div>
+</div>
+</div>
+<!-- Content -->
+<div class="flex-1 py-1 flex flex-col justify-between min-w-0">
+<div>
+<h3 class="text-white text-lg font-bold leading-tight truncate mb-1">Luxury Villa Rental</h3>
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-primary" style="font-size: 14px;">location_on</span>
+<span>Bole, Addis Ababa</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">Confirmed</span>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px w-full bg-white/5"></div>
+<!-- Footer Action -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Date</span>
+<span class="text-sm font-semibold text-white">Oct 12 - Oct 19</span>
+</div>
+<button class="h-10 px-5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-sm font-bold flex items-center gap-2 transition-colors">
+                            Manage
+                            <span class="material-symbols-outlined" style="font-size: 18px;">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 2: Pending -->
+<div class="group relative flex flex-col gap-4 p-4 rounded-[2rem] bg-[#13151f] border border-white/5 hover:border-primary/30 transition-all duration-300 shadow-xl shadow-black/40">
+<div class="flex gap-4">
+<!-- Image -->
+<div class="shrink-0 relative">
+<div class="size-[88px] rounded-2xl bg-cover bg-center overflow-hidden shadow-inner grayscale-[30%]" data-alt="Rustic luxury lodge exterior" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAiXPtfxO1NWyM2iwNL7S4fIdDTPblv8IRm7M1-cCc6Qqjtpioxe2CnMwo57TQXYD9iayGN9WcEEXWrabJ6LJy0JWQuxYuiXv_TiS96PrvLkktE93iR_qv4Ioh1Lld5QLKLNqKbSfY7FuCaSla4Iy4YKUB7RDtK1l1pSwUUVv5_Y7SnumPDrYPaDhN0MaA45Cgherb55l9xAQlYADHu0CuEDR82Jg2ARyQpG4cAwme3S8oJ-SNcrz5ZmR51DZbMSPRgvx2qe-XX13M");'></div>
+<div class="absolute -bottom-2 -right-2 bg-midnight p-1 rounded-full">
+<div class="size-6 bg-primary rounded-full flex items-center justify-center text-midnight animate-pulse">
+<span class="material-symbols-outlined" style="font-size: 14px; font-weight: 800;">hourglass_empty</span>
+</div>
+</div>
+</div>
+<!-- Content -->
+<div class="flex-1 py-1 flex flex-col justify-between min-w-0">
+<div>
+<h3 class="text-white text-lg font-bold leading-tight truncate mb-1">Private Lodge Retreat</h3>
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-primary" style="font-size: 14px;">location_on</span>
+<span>Simien Mountains</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">Pending Approval</span>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px w-full bg-white/5"></div>
+<!-- Footer Action -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Date</span>
+<span class="text-sm font-semibold text-white">Nov 05 - Nov 07</span>
+</div>
+<button class="h-10 px-5 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-sm font-bold flex items-center gap-2 transition-colors">
+                            View Details
+                        </button>
+</div>
+</div>
+<!-- Card 3: Active Car Service -->
+<div class="group relative flex flex-col gap-4 p-4 rounded-[2rem] bg-[#13151f] border border-white/5 hover:border-primary/30 transition-all duration-300 shadow-xl shadow-black/40">
+<div class="flex gap-4">
+<!-- Image -->
+<div class="shrink-0 relative">
+<div class="size-[88px] rounded-2xl bg-cover bg-center overflow-hidden shadow-inner" data-alt="Black luxury sedan car" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBnodQbhl2SRMMjB0ld6A5frziNXI00CRz7UwCf18vajbckn3kl9lkRwP0lgJabfhgNyw7ZhgR3Hrccsje4DF7H0C4ITDhnyl4E6_cuo5KAweweBgjlMX8yxoHgplmMhDmB79F2su1F1tElfFiFQsX6ozGjNCohJ6G3TMKj2lTF38whK1wXazlboAvAY4fRgCO0qZjqeXdTzPL1htOBqHLWAz6uBheHFG4vRp9cIVRjyeii5Xs_Vz4-XAeElU4vjXZ1FHFVkIwQ0-I");'></div>
+<div class="absolute -bottom-2 -right-2 bg-midnight p-1 rounded-full">
+<div class="size-6 bg-emerald-500 rounded-full flex items-center justify-center text-midnight">
+<span class="material-symbols-outlined" style="font-size: 14px; font-weight: 800;">check</span>
+</div>
+</div>
+</div>
+<!-- Content -->
+<div class="flex-1 py-1 flex flex-col justify-between min-w-0">
+<div>
+<h3 class="text-white text-lg font-bold leading-tight truncate mb-1">Chauffeur - S Class</h3>
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-primary" style="font-size: 14px;">location_on</span>
+<span>Airport Pickup</span>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">Confirmed</span>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px w-full bg-white/5"></div>
+<!-- Footer Action -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Date</span>
+<span class="text-sm font-semibold text-white">Oct 13, 10:00 AM</span>
+</div>
+<button class="h-10 px-5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-sm font-bold flex items-center gap-2 transition-colors">
+                            Track Driver
+                            <span class="material-symbols-outlined" style="font-size: 18px;">near_me</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Floating) -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[440px] z-40">
+<div class="flex items-center justify-between px-2 py-2 rounded-full bg-[#181924]/90 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50">
+<a class="flex flex-col items-center justify-center size-14 rounded-full text-slate-400 hover:text-white gap-1" href="#">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center size-14 rounded-full text-slate-400 hover:text-white gap-1" href="#">
+<span class="material-symbols-outlined text-[24px]">search</span>
+<span class="text-[10px] font-medium">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center size-14 rounded-full bg-primary text-midnight shadow-lg shadow-primary/20 gap-1 transform -translate-y-4 border-4 border-midnight" href="#">
+<span class="material-symbols-outlined text-[24px] filled">calendar_month</span>
+<span class="text-[10px] font-bold">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center size-14 rounded-full text-slate-400 hover:text-white gap-1" href="#">
+<span class="material-symbols-outlined text-[24px]">favorite</span>
+<span class="text-[10px] font-medium">Saved</span>
+</a>
+<a class="flex flex-col items-center justify-center size-14 rounded-full text-slate-400 hover:text-white gap-1" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Gradient Glow Effects for Atmosphere -->
+<div class="fixed top-0 left-0 w-full h-[300px] bg-primary/5 blur-[120px] pointer-events-none z-0"></div>
+<div class="fixed bottom-0 right-0 w-[200px] h-[200px] bg-primary/5 blur-[100px] pointer-events-none z-0"></div>
+</div>
+</body></html>

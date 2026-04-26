@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Telebirr Payment Sheet</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#221e10", // Dark warm charcoal
+                        "glass-dark": "rgba(18, 18, 18, 0.85)",
+                        "input-dark": "#1F1F1F",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-sheet {
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .timer-circle {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .timer-ring-bg {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+        
+        .timer-ring-progress {
+            stroke: #f5c619;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 40; /* Example progress */
+            transition: stroke-dashoffset 1s linear;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-900 font-display text-white overflow-hidden h-screen w-full relative">
+<!-- Simulated Background App Content (Map/Listing Context) -->
+<div class="absolute inset-0 z-0 opacity-40">
+<div class="w-full h-full bg-cover bg-center" data-alt="Luxury hotel lobby with golden lighting at night" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBkotKJiDvaot38jPQdsNle0zrOTfYRHKjC2IFe7HTPX8jddD_1kEOWQDbcDO2CeVH7OA5DFC2cvWKux-Qg8GkjhM_-Koq44pkx2gifl8ALwFBo9RC4nYrPHzREK3OlY_5bd75m22vyfNp2GQ5SpdH51AWytfroNL5MSx6wIvi8lkTtadkUCpTUPdhhfRK3jYMlby6Qi_ySJ4ejh0JDmrOA_8pUssd35GvXCfRwjEdrXpZAmG9yaH-Scf_7dI2mSCSTvqEGH0LNZzk');"></div>
+</div>
+<div class="absolute inset-0 z-0 bg-gradient-to-b from-black/20 to-black/80"></div>
+<!-- Main Overlay Wrapper -->
+<div class="relative z-10 flex h-full w-full flex-col justify-end items-center">
+<!-- Backdrop Tap Area (Close Sheet) -->
+<div aria-hidden="true" class="flex-1 w-full"></div>
+<!-- Glassmorphic Bottom Sheet -->
+<div class="w-full max-w-md glass-sheet rounded-t-3xl pb-8 animate-slide-up transition-all duration-300">
+<!-- Handle -->
+<div class="flex w-full items-center justify-center pt-3 pb-2">
+<div class="h-1.5 w-12 rounded-full bg-white/20"></div>
+</div>
+<!-- Content Container -->
+<div class="px-6 pb-6 pt-2 flex flex-col gap-6">
+<!-- Header Section -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative group">
+<!-- Glow effect -->
+<div class="absolute -inset-1 bg-primary/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+<div class="relative bg-black rounded-full p-1 border border-primary/50 h-20 w-20 flex items-center justify-center overflow-hidden">
+<img alt="Telebirr Logo" class="w-full h-full object-cover" data-alt="Telebirr company logo symbol" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALo6pGiCrnIBV0hNfwGUVqUsbt7b9gecHUjDncoIo2gmtsrnrNqna8wIe_3n-m_vScrQLmVRLx7OcdU9FPykbYuznGVYHpV3OFmIAuQs_lG7NxAzog81G8-30Y91UHtbUtYB1VlfIbfSg4ehB9LJ5g9Ld2k3QCVokIe_HVafKSpX0sCab3urYcj3FRzY5NACYyRDsHktIKYYieI-z8jurRegRs5jsTn7WJebMVvcHI5X8EBvZMvBmK1i_KPy8F13LfmIvrFVvKdCc"/>
+</div>
+</div>
+<div class="text-center space-y-1">
+<h2 class="text-2xl font-bold tracking-tight text-white">Pay with Telebirr</h2>
+<p class="text-primary text-xl font-medium tracking-wide">ETB 2,500.00</p>
+</div>
+</div>
+<!-- Input Field -->
+<div class="space-y-2">
+<label class="block text-sm font-medium text-gray-300 pl-1" for="phone">Enter Telebirr Number</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-primary">
+<span class="material-symbols-outlined text-[20px]">smartphone</span>
+</div>
+<input class="block w-full rounded-xl border border-white/10 bg-black/40 py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:border-primary focus:ring-1 focus:ring-primary sm:text-base outline-none transition-colors" id="phone" placeholder="+251 911..." type="tel"/>
+</div>
+</div>
+<!-- Timer & Action Section -->
+<div class="flex items-center gap-4">
+<!-- Circular Timer -->
+<div class="relative h-14 w-14 flex-shrink-0">
+<svg class="h-full w-full timer-circle" viewbox="0 0 100 100">
+<circle class="timer-ring-bg" cx="50" cy="50" fill="none" r="45" stroke-width="8"></circle>
+<circle class="timer-ring-progress" cx="50" cy="50" fill="none" r="45" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center flex-col">
+<span class="text-[10px] font-bold text-white leading-none">0:45</span>
+</div>
+</div>
+<!-- Main Button -->
+<button class="flex-1 bg-primary hover:bg-yellow-400 active:scale-[0.98] transition-all text-background-dark font-bold text-lg h-14 rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center gap-2">
+<span>Send OTP</span>
+<span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</button>
+</div>
+<!-- Trust Badge Footer -->
+<div class="flex items-center justify-center gap-2 pt-2 opacity-60">
+<span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+<p class="text-xs font-medium tracking-wide uppercase text-gray-400">Secure by Ethio Telecom</p>
+</div>
+</div>
+<!-- Bottom safe area spacer -->
+<div class="h-4"></div>
+</div>
+</div>
+</body></html>

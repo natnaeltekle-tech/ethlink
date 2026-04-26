@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Service Booking Inquiry</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#221e10",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for text area if needed */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white transition-colors duration-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl">
+<!-- Top App Bar -->
+<div class="flex items-center p-4 pb-2 justify-between sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors group">
+<span class="material-symbols-outlined text-slate-900 dark:text-white group-hover:text-primary transition-colors">arrow_back_ios_new</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Inquiry</h2>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 flex flex-col px-4 pt-2 pb-32">
+<!-- Service Summary Card -->
+<div class="mt-2 mb-6">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-white/5 p-4 shadow-sm border border-slate-200 dark:border-white/5">
+<div class="flex flex-col gap-1 flex-[2_2_0px] justify-center">
+<p class="text-slate-500 dark:text-[#bab39c] text-xs font-semibold uppercase tracking-wider">Selected Service</p>
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Unity Park VIP Tour</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-primary text-[18px] fill-1">star</span>
+<p class="text-slate-500 dark:text-[#bab39c] text-xs font-medium leading-normal">5.0 (42 Reviews)</p>
+</div>
+</div>
+<div class="w-24 h-24 bg-center bg-no-repeat bg-cover rounded-lg flex-none shadow-inner" data-alt="Luxury park view at night with lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA1H10osYQW6MqgH6AWjJBk6rsw9LPvmmqJQp_4gn1ZO-ONAYpMcQtwg_GnHJ-gSP2lJgQtvKHVKEa1qKFNUZoGXVcCBVnAd3gaCMutoopuHwkP726yZfQIwFYsCkwiGi4Vz1Cms8pX-BDybi7NElxTHozyiHNFyhdRSZps4fjZID4kA0Gv7BlkayzpRdI_HEt0jqW_9V9me0ZIDNGS23DL_0eBgxq-bb-dAxdWzCYWtYQBW70y02lbUrwH_NbEHN5VHjvZ9ssgV-k");'>
+</div>
+</div>
+</div>
+<!-- Headline -->
+<div class="mb-6">
+<h3 class="tracking-tight text-2xl font-bold leading-tight text-left">Complete your Request</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Please fill in the details below to secure your reservation.</p>
+</div>
+<!-- Form Fields -->
+<div class="flex flex-col gap-5">
+<!-- Full Name -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium ml-1 text-slate-700 dark:text-slate-200" for="fullname">Full Name</label>
+<div class="relative">
+<input class="form-input w-full rounded-full border border-slate-200 dark:border-[#544f3b] bg-white dark:bg-[#2d291e] h-14 px-5 text-base placeholder:text-slate-400 dark:placeholder:text-[#bab39c] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm" id="fullname" placeholder="e.g. Elena Fisher" type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">person</span>
+</div>
+</div>
+<!-- Preferred Date -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium ml-1 text-slate-700 dark:text-slate-200" for="date">Preferred Date</label>
+<div class="relative cursor-pointer">
+<input class="form-input w-full rounded-full border border-slate-200 dark:border-[#544f3b] bg-white dark:bg-[#2d291e] h-14 px-5 text-base placeholder:text-slate-400 dark:placeholder:text-[#bab39c] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm [color-scheme:light] dark:[color-scheme:dark]" id="date" type="date"/>
+<!-- Icon visual only, native picker handles interaction -->
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none bg-white dark:bg-[#2d291e] pl-2">calendar_today</span>
+</div>
+</div>
+<!-- Message -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium ml-1 text-slate-700 dark:text-slate-200" for="message">Special Requests</label>
+<div class="relative">
+<textarea class="form-textarea w-full rounded-3xl border border-slate-200 dark:border-[#544f3b] bg-white dark:bg-[#2d291e] p-5 text-base placeholder:text-slate-400 dark:placeholder:text-[#bab39c] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all shadow-sm resize-none" id="message" placeholder="Any dietary restrictions, specific table location preferences, or special occasions?" rows="4"></textarea>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="fixed bottom-0 left-0 w-full bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-white/5 p-4 pb-8 z-30 max-w-md left-1/2 -translate-x-1/2">
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-center gap-2 mb-1">
+<span class="material-symbols-outlined text-green-500 text-sm">check_circle</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Usually responds within 1 hour</p>
+</div>
+<button class="w-full bg-primary hover:bg-yellow-400 active:scale-[0.98] transition-all text-[#221e10] font-bold text-lg h-14 rounded-full shadow-[0_0_20px_rgba(245,198,25,0.3)] flex items-center justify-center gap-2">
+<span>Send Inquiry</span>
+<span class="material-symbols-outlined text-xl font-bold">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

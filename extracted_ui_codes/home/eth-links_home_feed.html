@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Eth-Links Home Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0B0C15", // Midnight Gold Theme Base
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-morphic {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(245, 198, 25, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary selection:text-black">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="flex items-center gap-2">
+<div class="bg-primary text-black p-1.5 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined font-bold">link</span>
+</div>
+<h2 class="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
+</div>
+<div class="flex items-center gap-3">
+<button class="relative flex items-center justify-center rounded-full size-10 bg-white/5 border border-white/10">
+<span class="material-symbols-outlined text-white">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-primary rounded-full border-2 border-background-dark"></span>
+</button>
+</div>
+</div>
+<!-- Glass-morphic Search Bar -->
+<div class="px-4 py-3">
+<label class="flex flex-col w-full">
+<div class="flex w-full items-stretch glass-morphic rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-primary/50 transition-all">
+<div class="text-primary flex items-center justify-center pl-4">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-gray-500 px-4 text-base font-medium" placeholder="Search for luxury stays, cars, guides..." value=""/>
+</div>
+</label>
+</div>
+<!-- Horizontal Scrollable Category Pills -->
+<div class="flex gap-3 px-4 pb-4 overflow-x-auto no-scrollbar">
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary px-5 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-black text-xl">hotel</span>
+<p class="text-black text-sm font-bold">Hotels</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full glass-morphic px-5">
+<span class="material-symbols-outlined text-white text-xl">directions_car</span>
+<p class="text-white text-sm font-medium">Cars</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full glass-morphic px-5">
+<span class="material-symbols-outlined text-white text-xl">map</span>
+<p class="text-white text-sm font-medium">Guides</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full glass-morphic px-5">
+<span class="material-symbols-outlined text-white text-xl">restaurant</span>
+<p class="text-white text-sm font-medium">Dining</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full glass-morphic px-5">
+<span class="material-symbols-outlined text-white text-xl">photo_camera</span>
+<p class="text-white text-sm font-medium">Tours</p>
+</div>
+</div>
+</div>
+<!-- Main Feed Content -->
+<main class="pb-32">
+<div class="flex items-center justify-between px-4 pt-4">
+<h2 class="text-white text-2xl font-extrabold tracking-tight">Featured Listings</h2>
+<button class="text-primary text-sm font-bold">View all</button>
+</div>
+<!-- Listing Cards -->
+<div class="p-4 space-y-6 @container">
+<!-- Card 1 -->
+<div class="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden glass-morphic border border-white/5 group">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110" data-alt="Luxury boutique hotel suite with city view" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDDO3snyiHJn3LKdhyCI5_Ik11EBEXubBy9kudCAXM9ioIpGEu8lIyD_2D0z4N3QEz5FV5ENpEfH43FQZpfp58lKl3GUGqHrCaomP8ewxKU8Q7ZmE44YccpQAzkR9xCqs6bu1O_SxRGo-Yb8trESLroKL45wA0Oqip11s20uilo4O-9hgPM3_8-VKP947ynKyfU3ln_O3IEWEcJQkD_ZlJkCAhKkFp5jLlCcChBSdTFNzsx5DfjO6pQW2O7HlpXZk_FxDQUJQsdr6I");'>
+</div>
+<div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</div>
+<div class="absolute bottom-4 left-4 bg-primary text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                        Premium
+                    </div>
+</div>
+<div class="flex w-full flex-col gap-3 p-5">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-primary text-sm font-bold uppercase tracking-wider">Hotel • Addis Ababa</p>
+<h3 class="text-white text-xl font-bold leading-tight mt-1">Skyline Boutique &amp; Spa</h3>
+</div>
+<div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary fill-1 text-[18px]">star</span>
+<span class="text-white font-bold text-sm">4.9</span>
+</div>
+</div>
+<p class="text-gray-400 text-sm line-clamp-2">Experience unmatched luxury in the heart of the capital with panoramic terrace views and world-class spa facilities.</p>
+<div class="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+<div class="flex items-baseline gap-1">
+<span class="text-primary text-xl font-extrabold">$250</span>
+<span class="text-gray-500 text-sm">/ night</span>
+</div>
+<button class="flex items-center justify-center rounded-full h-10 px-6 bg-primary text-black text-sm font-bold hover:bg-white transition-colors">
+                            Explore
+                        </button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden glass-morphic border border-white/5 group">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110" data-alt="Black luxury SUV parked in scenic location" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB6p5ELSPZW4MN6qrHWxEApbtuKMbdcjqpSTEHTjdwe6rU0W_E2VEdE-J4LY0-wO_YWKxssbga25sTCY174Kbed6kmL8bQeOtc_gDm_8fulatpZQ5dD6RuzwrPAdBlHTFx6NL1zSyguHWKvT0sS_4FDO3Ty3-WeZpc_06J_aCQvjKx_QnzAlgcVrwTfF-_8LUJYABDIGxim1ShcU1-xHEBOx62dSASFkrJRgDJBsgu5qLzjJ3b1lmqPDfaH0uhAV-8TdE3hgdsIXF8");'>
+</div>
+<div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</div>
+</div>
+<div class="flex w-full flex-col gap-3 p-5">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-primary text-sm font-bold uppercase tracking-wider">Rental • Luxury SUV</p>
+<h3 class="text-white text-xl font-bold leading-tight mt-1">Land Cruiser V8 Edition</h3>
+</div>
+<div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary fill-1 text-[18px]">star</span>
+<span class="text-white font-bold text-sm">5.0</span>
+</div>
+</div>
+<p class="text-gray-400 text-sm line-clamp-2">Bullet-proof glass and executive interior. Professional driver included for all your regional travels.</p>
+<div class="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+<div class="flex items-baseline gap-1">
+<span class="text-primary text-xl font-extrabold">$180</span>
+<span class="text-gray-500 text-sm">/ day</span>
+</div>
+<button class="flex items-center justify-center rounded-full h-10 px-6 bg-primary text-black text-sm font-bold hover:bg-white transition-colors">
+                            Explore
+                        </button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden glass-morphic border border-white/5 group">
+<div class="relative w-full aspect-[4/3] overflow-hidden">
+<div class="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110" data-alt="Modern high-end restaurant interior design" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD1XcfOzjE9nNeor_JiMVRbHtYaOpnVRwHfXYSb50XjoOjWt_S7V5qOx7ra2C41sQJT1cDtHO-ztKd9Bh-UF0kIfDo5jMzxYXmYRzxqesmIi9E4Vw3GKa9VFciGzhY-H9LPJ1TxV2Dpm1brYwzKjoY2cGPGxG7gr_06aJRaUYIb3BCkyyax9bJ3DpjUJG6yGjRQdAMNiXs7ZjvNt1wi3H-g7q-w95l00N81GrFW64yMlB-kWqYadrxhxqnSLBHGvSn9IAUH1pqm6Zc");'>
+</div>
+<div class="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</div>
+<div class="absolute bottom-4 left-4 bg-primary text-black text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full">
+                        Hot Choice
+                    </div>
+</div>
+<div class="flex w-full flex-col gap-3 p-5">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-primary text-sm font-bold uppercase tracking-wider">Dining • Fine Cuisine</p>
+<h3 class="text-white text-xl font-bold leading-tight mt-1">Luce Fine Dining</h3>
+</div>
+<div class="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-primary fill-1 text-[18px]">star</span>
+<span class="text-white font-bold text-sm">4.8</span>
+</div>
+</div>
+<p class="text-gray-400 text-sm line-clamp-2">A culinary journey through Ethiopian heritage and modern fusion. Reservations recommended.</p>
+<div class="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+<div class="flex items-baseline gap-1">
+<span class="text-primary text-xl font-extrabold">$$$</span>
+<span class="text-gray-500 text-sm"> • Bole District</span>
+</div>
+<button class="flex items-center justify-center rounded-full h-10 px-6 bg-primary text-black text-sm font-bold hover:bg-white transition-colors">
+                            Explore
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Glass-morphic Bottom Navigation -->
+<nav class="fixed bottom-6 left-4 right-4 z-50">
+<div class="glass-morphic flex items-center justify-around h-16 rounded-full px-4 shadow-2xl shadow-black/50">
+<button class="flex flex-col items-center justify-center text-primary">
+<span class="material-symbols-outlined fill-1">home</span>
+<span class="text-[10px] font-bold mt-0.5">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-500">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium mt-0.5">Explore</span>
+</button>
+<!-- Central Add Listing Button -->
+<div class="-mt-12">
+<button class="size-14 rounded-full bg-primary text-black flex items-center justify-center gold-glow active:scale-95 transition-transform border-[6px] border-background-dark">
+<span class="material-symbols-outlined text-3xl font-bold">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center justify-center text-gray-500">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-medium mt-0.5">Messages</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-500">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium mt-0.5">Profile</span>
+</button>
+</div>
+</nav>
+<!-- Safe area spacing for mobile -->
+<div class="h-10 bg-background-dark"></div>
+</body></html>

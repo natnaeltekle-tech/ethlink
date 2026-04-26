@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Security &amp; Privacy Settings</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619", // Gold
+                        "midnight": "#0B0C15", // Deep Dark Background
+                        "midnight-card": "#151621", // Slightly lighter for cards
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0B0C15", // Overriding to match user request
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "1.5rem", 
+                        "xl": "2rem", 
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hide for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-midnight font-display antialiased selection:bg-primary/30 text-slate-900 dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-10">
+<!-- Header -->
+<div class="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-midnight/80 backdrop-blur-md p-4 pb-2 justify-between">
+<button class="text-slate-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">
+                Security &amp; Privacy
+            </h2>
+</div>
+<div class="px-4 pt-2 pb-6 space-y-8">
+<!-- Section: Login Security -->
+<div>
+<h3 class="text-slate-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider px-4 pb-3">Login Security</h3>
+<div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+<!-- Item: Biometric -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">face</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">Biometric Login</p>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">FaceID for faster access</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[30px] w-[50px] cursor-pointer items-center rounded-full border border-transparent bg-slate-200 dark:bg-white/10 p-0.5 transition-colors has-[:checked]:bg-primary has-[:checked]:justify-end">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="h-6 w-6 rounded-full bg-white shadow-sm transition-all peer-checked:translate-x-full peer-checked:bg-white"></div>
+</label>
+</div>
+</div>
+<!-- Item: 2FA -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">shield_lock</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">2-Step Verification</p>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">Extra layer of security</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[30px] w-[50px] cursor-pointer items-center rounded-full border border-transparent bg-slate-200 dark:bg-white/10 p-0.5 transition-colors has-[:checked]:bg-primary has-[:checked]:justify-end">
+<input class="peer sr-only" type="checkbox"/>
+<div class="h-6 w-6 rounded-full bg-white shadow-sm transition-all peer-checked:translate-x-full peer-checked:bg-white"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Monitoring -->
+<div>
+<h3 class="text-slate-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider px-4 pb-3">Monitoring</h3>
+<div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+<!-- Item: Alerts -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">Real-time Alerts</p>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">Notify on suspicious activity</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[30px] w-[50px] cursor-pointer items-center rounded-full border border-transparent bg-slate-200 dark:bg-white/10 p-0.5 transition-colors has-[:checked]:bg-primary has-[:checked]:justify-end">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="h-6 w-6 rounded-full bg-white shadow-sm transition-all peer-checked:translate-x-full peer-checked:bg-white"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Active Sessions -->
+<div>
+<h3 class="text-slate-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider px-4 pb-3">Active Sessions</h3>
+<div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+<!-- Item: Current Device -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="text-white/70 flex items-center justify-center rounded-full bg-white/5 shrink-0 size-10">
+<span class="material-symbols-outlined">smartphone</span>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">iPhone 14 Pro</p>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+</div>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">Addis Ababa, ET • Current</p>
+</div>
+</div>
+</div>
+<!-- Item: Web Session -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-white/70 flex items-center justify-center rounded-full bg-white/5 shrink-0 size-10">
+<span class="material-symbols-outlined">laptop_mac</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">Chrome on MacOS</p>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">London, UK • 2h ago</p>
+</div>
+</div>
+<button class="text-primary text-xs font-bold uppercase tracking-wide px-2 py-1 hover:bg-primary/10 rounded-lg transition-colors">
+                            Revoke
+                        </button>
+</div>
+</div>
+</div>
+<!-- Section: Data Privacy -->
+<div>
+<h3 class="text-slate-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider px-4 pb-3">Data Privacy</h3>
+<div class="glass-panel rounded-2xl overflow-hidden flex flex-col">
+<!-- Item: Visibility -->
+<div class="flex items-center gap-4 px-5 py-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">visibility</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-slate-900 dark:text-white text-base font-semibold leading-normal">Profile Visibility</p>
+<p class="text-slate-500 dark:text-gray-400 text-xs font-medium leading-normal">Make profile visible to public</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[30px] w-[50px] cursor-pointer items-center rounded-full border border-transparent bg-slate-200 dark:bg-white/10 p-0.5 transition-colors has-[:checked]:bg-primary has-[:checked]:justify-end">
+<input class="peer sr-only" type="checkbox"/>
+<div class="h-6 w-6 rounded-full bg-white shadow-sm transition-all peer-checked:translate-x-full peer-checked:bg-white"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="pt-4 flex flex-col gap-4 items-center">
+<button class="w-full max-w-sm h-12 rounded-full border border-primary/50 text-primary font-bold hover:bg-primary hover:text-black transition-all duration-300">
+                    Change Password
+                </button>
+<button class="text-red-500/80 text-sm font-semibold hover:text-red-500 transition-colors">
+                    Delete Account
+                </button>
+</div>
+</div>
+</div>
+</body></html>

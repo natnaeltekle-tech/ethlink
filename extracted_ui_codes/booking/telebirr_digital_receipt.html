@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Telebirr Digital Receipt</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f5c619",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#221e10",
+                        "midnight": "#12100b", // Deeper variation for contrast
+                        "glass": "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(245, 198, 25, 0.2)",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .serrated-edge {
+                --serration-bg: #221e10; /* Matches background-dark */
+                background: 
+                    radial-gradient(circle at 10px 16px, transparent 10px, var(--serration-bg) 11px) repeat-x,
+                    radial-gradient(circle at 10px -10px, transparent 10px, var(--serration-bg) 11px) repeat-x;
+                background-size: 20px 26px;
+                background-position: left bottom;
+            }
+
+            .glass-panel {
+                @apply bg-glass backdrop-blur-xl border border-glass-border;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen flex flex-col items-center justify-between text-white overflow-x-hidden selection:bg-primary selection:text-black">
+<!-- Top Navigation -->
+<nav class="w-full flex items-center justify-between p-4 z-10">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-white/5 transition-colors text-white/80">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-base font-semibold tracking-wide uppercase text-white/90">Transaction Details</h1>
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-white/5 transition-colors text-white/80">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-md px-4 flex flex-col items-center relative z-0 pb-24 pt-4">
+<!-- Status Badge -->
+<div class="flex items-center gap-2 mb-8 bg-primary/10 px-4 py-2 rounded-full border border-primary/20 animate-pulse">
+<span class="material-symbols-outlined text-primary text-xl fill-1">check_circle</span>
+<span class="text-primary text-sm font-bold uppercase tracking-wider">Payment Successful</span>
+</div>
+<!-- Receipt Card -->
+<div class="w-full relative filter drop-shadow-2xl">
+<!-- Receipt Top -->
+<div class="glass-panel w-full rounded-t-2xl p-6 pb-8 relative overflow-hidden">
+<!-- Decorative Shine -->
+<div class="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-[60px] pointer-events-none"></div>
+<!-- Logo Area -->
+<div class="flex justify-between items-start mb-8 relative z-10">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 text-primary mb-1">
+<span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+<span class="font-extrabold text-xl tracking-tight">telebirr</span>
+</div>
+<span class="text-xs text-white/40 font-medium tracking-widest uppercase ml-1">Digital Receipt</span>
+</div>
+<div class="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+<!-- Placeholder logo for merchant -->
+<span class="material-symbols-outlined text-white/60">spa</span>
+</div>
+</div>
+<!-- Amount Section -->
+<div class="text-center py-6">
+<p class="text-sm text-white/50 mb-1 font-medium uppercase tracking-wide">Total Paid</p>
+<h2 class="text-4xl font-bold text-primary tracking-tight">2,500.00 <span class="text-xl font-normal text-primary/70">ETB</span></h2>
+</div>
+<!-- Details Grid -->
+<div class="space-y-4 mt-4">
+<div class="flex justify-between items-center border-b border-white/5 pb-3">
+<span class="text-white/40 text-sm">Merchant</span>
+<span class="text-white font-medium text-right max-w-[60%]">Addis Sheraton Luxury Spa</span>
+</div>
+<div class="flex justify-between items-center border-b border-white/5 pb-3">
+<span class="text-white/40 text-sm">Date &amp; Time</span>
+<div class="text-right">
+<div class="text-white font-medium text-sm">Oct 24, 2023</div>
+<div class="text-white/50 text-xs">14:30 PM</div>
+</div>
+</div>
+<div class="flex justify-between items-center border-b border-white/5 pb-3">
+<span class="text-white/40 text-sm">Payment Method</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white/60 text-lg">credit_card</span>
+<span class="text-white font-medium text-sm">Telebirr Wallet</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Perforation Visual -->
+<div class="w-full h-4 bg-transparent relative z-20 flex overflow-hidden">
+<!-- Using a mask approach for cleaner jagged edge -->
+<div class="w-full h-full bg-[#18150d] opacity-50 absolute top-0"></div> <!-- Shadow/Depth for the cut -->
+<div class="w-full h-full flex items-center justify-between px-2">
+<div class="w-full h-[1px] border-t-2 border-dashed border-white/10"></div>
+</div>
+<!-- Connecting the glass background -->
+<div class="absolute inset-0 bg-glass backdrop-blur-xl border-x border-glass-border -z-10"></div>
+</div>
+<!-- Receipt Bottom (Transaction ID) -->
+<div class="glass-panel w-full rounded-b-xl p-6 pt-4 relative border-t-0">
+<div class="bg-black/40 rounded-lg p-4 border border-white/5 flex flex-col gap-3">
+<div class="flex justify-between items-end">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-white/30 uppercase tracking-widest font-bold">Transaction ID</span>
+<span class="text-primary font-mono text-lg tracking-wider">#TXN-8829-GOLD</span>
+</div>
+<button class="text-white/40 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">content_copy</span>
+</button>
+</div>
+<!-- Fake Barcode Visual -->
+<div class="h-8 w-full flex items-stretch gap-[2px] opacity-80 mt-1">
+<div class="w-1 bg-white/20"></div><div class="w-2 bg-primary"></div><div class="w-1 bg-white/20"></div><div class="w-3 bg-white/20"></div>
+<div class="w-1 bg-white/20"></div><div class="w-4 bg-primary"></div><div class="w-1 bg-white/20"></div><div class="w-2 bg-white/20"></div>
+<div class="w-1 bg-primary"></div><div class="w-1 bg-white/20"></div><div class="w-6 bg-white/20"></div><div class="w-1 bg-primary"></div>
+<div class="w-2 bg-white/20"></div><div class="w-1 bg-white/20"></div><div class="w-3 bg-primary"></div><div class="w-1 bg-white/20"></div>
+<div class="w-4 bg-white/20"></div><div class="w-1 bg-primary"></div><div class="w-2 bg-white/20"></div><div class="w-1 bg-white/20"></div>
+<div class="w-full bg-transparent"></div> <!-- Spacer -->
+<div class="w-2 bg-primary"></div><div class="w-1 bg-white/20"></div><div class="w-3 bg-white/20"></div>
+</div>
+</div>
+<!-- Serrated bottom decoration -->
+<div class="absolute -bottom-[10px] left-0 w-full h-[10px] overflow-hidden">
+<svg class="w-full h-full text-background-dark fill-current" preserveaspectratio="none" viewbox="0 0 100 10">
+<polygon points="0,0 2,10 4,0 6,10 8,0 10,10 12,0 14,10 16,0 18,10 20,0 22,10 24,0 26,10 28,0 30,10 32,0 34,10 36,0 38,10 40,0 42,10 44,0 46,10 48,0 50,10 52,0 54,10 56,0 58,10 60,0 62,10 64,0 66,10 68,0 70,10 72,0 74,10 76,0 78,10 80,0 82,10 84,0 86,10 88,0 90,10 92,0 94,10 96,0 98,10 100,0 100,10 0,10"></polygon>
+</svg>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Actions -->
+<footer class="fixed bottom-0 left-0 w-full bg-background-dark/80 backdrop-blur-md p-6 border-t border-white/5 z-50">
+<div class="max-w-md mx-auto flex gap-4">
+<button class="flex-1 h-14 rounded-xl border border-white/20 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/70 group-hover:text-white transition-colors">download</span>
+<span>Download PDF</span>
+</button>
+<button class="flex-1 h-14 rounded-xl bg-primary text-background-dark font-bold flex items-center justify-center gap-2 hover:bg-[#e0b516] transition-colors shadow-[0_0_20px_rgba(245,198,25,0.3)]">
+<span class="material-symbols-outlined">share</span>
+<span>Share Receipt</span>
+</button>
+</div>
+</footer>
+</body></html>

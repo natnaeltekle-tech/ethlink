@@ -3,9 +3,10 @@ import { Database } from "../database.types";
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
 const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  
   try {
     if (Capacitor.isNativePlatform()) {
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
       const headers: Record<string, string> = {};
       
       if (init?.headers) {
@@ -37,7 +38,8 @@ const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       });
     }
 
-    return await fetch(input, init);
+    // Use standard fetch for web
+    return await fetch(url, init);
   } catch (error) {
     console.error("[Supabase Fetch Error]:", error);
     throw error;
@@ -45,17 +47,31 @@ const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 };
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  if (!supabaseUrl || !supabaseKey) {
+  console.log("Supabase client init with URL:", supabaseUrl ? "present" : "MISSING");
+  console.log("Supabase client init with KEY:", supabaseAnonKey ? "present" : "MISSING");
+
+  if (!supabaseUrl || !supabaseAnonKey) {
     console.error('Missing Supabase environment variables:');
     console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-    console.error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:', supabaseKey ? 'Set' : 'Missing');
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
     throw new Error('Missing required Supabase environment variables. Please check your .env.local file or Vercel environment settings.');
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseKey, {
+  // Log the configuration (first 20 chars of key for security)
+  console.log("=== Supabase Client Configuration ===");
+  console.log("URL:", supabaseUrl);
+  console.log("Key (first 20 chars):", supabaseAnonKey.substring(0, 20) + "...");
+  console.log("================================");
+
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    },
     global: {
       fetch: customFetch
     }
