@@ -3,7 +3,8 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
 import { getProviderInfo } from '@/lib/admin-actions'
-import { ServicePageClient } from './ServicePageClient'
+import DesktopServiceDetails from '@/components/desktop/DesktopServiceDetails'
+import ServiceDetailsSplitter from '@/components/ServiceDetailsSplitter'
 
 // Opt out of static generation since the page uses cookies for auth
 export const dynamic = 'force-dynamic'
@@ -61,11 +62,11 @@ export default async function ServicePage({ params }: ServicePageProps) {
 
     const reviewCount = reviews.length
     const averageRating = reviewCount > 0
-        ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviewCount
+        ? reviews.reduce((acc: any, review: any) => acc + review.rating, 0) / reviewCount
         : 0
 
     return (
-        <ServicePageClient
+        <ServiceDetailsSplitter
             service={service}
             reviews={reviews}
             isFavorite={isFavorite}
@@ -73,6 +74,17 @@ export default async function ServicePage({ params }: ServicePageProps) {
             provider={provider}
             averageRating={averageRating}
             reviewCount={reviewCount}
+            desktopDetails={
+                <DesktopServiceDetails
+                    service={service}
+                    reviews={reviews}
+                    isFavorite={isFavorite}
+                    user={user}
+                    provider={provider}
+                    averageRating={averageRating}
+                    reviewCount={reviewCount}
+                />
+            }
         />
     )
 }
