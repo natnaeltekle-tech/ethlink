@@ -1,0 +1,334 @@
+'use client'
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { completeJob, updateBookingStatus } from '@/lib/actions';
+import { toast } from 'sonner';
+import { 
+    ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, 
+    Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, 
+    XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2
+} from 'lucide-react';
+
+interface MobileProfileProps {
+    user: any;
+    profile: any;
+    services: any[];
+    stats: any;
+    customerBookings: any[];
+}
+
+export default function MobileProfile({ 
+    user, 
+    profile, 
+    services, 
+    stats, 
+    customerBookings 
+}: MobileProfileProps) {
+    const router = useRouter();
+    const supabase = createClient();
+    
+    // State for Escrow / Customer Bookings
+    const [completingJob, setCompletingJob] = useState<string | null>(null);
+    const [myBookings, setMyBookings] = useState(customerBookings || []);
+
+    // State for Provider Controls
+    const [isUpdating, setIsUpdating] = useState<string | null>(null);
+    const [pendingRequests, setPendingRequests] = useState(stats?.pendingBookings || []);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    // 1. Escrow Release Logic (Customer confirming job is done)
+    const handleCompleteJob = async (bookingId: string) => {
+        if (!confirm('Are you sure the job is completed to your satisfaction?')) return;
+
+        setCompletingJob(bookingId);
+        try {
+            await completeJob(bookingId);
+            toast.success('Job marked as completed!');
+            // Optimistically update the UI
+            setMyBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'completed' } : b));
+            router.refresh();
+        } catch (error) {
+            toast.error('Failed to complete job');
+        } finally {
+            setCompletingJob(null);
+        }
+    };
+
+    // 2. Provider Controls (Accept/Reject bookings)
+    const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
+        setIsUpdating(bookingId);
+        try {
+            await updateBookingStatus(bookingId, action);
+            
+            // Optimistic update
+            setPendingRequests(prev => prev.filter(b => b.id !== bookingId));
+            
+            toast.success(`Booking ${action === 'confirmed' ? 'accepted' : 'rejected'}`);
+            router.refresh();
+        } catch (error) {
+            toast.error("Failed to update booking");
+        } finally {
+            setIsUpdating(null);
+        }
+    };
+
+    // 5. Safe Logout
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await supabase.auth.signOut();
+            window.location.href = '/auth/login'; // Hard redirect to prevent WSoD
+        } catch (error) {
+            console.error("Logout failed", error);
+            setIsLoggingOut(false);
+        }
+    };
+
+    const displayName = profile?.first_name 
+        ? `${profile.first_name} ${profile.last_name || ''}`.trim() 
+        : user?.email?.split('@')[0] || 'User';
+
+    const joinYear = profile?.created_at 
+        ? new Date(profile.created_at).getFullYear() 
+        : new Date().getFullYear();
+
+    const isProvider = services && services.length > 0;
+
+    return (
+        <div className="bg-[#0B0C15] font-sans text-slate-400 min-h-screen selection:bg-[#f5c619] selection:text-[#0B0C15] overflow-x-hidden w-full h-full pb-24">
+            {/* Top App Bar */}
+            <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-[#0B0C15]/80 backdrop-blur-md border-b border-white/5">
+                <Link href="/" className="text-white/70 hover:text-white transition-colors p-2 -ml-2 rounded-full hover:bg-white/5">
+                    <ChevronLeft className="w-6 h-6 ml-[-2px]" />
+                </Link>
+                <h2 className="text-white text-lg font-bold tracking-tight">Profile</h2>
+                <button className="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5">
+                    <MoreHorizontal className="w-6 h-6" />
+                </button>
+            </header>
+
+            <main className="flex flex-col items-center px-5 pt-6 pb-12 w-full gap-8 max-w-[480px] mx-auto">
+                
+                {/* 1. Profile Header Section */}
+                <div className="flex flex-col items-center w-full relative">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#f5c619]/20 rounded-full blur-3xl -z-10"></div>
+                    <div className="relative group cursor-pointer">
+                        <div className="h-32 w-32 rounded-full p-1 border-2 border-[#f5c619] shadow-[0_0_15px_-3px_rgba(245,198,25,0.3)] bg-[#0B0C15]">
+                            <div 
+                                className="h-full w-full rounded-full bg-cover bg-center overflow-hidden bg-[#1A1C2E] flex items-center justify-center text-3xl font-bold text-[#f5c619]" 
+                                style={profile?.avatar_url ? { backgroundImage: `url("${profile.avatar_url}")` } : {}}
+                            >
+                                {!profile?.avatar_url && displayName[0]?.toUpperCase()}
+                            </div>
+                        </div>
+                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center">
+                            <Edit2 className="w-4 h-4 font-bold" />
+                        </div>
+                    </div>
+                    <div className="mt-5 text-center">
+                        <h1 className="text-white text-2xl font-bold leading-tight tracking-tight">{displayName}</h1>
+                        <p className="text-slate-400 text-sm font-medium mt-1">Member since {joinYear}</p>
+                    </div>
+                </div>
+
+                {/* 2. My Bookings / Activity Section */}
+                <div className="w-full space-y-4">
+                    <h2 className="text-xl font-bold text-white tracking-tight px-1">My Activity</h2>
+                    {myBookings.length === 0 ? (
+                        <div className="p-6 rounded-2xl bg-[#13151f] border border-white/5 text-center shadow-xl shadow-black/40">
+                            <p className="text-slate-400 text-sm">You haven't requested any services yet.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {myBookings.map((booking) => (
+                                <div key={booking.id} className="relative flex flex-col gap-4 p-4 rounded-[1.5rem] bg-[#13151f] border border-white/5 shadow-xl shadow-black/40">
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 py-1 flex flex-col justify-between min-w-0">
+                                            <div>
+                                                <h3 className="text-white text-lg font-bold leading-tight truncate mb-1">{booking.services?.title || 'Service'}</h3>
+                                                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                                                    <Clock className="w-3.5 h-3.5 text-[#f5c619]" />
+                                                    <span>{new Date(booking.date).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-3">
+                                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                                                    booking.status === 'paid' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                    booking.status === 'completed' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
+                                                    booking.status === 'confirmed' ? 'bg-[#f5c619]/10 text-[#f5c619] border-[#f5c619]/20' :
+                                                    'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                                }`}>
+                                                    {booking.status === 'completed' ? 'Job Completed' : booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end justify-start py-1">
+                                            <span className="font-bold text-[#f5c619]">{booking.services?.price} ETB</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Critical Action: Escrow Release for Paid Bookings */}
+                                    {booking.status === 'paid' && (
+                                        <>
+                                            <div className="h-px w-full bg-white/5"></div>
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-xs text-slate-400">Payment is held securely in escrow.</p>
+                                                <button 
+                                                    onClick={() => handleCompleteJob(booking.id)}
+                                                    disabled={completingJob === booking.id}
+                                                    className="h-12 w-full rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                                                >
+                                                    {completingJob === booking.id ? (
+                                                        <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                                                    ) : (
+                                                        <><CheckCircle className="w-5 h-5" /> Confirm Job Done</>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* 3. Provider Dashboard Section (Conditional) */}
+                {isProvider && (
+                    <div className="w-full space-y-4">
+                        <div className="flex items-center gap-2 px-1">
+                            <Briefcase className="w-6 h-6 text-[#f5c619]" />
+                            <h2 className="text-xl font-bold text-white tracking-tight">Provider Dashboard</h2>
+                        </div>
+
+                        {/* Earnings Cards */}
+                        <div className="flex gap-4 w-full">
+                            {/* Pending Clearance */}
+                            <div className="flex-1 p-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 shadow-lg">
+                                <p className="text-xs font-semibold text-blue-400 mb-2 flex items-center gap-1">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div> Pending
+                                </p>
+                                <p className="text-xl font-bold text-white">{(stats?.escrow_balance || 0).toLocaleString()} <span className="text-xs text-slate-400 font-normal">ETB</span></p>
+                            </div>
+
+                            {/* Available Payout */}
+                            <div className="flex-1 p-4 rounded-[1.5rem] bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 shadow-lg">
+                                <p className="text-xs font-semibold text-green-400 mb-2 flex items-center gap-1">
+                                    <div className="w-2 h-2 rounded-full bg-green-500"></div> Available
+                                </p>
+                                <p className="text-xl font-bold text-white">{(stats?.available_balance || 0).toLocaleString()} <span className="text-xs text-slate-400 font-normal">ETB</span></p>
+                            </div>
+                        </div>
+
+                        {/* Pending Requests */}
+                        <h3 className="text-sm font-bold text-white px-1 mt-6">Pending Requests</h3>
+                        {pendingRequests.length === 0 ? (
+                            <div className="p-5 rounded-2xl bg-[#13151f] border border-white/5 text-center">
+                                <p className="text-slate-400 text-sm">No pending requests at the moment.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {pendingRequests.map((req: any) => (
+                                    <div key={req.id} className="flex flex-col gap-4 p-4 rounded-[1.5rem] bg-[#13151f] border border-white/5 shadow-xl shadow-black/40">
+                                        <div>
+                                            <h4 className="text-white font-bold">{req.services?.title}</h4>
+                                            <p className="text-xs text-slate-400 mt-1">{new Date(req.date).toLocaleString()}</p>
+                                            <p className="text-sm font-medium text-[#f5c619] mt-2">Potential Earnings: {req.services?.price} ETB</p>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button 
+                                                onClick={() => handleBookingAction(req.id, 'cancelled')}
+                                                disabled={isUpdating === req.id}
+                                                className="flex-1 py-2.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-semibold text-sm flex justify-center items-center gap-1 disabled:opacity-50"
+                                            >
+                                                {isUpdating === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Reject
+                                            </button>
+                                            <button 
+                                                onClick={() => handleBookingAction(req.id, 'confirmed')}
+                                                disabled={isUpdating === req.id}
+                                                className="flex-1 py-2.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-semibold text-sm flex justify-center items-center gap-1 disabled:opacity-50"
+                                            >
+                                                {isUpdating === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Accept
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* 4. Settings Menu Section */}
+                <div className="w-full space-y-4 mt-4">
+                    <h2 className="text-xl font-bold text-white tracking-tight px-1">Settings</h2>
+                    <div className="w-full flex flex-col gap-px bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.08] overflow-hidden">
+                        
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
+                                    <ClipboardList className="w-5 h-5" />
+                                </div>
+                                <span className="text-white text-base font-medium">My Listings</span>
+                            </div>
+                            <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
+                        </div>
+
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
+                                    <CreditCard className="w-5 h-5" />
+                                </div>
+                                <span className="text-white text-base font-medium">Payment Methods</span>
+                            </div>
+                            <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
+                        </div>
+
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
+                                    <ShieldCheck className="w-5 h-5" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-white text-base font-medium">Identity Verification</span>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                                    <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wide">Verified</span>
+                                </div>
+                                <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
+                            </div>
+                        </div>
+
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
+                                    <LifeBuoy className="w-5 h-5" />
+                                </div>
+                                <span className="text-white text-base font-medium">Help & Support</span>
+                            </div>
+                            <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Safe Logout Button */}
+                <div className="w-full mt-4 pt-4">
+                    <button 
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className="w-full bg-[#f5c619] hover:bg-[#e0b415] active:scale-[0.98] disabled:opacity-70 transition-all duration-200 text-[#0B0C15] font-bold text-base py-4 px-6 rounded-full flex items-center justify-center gap-2 shadow-[0_0_20px_-5px_rgba(245,198,25,0.4)]"
+                    >
+                        {isLoggingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogOut className="w-5 h-5" />}
+                        {isLoggingOut ? 'Logging Out...' : 'Log Out'}
+                    </button>
+                    <p className="text-center text-slate-600 text-xs mt-6">Version 2.4.0 • Midnight Gold</p>
+                </div>
+            </main>
+        </div>
+    );
+}
