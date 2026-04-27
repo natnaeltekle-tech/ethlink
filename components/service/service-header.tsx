@@ -1,3 +1,5 @@
+'use client'
+
 import { MapPin, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
