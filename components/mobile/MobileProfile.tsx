@@ -32,11 +32,11 @@ export default function MobileProfile({
     
     // State for Escrow / Customer Bookings
     const [completingJob, setCompletingJob] = useState<string | null>(null);
-    const [myBookings, setMyBookings] = useState(customerBookings || []);
+    const [myBookings, setMyBookings] = useState<any[]>(customerBookings || []);
 
     // State for Provider Controls
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
-    const [pendingRequests, setPendingRequests] = useState(stats?.pendingBookings || []);
+    const [pendingRequests, setPendingRequests] = useState<any[]>(stats?.pendingBookings || []);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     // 1. Escrow Release Logic (Customer confirming job is done)
@@ -48,7 +48,7 @@ export default function MobileProfile({
             await completeJob(bookingId);
             toast.success('Job marked as completed!');
             // Optimistically update the UI
-            setMyBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'completed' } : b));
+            setMyBookings((prev: any[]) => prev.map((b: any) => b.id === bookingId ? { ...b, status: 'completed' } : b));
             router.refresh();
         } catch (error) {
             toast.error('Failed to complete job');
@@ -64,7 +64,7 @@ export default function MobileProfile({
             await updateBookingStatus(bookingId, action);
             
             // Optimistic update
-            setPendingRequests(prev => prev.filter(b => b.id !== bookingId));
+            setPendingRequests((prev: any[]) => prev.filter((b: any) => b.id !== bookingId));
             
             toast.success(`Booking ${action === 'confirmed' ? 'accepted' : 'rejected'}`);
             router.refresh();
