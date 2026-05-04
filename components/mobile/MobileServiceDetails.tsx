@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, Share, Heart, MapPin, Star, 
-  Wifi, Waves, Shield, Dumbbell 
+  Wifi, Waves, Shield, Dumbbell, MessageSquare, Edit2 
 } from 'lucide-react';
+import MobileChatRoom from './MobileChatRoom';
+import MobileReviewForm from './MobileReviewForm';
+import { useRouter } from 'next/navigation';
 
 interface MobileServiceDetailsProps {
     service: any;
@@ -12,6 +15,7 @@ interface MobileServiceDetailsProps {
     averageRating: number;
     reviewCount: number;
     isFavorite?: boolean;
+    currentUser?: any;
 }
 
 export default function MobileServiceDetails({ 
@@ -20,9 +24,22 @@ export default function MobileServiceDetails({
     provider,
     averageRating,
     reviewCount,
-    isFavorite = false
+    isFavorite = false,
+    currentUser
 }: MobileServiceDetailsProps) {
+    const router = useRouter();
+    const [showChat, setShowChat] = useState(false);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    
     const imageUrl = service.gallery?.[0] || service.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
+
+    if (showChat && provider) {
+        return <div className="fixed inset-0 z-[100] bg-black"><MobileChatRoom serviceId={service.id} providerId={provider.id} providerName={provider.first_name} currentUserId={currentUser?.id || ''} onClose={() => setShowChat(false)} /></div>;
+    }
+
+    if (showReviewForm) {
+        return <div className="fixed inset-0 z-[100] bg-black"><MobileReviewForm serviceId={service.id} serviceName={service.title} onClose={() => setShowReviewForm(false)} /></div>;
+    }
 
     return (
         <div className="bg-background-light dark:bg-[#121212] text-slate-900 dark:text-white antialiased font-sans min-h-screen">
@@ -73,6 +90,26 @@ export default function MobileServiceDetails({
                         </div>
                     </div>
                 </div>
+
+                {/* Provider Info */}
+                {provider && (
+                    <div className="mt-8 flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-[#1A1C2E] border-2 border-[#f5c619]/20 flex items-center justify-center text-[#f5c619] font-bold bg-cover bg-center"
+                                style={provider.avatar_url ? { backgroundImage: `url("${provider.avatar_url}")` } : {}}>
+                                {!provider.avatar_url && (provider.first_name?.[0] || 'P')}
+                            </div>
+                            <div>
+                                <p className="font-bold text-lg">{provider.first_name} {provider.last_name || ''}</p>
+                                <p className="text-xs text-slate-400">Host</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
+                            <MessageSquare className="w-4 h-4 text-[#f5c619]" />
+                            <span className="text-sm font-bold">Message</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Amenities Grid */}
                 <div className="mt-8">
@@ -129,6 +166,34 @@ export default function MobileServiceDetails({
                         </div>
                     </div>
                 </div>
+
+                {/* Reviews Summary Section */}
+                <div className="mt-8 mb-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold">Reviews</h3>
+                        <button onClick={() => setShowReviewForm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f5c619]/10 text-[#f5c619] border border-[#f5c619]/20 hover:bg-[#f5c619]/20 transition-colors">
+                            <Edit2 className="w-4 h-4" />
+                            <span className="text-sm font-bold">Write a Review</span>
+                        </button>
+                    </div>
+                    {reviews?.length > 0 ? (
+                        <div className="space-y-4">
+                            {reviews.slice(0, 3).map((r, i) => (
+                                <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="flex text-[#f5c619]">
+                                            {[...Array(5)].map((_, j) => <Star key={j} className={`w-3.5 h-3.5 ${j < (r.rating || 5) ? 'fill-[#f5c619]' : 'text-slate-600'}`} />)}
+                                        </div>
+                                        <span className="text-xs text-slate-500 ml-2">{new Date(r.created_at || Date.now()).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="text-sm text-slate-300">{r.comment || 'Great experience!'}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-slate-400 text-sm italic">No reviews yet. Be the first!</p>
+                    )}
+                </div>
             </main>
 
             {/* Sticky Bottom Action Bar */}
@@ -140,7 +205,7 @@ export default function MobileServiceDetails({
                         <span className="text-sm font-semibold text-slate-900 dark:text-white uppercase">ETB</span>
                     </div>
                 </div>
-                <button className="bg-[#f5c619] text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-95 transition-transform">
+                <button onClick={() => router.push(`/book/${service.id}`)} className="bg-[#f5c619] text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-95 transition-transform">
                     Book Now
                 </button>
             </div>

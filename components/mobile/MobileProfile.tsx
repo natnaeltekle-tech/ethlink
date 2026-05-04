@@ -11,6 +11,9 @@ import {
     Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, 
     XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2
 } from 'lucide-react';
+import MobileVerification from './MobileVerification';
+import MobileMyBookings from './MobileMyBookings';
+import MobileFavorites from './MobileFavorites';
 
 interface MobileProfileProps {
     user: any;
@@ -30,6 +33,11 @@ export default function MobileProfile({
     const router = useRouter();
     const supabase = createClient();
     
+    // UI Modal States
+    const [showVerification, setShowVerification] = useState(false);
+    const [showMyBookings, setShowMyBookings] = useState(false);
+    const [showFavorites, setShowFavorites] = useState(false);
+
     // State for Escrow / Customer Bookings
     const [completingJob, setCompletingJob] = useState<string | null>(null);
     const [myBookings, setMyBookings] = useState<any[]>(customerBookings || []);
@@ -97,6 +105,38 @@ export default function MobileProfile({
 
     const isProvider = services && services.length > 0;
 
+    // Render Modals Early
+    if (showVerification) {
+        return <div className="fixed inset-0 z-[100] bg-black"><MobileVerification onClose={() => setShowVerification(false)} /></div>;
+    }
+    
+    if (showMyBookings) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-[#221e10] overflow-y-auto">
+                <div className="sticky top-0 z-[110] p-4 bg-[#221e10]/90 backdrop-blur-md">
+                    <button onClick={() => setShowMyBookings(false)} className="flex items-center gap-2 text-white/70 hover:text-white">
+                        <ChevronLeft className="w-6 h-6" /> <span className="font-bold">Back</span>
+                    </button>
+                </div>
+                <MobileMyBookings initialBookings={myBookings} />
+            </div>
+        );
+    }
+    
+    if (showFavorites) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-[#221e10] overflow-y-auto">
+                <div className="sticky top-0 z-[110] p-4 bg-[#221e10]/90 backdrop-blur-md border-b border-white/5 flex items-center gap-3">
+                    <button onClick={() => setShowFavorites(false)} className="bg-white/5 rounded-full p-2 hover:bg-white/10">
+                        <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+                    <h2 className="text-white font-bold text-lg">My Favorites</h2>
+                </div>
+                <MobileFavorites favorites={[]} /> {/* Empty for now until wired to backend favorites */}
+            </div>
+        );
+    }
+
     return (
         <div className="bg-[#0B0C15] font-sans text-slate-400 min-h-screen selection:bg-[#f5c619] selection:text-[#0B0C15] overflow-x-hidden w-full h-full pb-24">
             {/* Top App Bar */}
@@ -136,15 +176,18 @@ export default function MobileProfile({
 
                 {/* 2. My Bookings / Activity Section */}
                 <div className="w-full space-y-4">
-                    <h2 className="text-xl font-bold text-white tracking-tight px-1">My Activity</h2>
+                    <div className="flex items-center justify-between px-1">
+                        <h2 className="text-xl font-bold text-white tracking-tight">My Activity</h2>
+                        <button onClick={() => setShowMyBookings(true)} className="text-xs font-bold text-[#f5c619] uppercase tracking-wider">View All</button>
+                    </div>
                     {myBookings.length === 0 ? (
                         <div className="p-6 rounded-2xl bg-[#13151f] border border-white/5 text-center shadow-xl shadow-black/40">
                             <p className="text-slate-400 text-sm">You haven't requested any services yet.</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {myBookings.map((booking) => (
-                                <div key={booking.id} className="relative flex flex-col gap-4 p-4 rounded-[1.5rem] bg-[#13151f] border border-white/5 shadow-xl shadow-black/40">
+                            {myBookings.slice(0, 2).map((booking) => (
+                                <div key={booking.id} className="relative flex flex-col gap-4 p-4 rounded-[1.5rem] bg-[#13151f] border border-white/5 shadow-xl shadow-black/40 cursor-pointer" onClick={() => router.push(`/book/${booking.id}`)}>
                                     <div className="flex gap-4">
                                         <div className="flex-1 py-1 flex flex-col justify-between min-w-0">
                                             <div>
@@ -177,7 +220,7 @@ export default function MobileProfile({
                                             <div className="flex flex-col gap-2">
                                                 <p className="text-xs text-slate-400">Payment is held securely in escrow.</p>
                                                 <button 
-                                                    onClick={() => handleCompleteJob(booking.id)}
+                                                    onClick={(e) => { e.stopPropagation(); handleCompleteJob(booking.id); }}
                                                     disabled={completingJob === booking.id}
                                                     className="h-12 w-full rounded-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                                                 >
@@ -266,12 +309,12 @@ export default function MobileProfile({
                     <h2 className="text-xl font-bold text-white tracking-tight px-1">Settings</h2>
                     <div className="w-full flex flex-col gap-px bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.08] overflow-hidden">
                         
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+                        <div onClick={() => setShowFavorites(true)} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ClipboardList className="w-5 h-5" />
                                 </div>
-                                <span className="text-white text-base font-medium">My Listings</span>
+                                <span className="text-white text-base font-medium">My Favorites</span>
                             </div>
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
@@ -286,7 +329,7 @@ export default function MobileProfile({
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                        <div onClick={() => setShowVerification(true)} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ShieldCheck className="w-5 h-5" />

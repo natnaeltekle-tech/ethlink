@@ -44,6 +44,7 @@ export default function ServiceDetailsSplitter({
                 averageRating={averageRating}
                 reviewCount={reviewCount}
                 isFavorite={isFavorite}
+                currentUser={user}
             />
         );
     }

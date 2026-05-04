@@ -1,11 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   Link2, Bell, Search, Building, Car, Map, Utensils, Camera, 
-  Heart, Star, Home, Compass, Plus, MessageCircle, User 
+  Heart, Star, Home, Compass, Plus, MessageCircle, User, SlidersHorizontal 
 } from 'lucide-react';
+import MobileMapExplore from './MobileMapExplore';
+import MobileSearchFilters from './MobileSearchFilters';
+import MobileNotifications from './MobileNotifications';
 
 export default function MobileHome({ services = [] }: { services?: any[] }) {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+
+  if (showNotifications) {
+      return <div className="fixed inset-0 z-[100] bg-[#0B0C15]"><MobileNotifications />
+      {/* Back button overlay for notifications */}
+      <button onClick={() => setShowNotifications(false)} className="absolute top-12 right-6 z-[110] text-white/60 hover:text-white bg-black/50 p-2 rounded-full backdrop-blur-sm">✕</button>
+      </div>;
+  }
+
+  if (showMap) {
+      return <div className="fixed inset-0 z-[100] bg-[#0B0C15]"><MobileMapExplore services={services} onClose={() => setShowMap(false)} /></div>;
+  }
+
   return (
     <div className="bg-[#f8f8f5] dark:bg-[#0B0C15] font-sans text-white selection:bg-[#f5c619] selection:text-black min-h-screen pb-32">
       {/* Top Navigation Bar */}
@@ -18,7 +36,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative flex items-center justify-center rounded-full w-10 h-10 bg-white/5 border border-white/10">
+            <button onClick={() => setShowNotifications(true)} className="relative flex items-center justify-center rounded-full w-10 h-10 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
               <Bell className="w-5 h-5 text-white" />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-[#f5c619] rounded-full border-2 border-[#0B0C15]"></span>
             </button>
@@ -26,18 +44,19 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
         </div>
 
         {/* Glass-morphic Search Bar */}
-        <div className="px-4 py-3">
-          <label className="flex flex-col w-full">
-            <div className="flex w-full items-stretch bg-white/5 backdrop-blur-md border border-white/5 rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-[#f5c619]/50 transition-all">
-              <div className="text-[#f5c619] flex items-center justify-center pl-4">
-                <Search className="w-5 h-5" />
-              </div>
-              <input 
-                className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-gray-500 px-4 text-base font-medium text-white" 
-                placeholder="Search for luxury stays, cars, guides..." 
-              />
+        <div className="px-4 py-3 flex gap-2">
+          <div className="flex w-full items-stretch bg-white/5 backdrop-blur-md border border-white/5 rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-[#f5c619]/50 transition-all">
+            <div className="text-[#f5c619] flex items-center justify-center pl-4">
+              <Search className="w-5 h-5" />
             </div>
-          </label>
+            <input 
+              className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-gray-500 px-4 text-base font-medium text-white" 
+              placeholder="Search for luxury stays, cars, guides..." 
+            />
+          </div>
+          <button onClick={() => setShowFilters(true)} className="h-12 w-12 shrink-0 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
+              <SlidersHorizontal className="w-5 h-5 text-[#f5c619]" />
+          </button>
         </div>
 
         {/* Horizontal Scrollable Category Pills */}
@@ -50,9 +69,9 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             <Car className="w-5 h-5 text-white" />
             <p className="text-white text-sm font-medium">Cars</p>
           </div>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5">
+          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5 hover:bg-white/10 cursor-pointer" onClick={() => setShowMap(true)}>
             <Map className="w-5 h-5 text-white" />
-            <p className="text-white text-sm font-medium">Guides</p>
+            <p className="text-white text-sm font-medium">Map Explore</p>
           </div>
           <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5">
             <Utensils className="w-5 h-5 text-white" />
@@ -78,16 +97,19 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             const imageUrl = service.gallery?.[0] || service.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
             
             return (
-              <div key={service.id || index} className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group">
+              <div key={service.id || index} className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative">
+                <div className="absolute bottom-36 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
+                    <Heart className="w-5 h-5 hover:fill-red-500 hover:text-red-500 transition-colors cursor-pointer" />
+                </div>
+                <div className="absolute bottom-36 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+                    Premium
+                </div>
                 <Link href={'/services/' + service.id} className="flex flex-col w-full h-full">
                   <div className="relative w-full aspect-[4/3] overflow-hidden">
                     <div 
                       className="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110" 
                       style={{ backgroundImage: `url("${imageUrl}")` }}
                     ></div>
-                    <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
-                      <Heart className="w-5 h-5" />
-                    </div>
                   </div>
                   <div className="flex w-full flex-col gap-3 p-5">
                     <div className="flex justify-between items-start">
@@ -119,6 +141,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
         </div>
       </main>
 
+      {showFilters && <MobileSearchFilters onClose={() => setShowFilters(false)} />}
     </div>
   );
 }
