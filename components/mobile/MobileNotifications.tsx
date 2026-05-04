@@ -139,7 +139,7 @@ export default function MobileNotifications({ notifications = MOCK_NOTIFICATIONS
             </main>
 
             {/* Bottom fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#221e10] to-transparent pointer-events-none z-20" />
+            <div className="absolute bottom-20 left-0 right-0 h-24 bg-gradient-to-t from-[#221e10] to-transparent pointer-events-none z-20" />
         </div>
     );
 }

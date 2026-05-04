@@ -70,7 +70,7 @@ export default function MobileCreateListing({ onClose }: { onClose?: () => void 
                 </div>
             </header>
 
-            <main className="flex-1 px-5 py-6 pb-32 overflow-y-auto">
+            <main className="flex-1 px-5 py-6 pb-44 overflow-y-auto">
                 {step === 1 ? (
                     /* Step 1: Basic Info */
                     <div className="flex flex-col gap-6">
@@ -181,7 +181,7 @@ export default function MobileCreateListing({ onClose }: { onClose?: () => void 
             </main>
 
             {/* Bottom CTA */}
-            <div className="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#181611] via-[#181611]/95 to-transparent z-40">
+            <div className="fixed bottom-20 left-0 w-full p-5 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-md z-40">
                 {step === 1 ? (
                     <button onClick={() => { if (!title || !category || !price) { toast.error('Please fill required fields'); return; } setStep(2); }}
                         className="w-full bg-[#f5c619] text-[#181611] font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">

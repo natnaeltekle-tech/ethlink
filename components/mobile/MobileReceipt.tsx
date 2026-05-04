@@ -33,7 +33,7 @@ export default function MobileReceipt({ transactionId, merchantName, amount, dat
             </nav>
 
             {/* Main */}
-            <main className="flex-1 w-full max-w-md px-4 flex flex-col items-center relative z-0 pb-28 pt-4">
+            <main className="flex-1 w-full max-w-md px-4 flex flex-col items-center relative z-0 pb-44 pt-4">
                 {/* Status Badge */}
                 <div className="flex items-center gap-2 mb-8 bg-[#f5c619]/10 px-4 py-2 rounded-full border border-[#f5c619]/20">
                     <CheckCircle className="w-5 h-5 text-[#f5c619]" />
@@ -104,7 +104,7 @@ export default function MobileReceipt({ transactionId, merchantName, amount, dat
             </main>
 
             {/* Bottom Actions */}
-            <footer className="fixed bottom-0 left-0 w-full bg-[#221e10]/80 backdrop-blur-md p-6 border-t border-white/5 z-50">
+            <footer className="fixed bottom-20 left-0 w-full bg-[#0B0C15]/90 backdrop-blur-md p-6 border-t border-white/10 z-50 shadow-2xl">
                 <div className="max-w-md mx-auto flex gap-4">
                     <button className="flex-1 h-14 rounded-xl border border-white/20 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-colors">
                         <Download className="w-5 h-5 text-white/70" /> Download

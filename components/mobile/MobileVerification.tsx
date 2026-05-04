@@ -146,7 +146,7 @@ export default function MobileVerification({ onClose }: MobileVerificationProps)
                 <div className="w-10" />
             </div>
 
-            <main className="relative z-10 flex-1 flex flex-col px-6 pb-28">
+            <main className="relative z-10 flex-1 flex flex-col px-6 pb-44">
                 <div className="mt-4 mb-8">
                     <h1 className="text-3xl font-bold mb-3 tracking-wide">Choose <span className="text-[#f5c619]">Document Type</span></h1>
                     <p className="text-white/60 text-[15px] leading-relaxed">To ensure the safety of our exclusive community, please verify your identity.</p>
@@ -174,7 +174,7 @@ export default function MobileVerification({ onClose }: MobileVerificationProps)
             </main>
 
             {/* Footer CTA */}
-            <div className="fixed bottom-0 left-0 right-0 z-20 px-6 pb-8 pt-4 bg-gradient-to-t from-[#221e10] via-[#221e10]/90 to-transparent">
+            <div className="fixed bottom-20 left-0 right-0 z-20 px-6 pb-8 pt-4 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-md">
                 <button onClick={() => setStep('capture')} className="w-full h-16 rounded-full bg-[#f5c619] text-[#221e10] font-bold text-lg shadow-[0_0_25px_rgba(245,198,25,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
                     Start Verification <ArrowRight className="w-5 h-5 font-bold" />
                 </button>

@@ -71,7 +71,7 @@ export default function MobileReviewForm({
             </header>
 
             {/* Scrollable Content */}
-            <main className="flex-1 flex flex-col px-5 pb-32 pt-6 gap-8">
+            <main className="flex-1 flex flex-col px-5 pb-44 pt-6 gap-8">
                 {/* Service Summary Card */}
                 <div className="relative overflow-hidden rounded-xl border border-[#f5c619]/20 bg-white/[0.03] p-3 shadow-lg backdrop-blur-sm">
                     <div className="flex items-center gap-4">
@@ -166,7 +166,7 @@ export default function MobileReviewForm({
             </main>
 
             {/* Sticky Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-[2px] z-40">
+            <div className="fixed bottom-20 left-0 w-full p-5 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-[2px] z-40">
                 <button
                     onClick={handleSubmit}
                     disabled={rating === 0 || isSubmitting}

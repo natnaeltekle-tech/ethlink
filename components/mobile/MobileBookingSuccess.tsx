@@ -30,7 +30,7 @@ export default function MobileBookingSuccess({
             <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[80%] h-[40%] bg-[#f5c619]/15 blur-[100px] rounded-full pointer-events-none" />
             <div className="absolute bottom-[20%] right-[-20%] w-[60%] h-[30%] bg-[#f5c619]/5 blur-[80px] rounded-full pointer-events-none" />
 
-            <main className="relative z-10 flex-1 flex flex-col items-center px-6 pt-16 pb-32">
+            <main className="relative z-10 flex-1 flex flex-col items-center px-6 pt-16 pb-44">
                 {/* Success Icon */}
                 <div className="relative mb-8">
                     <div className="absolute inset-0 bg-[#f5c619]/20 blur-xl rounded-full scale-150" />
@@ -95,7 +95,7 @@ export default function MobileBookingSuccess({
             </main>
 
             {/* Bottom Actions */}
-            <div className="fixed bottom-0 left-0 w-full p-5 bg-gradient-to-t from-[#221e10] via-[#221e10]/95 to-transparent z-40 flex flex-col gap-3">
+            <div className="fixed bottom-20 left-0 w-full p-5 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-md z-40 flex flex-col gap-3">
                 <Link href="/dashboard"
                     className="w-full bg-[#f5c619] text-[#221e10] font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(245,198,25,0.3)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
                     View Booking Details <ArrowRight className="w-5 h-5" />

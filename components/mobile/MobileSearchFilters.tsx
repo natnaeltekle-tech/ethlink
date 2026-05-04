@@ -55,7 +55,7 @@ export default function MobileSearchFilters({ onClose, onApply, resultCount = 12
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 pb-32">
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 pb-44">
                     {/* Price Range */}
                     <div className="space-y-4">
                         <h3 className="text-white text-lg font-bold tracking-tight">Price Range</h3>
@@ -122,7 +122,7 @@ export default function MobileSearchFilters({ onClose, onApply, resultCount = 12
                 </div>
 
                 {/* Footer */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#121212] via-[#121212] to-transparent pt-12">
+                <div className="absolute bottom-20 left-0 right-0 p-6 bg-gradient-to-t from-[#121212] via-[#121212] to-transparent pt-12">
                     <button onClick={handleApply}
                         className="w-full bg-[#f5c619] hover:bg-[#f5c619]/90 text-black font-extrabold py-4 rounded-full text-lg shadow-xl shadow-[#f5c619]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
                         Show {resultCount} Results <ArrowRight className="w-5 h-5" />

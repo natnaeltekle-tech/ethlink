@@ -63,7 +63,7 @@ export default function MobileBooking({ service }: { service: any }) {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 flex flex-col px-4 pt-2 pb-32">
+            <div className="flex-1 flex flex-col px-4 pt-2 pb-44">
                 {/* Service Summary Card */}
                 <div className="mt-2 mb-6">
                     <div className="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-white/5 p-4 shadow-sm border border-slate-200 dark:border-white/5">
@@ -161,7 +161,7 @@ export default function MobileBooking({ service }: { service: any }) {
             </div>
 
             {/* Sticky Footer Action */}
-            <div className="fixed bottom-0 left-0 w-full bg-[#f8f8f5] dark:bg-[#221e10] border-t border-slate-200 dark:border-white/5 p-4 pb-8 z-30">
+            <div className="fixed bottom-20 left-0 w-full bg-[#f8f8f5]/90 dark:bg-[#0B0C15]/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 p-4 pb-8 z-30 shadow-2xl">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <CheckCircle className="w-4 h-4 text-green-500" />

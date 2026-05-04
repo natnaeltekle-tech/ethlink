@@ -60,7 +60,7 @@ export default function MobileBookingDetails({ booking, service, provider }: Mob
     }
 
     return (
-        <div className="min-h-screen bg-[#221e10] font-sans text-white pb-32">
+        <div className="min-h-screen bg-[#221e10] font-sans text-white pb-44">
             {/* Header */}
             <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-[#221e10]/95 backdrop-blur-md border-b border-white/5">
                 <Link href="/dashboard" className="flex size-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
@@ -146,7 +146,7 @@ export default function MobileBookingDetails({ booking, service, provider }: Mob
             </main>
 
             {/* Bottom Actions */}
-            <div className="fixed bottom-0 left-0 w-full p-5 bg-[#221e10] border-t border-white/5 z-40 flex gap-3">
+            <div className="fixed bottom-20 left-0 w-full p-5 bg-[#0B0C15]/90 backdrop-blur-xl border-t border-white/10 z-40 flex gap-3 shadow-2xl">
                 <button className="flex-1 h-14 rounded-xl border border-white/20 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/5 transition-colors">
                     <MessageSquare className="w-5 h-5" /> Message
                 </button>
