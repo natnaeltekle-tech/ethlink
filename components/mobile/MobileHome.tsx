@@ -32,9 +32,13 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
       <div className="sticky top-0 z-50 bg-[#f8f8f5]/80 dark:bg-[#0B0C15]/80 backdrop-blur-md">
         <div className="flex items-center p-4 pb-2 justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-[#f5c619] text-black p-1.5 rounded-lg flex items-center justify-center cursor-pointer" onClick={() => toast.success('Welcome to Eth-Links!')}>
+            <button 
+              aria-label="Open notifications"
+              className="bg-[#f5c619] text-black p-1.5 rounded-lg flex items-center justify-center cursor-pointer transition-transform active:scale-95" 
+              onClick={() => setShowNotifications(true)}
+            >
               <Handshake className="w-5 h-5 text-primary" />
-            </div>
+            </button>
             <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
           </div>
           <div className="flex items-center gap-3">

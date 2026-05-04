@@ -6,14 +6,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { completeJob, updateBookingStatus } from '@/lib/actions';
 import { toast } from 'sonner';
-import { 
-    ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, 
-    Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, 
-    XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2
-} from 'lucide-react';
+import { ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2, Camera, User as UserIcon, Phone, Save } from 'lucide-react';
 import MobileVerification from './MobileVerification';
 import MobileMyBookings from './MobileMyBookings';
 import MobileFavorites from './MobileFavorites';
+import { updateProfile } from '@/lib/actions';
 
 interface MobileProfileProps {
     user: any;
@@ -46,6 +43,18 @@ export default function MobileProfile({
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [pendingRequests, setPendingRequests] = useState<any[]>(stats?.pendingBookings || []);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    
+    // Task 2: Edit Profile State
+    const [showEditProfile, setShowEditProfile] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    
+    const [editForm, setEditForm] = useState({
+        firstName: profile?.first_name || '',
+        lastName: profile?.last_name || '',
+        phone: profile?.phone_number || ''
+    });
 
     // 1. Escrow Release Logic (Customer confirming job is done)
     const handleCompleteJob = async (bookingId: string) => {
@@ -95,6 +104,77 @@ export default function MobileProfile({
         }
     };
 
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please select an image file");
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+            
+            // Try avatars bucket first, fallback to service-images
+            let bucketName = 'avatars';
+            const { data: bucketData, error: bucketError } = await supabase.storage.getBucket(bucketName);
+            
+            if (bucketError || !bucketData) {
+                bucketName = 'service-images';
+            }
+
+            const { error: uploadError } = await supabase.storage
+                .from(bucketName)
+                .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(fileName);
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            toast.success("Profile picture updated!");
+            router.refresh();
+        } catch (error: any) {
+            toast.error("Upload failed: " + (error.message || "Unknown error"));
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setIsSaving(true);
+        try {
+            const formData = new FormData();
+            formData.append('firstName', editForm.firstName);
+            formData.append('lastName', editForm.lastName);
+            formData.append('phoneNumber', editForm.phone);
+
+            await updateProfile(formData);
+            toast.success("Profile updated!");
+            setShowEditProfile(false);
+            router.refresh();
+        } catch (error: any) {
+            toast.error("Update failed: " + (error.message || "Unknown error"));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const displayName = profile?.first_name 
         ? `${profile.first_name} ${profile.last_name || ''}`.trim() 
         : user?.email?.split('@')[0] || 'User';
@@ -137,6 +217,103 @@ export default function MobileProfile({
         );
     }
 
+    if (showEditProfile) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-[#0B0C15] flex flex-col font-sans">
+                <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0B0C15]">
+                    <button onClick={() => setShowEditProfile(false)} className="text-white/70">
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <h2 className="text-white text-lg font-bold">Edit Profile</h2>
+                    <div className="w-6" />
+                </header>
+
+                <main className="flex-1 overflow-y-auto p-6 space-y-8">
+                    <div className="flex flex-col items-center">
+                        <div className="relative group" onClick={handleAvatarClick}>
+                            <div className="h-24 w-24 rounded-full p-1 border-2 border-[#f5c619] bg-[#0B0C15]">
+                                <div 
+                                    className="h-full w-full rounded-full bg-cover bg-center overflow-hidden bg-[#1A1C2E] flex items-center justify-center text-2xl font-bold text-[#f5c619]" 
+                                    style={profile?.avatar_url ? { backgroundImage: `url("${profile.avatar_url}")` } : {}}
+                                >
+                                    {!profile?.avatar_url && displayName[0]?.toUpperCase()}
+                                    {isUploading && (
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                                            <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="absolute bottom-0 right-0 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15]">
+                                <Camera className="w-4 h-4 font-bold" />
+                            </div>
+                        </div>
+                        <p className="text-[#f5c619] text-xs font-bold mt-2 uppercase tracking-widest">Change Photo</p>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">First Name</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                                    <UserIcon className="w-4 h-4" />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#f5c619] focus:outline-none transition-colors"
+                                    value={editForm.firstName}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, firstName: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Last Name</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                                    <UserIcon className="w-4 h-4" />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#f5c619] focus:outline-none transition-colors"
+                                    value={editForm.lastName}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, lastName: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Phone Number</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-4 flex items-center text-slate-400">
+                                    <Phone className="w-4 h-4" />
+                                </div>
+                                <input 
+                                    type="tel" 
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#f5c619] focus:outline-none transition-colors"
+                                    placeholder="+251 ..."
+                                    value={editForm.phone}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <div className="p-6 pb-12">
+                    <button 
+                        onClick={handleSaveProfile}
+                        disabled={isSaving}
+                        className="w-full bg-[#f5c619] text-[#0B0C15] font-bold py-4 rounded-full shadow-lg shadow-[#f5c619]/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                        {isSaving ? 'Saving Changes...' : 'Save Changes'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-[#0B0C15] font-sans text-slate-400 min-h-screen selection:bg-[#f5c619] selection:text-[#0B0C15] overflow-x-hidden w-full h-full pb-24">
             {/* Top App Bar */}
@@ -164,10 +341,17 @@ export default function MobileProfile({
                                 {!profile?.avatar_url && displayName[0]?.toUpperCase()}
                             </div>
                         </div>
-                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center cursor-pointer hover:bg-[#e0b415] transition-colors" onClick={() => toast('Edit Profile feature coming soon!')}>
+                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center cursor-pointer hover:bg-[#e0b415] transition-colors" onClick={() => setShowEditProfile(true)}>
                             <Edit2 className="w-4 h-4 font-bold" />
                         </div>
                     </div>
+                    <input 
+                        ref={fileInputRef}
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleFileChange} 
+                    />
                     <div className="mt-5 text-center">
                         <h1 className="text-white text-2xl font-bold leading-tight tracking-tight">{displayName}</h1>
                         <p className="text-slate-400 text-sm font-medium mt-1">Member since {joinYear}</p>
@@ -319,7 +503,7 @@ export default function MobileProfile({
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast('Payment Methods setting coming soon!')}>
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming soon!')}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <CreditCard className="w-5 h-5" />
@@ -347,7 +531,7 @@ export default function MobileProfile({
                             </div>
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => { window.location.href = 'mailto:support@ethlink.com'; toast('Opening Help & Support...'); }}>
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => { window.location.href = 'mailto:support@ethlink.com'; toast.info('Opening Help & Support...'); }}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <LifeBuoy className="w-5 h-5" />
