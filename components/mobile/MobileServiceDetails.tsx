@@ -7,6 +7,7 @@ import {
 import MobileChatRoom from './MobileChatRoom';
 import MobileReviewForm from './MobileReviewForm';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface MobileServiceDetailsProps {
     service: any;
@@ -30,8 +31,9 @@ export default function MobileServiceDetails({
     const router = useRouter();
     const [showChat, setShowChat] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [isSaved, setIsSaved] = useState(isFavorite);
     
-    const imageUrl = service.gallery?.[0] || service.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
+    const coverImage = service?.gallery?.[0] || service?.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
 
     if (showChat && provider) {
         return <div className="fixed inset-0 z-[100] bg-black"><MobileChatRoom serviceId={service.id} providerId={provider.id} providerName={provider.first_name} currentUserId={currentUser?.id || ''} onClose={() => setShowChat(false)} /></div>;
@@ -47,7 +49,7 @@ export default function MobileServiceDetails({
             <div className="relative w-full h-[45vh]">
                 <div 
                     className="w-full h-full bg-center bg-no-repeat bg-cover" 
-                    style={{ backgroundImage: `url("${imageUrl}")` }}
+                    style={{ backgroundImage: `url("${coverImage}")` }}
                 >
                     {/* Floating Top Bar */}
                     <div className="absolute top-0 left-0 right-0 p-4 pt-12 flex items-center justify-between z-10">
@@ -55,11 +57,11 @@ export default function MobileServiceDetails({
                             <ChevronLeft className="w-6 h-6 ml-[-2px]" />
                         </Link>
                         <div className="flex gap-2">
-                            <button className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center text-white border border-white/10">
+                            <button onClick={() => { navigator.share ? navigator.share({ url: window.location.href }) : navigator.clipboard.writeText(window.location.href); alert('Shared!'); }} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center text-white border border-white/10">
                                 <Share className="w-5 h-5" />
                             </button>
-                            <button className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center border border-white/10">
-                                <Heart className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-[#f5c619]'}`} />
+                            <button onClick={() => { setIsSaved(!isSaved); toast.success(isSaved ? 'Removed from saved' : 'Saved to favorites!'); }} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center border border-white/10">
+                                <Heart className={`w-5 h-5 ${isSaved ? 'text-red-500 fill-red-500' : 'text-[#f5c619]'}`} />
                             </button>
                         </div>
                     </div>
@@ -153,17 +155,26 @@ export default function MobileServiceDetails({
                 {/* Location Map Placeholder */}
                 <div className="mt-8">
                     <h3 className="text-lg font-bold mb-4">Location</h3>
-                    <div className="w-full h-48 bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden relative">
-                        <img 
-                            className="w-full h-full object-cover opacity-50 dark:opacity-40 grayscale" 
-                            alt="Map view" 
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzUVMt0LYpavyN9IMdHsaInXESds_JgwTmtaHjgZXKuI46QdCnk79ks7mRPfsS8JfW9EzPfdoqJKWY2jaxY3jeofWrjiqa3dgPlB4Ip07rOYf06BxXK__PPBWu615s_CAkT8jdRD1UAF7sZCTWaDn-p7CN52Y5W-g6uODDCWyuk3Gk4RjMDXgDvSZnmmflvWXRoNUoTiTm62G-BWucfommq9ZCeGyZtpIJbIIDzekt2c8kuynZb5sIw8iczgs5fkqH86PlbQcF95g"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-[#f5c619] p-3 rounded-full shadow-lg">
-                                <MapPin className="w-6 h-6 text-[#121212] fill-[#121212]" />
+                    <div className="h-64 w-full z-0 relative bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden">
+                        {service?.latitude ? (
+                            <>
+                                <img 
+                                    className="w-full h-full object-cover opacity-50 dark:opacity-40 grayscale" 
+                                    alt="Map view" 
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzUVMt0LYpavyN9IMdHsaInXESds_JgwTmtaHjgZXKuI46QdCnk79ks7mRPfsS8JfW9EzPfdoqJKWY2jaxY3jeofWrjiqa3dgPlB4Ip07rOYf06BxXK__PPBWu615s_CAkT8jdRD1UAF7sZCTWaDn-p7CN52Y5W-g6uODDCWyuk3Gk4RjMDXgDvSZnmmflvWXRoNUoTiTm62G-BWucfommq9ZCeGyZtpIJbIIDzekt2c8kuynZb5sIw8iczgs5fkqH86PlbQcF95g"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="bg-[#f5c619] p-3 rounded-full shadow-lg">
+                                        <MapPin className="w-6 h-6 text-[#121212] fill-[#121212]" />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+                                <MapPin className="w-8 h-8 mb-2 opacity-50" />
+                                <p className="text-sm font-medium">Location map not available</p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
@@ -205,9 +216,9 @@ export default function MobileServiceDetails({
                         <span className="text-sm font-semibold text-slate-900 dark:text-white uppercase">ETB</span>
                     </div>
                 </div>
-                <button onClick={() => router.push(`/book/${service.id}`)} className="bg-[#f5c619] text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-95 transition-transform">
+                <Link href={'/book/' + service?.id} className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-95 transition-transform">
                     Book Now
-                </button>
+                </Link>
             </div>
         </div>
     );
