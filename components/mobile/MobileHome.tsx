@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
-  Link2, Bell, Search, Building, Car, Map, Utensils, Camera, 
+  Handshake, Search, Building, Car, Map, Utensils, Camera, 
   Heart, Star, Home, Compass, Plus, MessageCircle, User, SlidersHorizontal 
 } from 'lucide-react';
+import { NotificationBell } from '@/components/notification-bell';
 import MobileMapExplore from './MobileMapExplore';
 import MobileSearchFilters from './MobileSearchFilters';
 import MobileNotifications from './MobileNotifications';
@@ -31,20 +32,17 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
         <div className="flex items-center p-4 pb-2 justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-[#f5c619] text-black p-1.5 rounded-lg flex items-center justify-center">
-              <Link2 className="w-5 h-5 font-bold" />
+              <Handshake className="w-5 h-5 text-primary" />
             </div>
             <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowNotifications(true)} className="relative flex items-center justify-center rounded-full w-10 h-10 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-              <Bell className="w-5 h-5 text-white" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-[#f5c619] rounded-full border-2 border-[#0B0C15]"></span>
-            </button>
+            <NotificationBell userId={null} />
           </div>
         </div>
 
         {/* Glass-morphic Search Bar */}
-        <div className="px-4 py-3 flex gap-2">
+        <div className="px-4 py-3 flex flex-row gap-2 items-center w-full">
           <div className="flex w-full items-stretch bg-white/5 backdrop-blur-md border border-white/5 rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-[#f5c619]/50 transition-all">
             <div className="text-[#f5c619] flex items-center justify-center pl-4">
               <Search className="w-5 h-5" />
@@ -57,30 +55,6 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
           <button onClick={() => setShowFilters(true)} className="h-12 w-12 shrink-0 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
               <SlidersHorizontal className="w-5 h-5 text-[#f5c619]" />
           </button>
-        </div>
-
-        {/* Horizontal Scrollable Category Pills */}
-        <div className="flex gap-3 px-4 pb-4 overflow-x-auto no-scrollbar" style={{ scrollbarWidth: 'none' }}>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f5c619] px-5 shadow-lg shadow-[#f5c619]/20">
-            <Building className="w-5 h-5 text-black" />
-            <p className="text-black text-sm font-bold">Hotels</p>
-          </div>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5">
-            <Car className="w-5 h-5 text-white" />
-            <p className="text-white text-sm font-medium">Cars</p>
-          </div>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5 hover:bg-white/10 cursor-pointer" onClick={() => setShowMap(true)}>
-            <Map className="w-5 h-5 text-white" />
-            <p className="text-white text-sm font-medium">Map Explore</p>
-          </div>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5">
-            <Utensils className="w-5 h-5 text-white" />
-            <p className="text-white text-sm font-medium">Dining</p>
-          </div>
-          <div className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white/5 backdrop-blur-md border border-white/5 px-5">
-            <Camera className="w-5 h-5 text-white" />
-            <p className="text-white text-sm font-medium">Tours</p>
-          </div>
         </div>
       </div>
 
