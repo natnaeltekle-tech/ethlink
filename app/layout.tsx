@@ -9,6 +9,7 @@ import { GlobalBanner } from "@/components/global-banner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { AppInitializer } from "@/components/app-initializer";
+import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
 import "./globals.css";
@@ -61,6 +62,7 @@ export default function RootLayout({
             <CapacitorBackButton />
             <AppInitializer>
               <AuthGate>
+                <PresenceTracker />
                 <ErrorBoundary name="Global Banner">
                   <GlobalBanner />
                 </ErrorBoundary>

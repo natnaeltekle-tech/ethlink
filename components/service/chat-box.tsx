@@ -53,10 +53,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     useEffect(() => {
         if (!serviceId || !currentUserId) return
 
-        const channel = supabase.channel(`room-${serviceId}`)
+        const msgChannel = supabase.channel(`room-${serviceId}`)
+        const presenceChannel = supabase.channel('global-presence')
 
-        channel
-            // 1. Listen for new messages
+        msgChannel
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -64,14 +64,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 filter: `service_id=eq.${serviceId}`
             }, (payload) => {
                 const newMsg = payload.new as Message
-
-                // Privacy Check: REMOVED by request to allow all messages in the room
-                // if (newMsg.sender_id !== currentUserId && newMsg.receiver_id !== currentUserId) {
-                //     return;
-                // }
-
                 setMessages((prev) => {
-                    // Deduplication: Check if we have a temp message from ourselves
                     if (newMsg.sender_id === currentUserId) {
                         const tempMatchIndex = prev.findIndex(m =>
                             String(m.id).startsWith('temp-') &&
@@ -79,44 +72,33 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                         )
                         if (tempMatchIndex !== -1) {
                             const newMessages = [...prev]
-                            newMessages[tempMatchIndex] = newMsg // Replace temp with real
+                            newMessages[tempMatchIndex] = newMsg 
                             return newMessages
                         }
                     }
-                    // Standard Deduplication
                     if (prev.some(m => m.id === newMsg.id)) return prev
-
                     return [...prev, newMsg]
                 })
             })
-            // 2. Presence: Track who is online
-            .on('presence', { event: 'sync' }, () => {
-                const newState = channel.presenceState()
-                const onlineIds = new Set<string>()
+            .subscribe()
 
+        presenceChannel
+            .on('presence', { event: 'sync' }, () => {
+                const newState = presenceChannel.presenceState()
+                const onlineIds = new Set<string>()
                 for (const key in newState) {
                     const users = newState[key] as any[]
                     users.forEach(u => {
-                        // Support both user_id directly or nested in a custom object if that's how it's sent
-                        // But based on our track call below, it should be at the top level of the payload.
                         if (u.user_id) onlineIds.add(u.user_id)
                     })
                 }
-
                 setOnlineUsers(onlineIds)
             })
-            .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    // Announce my presence
-                    await channel.track({
-                        online_at: new Date().toISOString(),
-                        user_id: currentUserId,
-                    })
-                }
-            })
+            .subscribe()
 
         return () => {
-            supabase.removeChannel(channel)
+            supabase.removeChannel(msgChannel)
+            supabase.removeChannel(presenceChannel)
         }
     }, [serviceId, supabase, currentUserId])
 

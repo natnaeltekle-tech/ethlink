@@ -5,6 +5,7 @@ import {
   Heart, Star, Home, Compass, Plus, MessageCircle, User, SlidersHorizontal 
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/client';
 import { NotificationBell } from '@/components/notification-bell';
 import MobileMapExplore from './MobileMapExplore';
 import MobileSearchFilters from './MobileSearchFilters';
@@ -14,6 +15,14 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id);
+    });
+  }, []);
 
   if (showNotifications) {
       return <div className="fixed inset-0 z-[100] bg-[#0B0C15]"><MobileNotifications />
@@ -42,7 +51,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
           </div>
           <div className="flex items-center gap-3">
-            <NotificationBell userId={null} />
+            <NotificationBell userId={userId} />
           </div>
         </div>
 

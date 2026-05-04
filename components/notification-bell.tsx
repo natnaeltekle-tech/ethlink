@@ -32,15 +32,23 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
         // Fetch initial notifications
         const fetchNotifications = async () => {
-            const { data } = await supabase
+            const { data: notificationsData } = await supabase
                 .from('notifications')
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
 
-            if (data) {
-                setNotifications(data)
-                setUnreadCount(data.filter(n => !n.is_read).length)
+            const { data: messagesData } = await supabase
+                .from('messages')
+                .select('*')
+                .eq('receiver_id', userId)
+                .eq('is_read', false)
+
+            if (notificationsData) {
+                setNotifications(notificationsData)
+                const notificationUnread = notificationsData.filter(n => !n.is_read).length
+                const messagesUnread = messagesData?.length || 0
+                setUnreadCount(notificationUnread + messagesUnread)
             }
         }
 
@@ -62,6 +70,19 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                     setNotifications(prev => [newNotification, ...prev])
                     setUnreadCount(prev => prev + 1)
                     toast.info(newNotification.content)
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `receiver_id=eq.${userId}`
+                },
+                (payload) => {
+                    setUnreadCount(prev => prev + 1)
+                    toast.info("New message received")
                 }
             )
             .subscribe()

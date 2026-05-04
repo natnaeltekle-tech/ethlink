@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Phone, Info, PlusCircle, Camera, ArrowUp, Loader2 } from 'lucide-react';
 import { sendMessage, getMessages } from '@/lib/actions';
+import { createClient } from '@/lib/supabase/client';
 
 interface ChatMessage {
     id: string;
@@ -35,6 +36,9 @@ export default function MobileChatRoom({
     const [isLoading, setIsLoading] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
+    const [supabase] = useState(() => createClient());
+    const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+    const [isOnline, setIsOnline] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -44,7 +48,56 @@ export default function MobileChatRoom({
             finally { setIsLoading(false); }
         };
         load();
-    }, [serviceId]);
+
+        if (!serviceId || !currentUserId) return;
+
+        // Realtime & Presence
+        const msgChannel = supabase.channel(`room-${serviceId}`);
+        const presenceChannel = supabase.channel('global-presence');
+
+        msgChannel
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'messages',
+                filter: `service_id=eq.${serviceId}`
+            }, (payload) => {
+                const newMsg = payload.new as ChatMessage;
+                setMessages((prev) => {
+                    if (prev.some(m => m.id === newMsg.id)) return prev;
+                    if (newMsg.sender_id === currentUserId) {
+                        const tempMatchIndex = prev.findIndex(m => String(m.id).startsWith('temp-') && m.content === newMsg.content);
+                        if (tempMatchIndex !== -1) {
+                            const updated = [...prev];
+                            updated[tempMatchIndex] = newMsg;
+                            return updated;
+                        }
+                    }
+                    return [...prev, newMsg];
+                });
+            })
+            .subscribe();
+
+        presenceChannel
+            .on('presence', { event: 'sync' }, () => {
+                const state = presenceChannel.presenceState();
+                const ids = new Set<string>();
+                for (const key in state) {
+                    (state[key] as any[]).forEach(u => u.user_id && ids.add(u.user_id));
+                }
+                setOnlineUsers(ids);
+            })
+            .subscribe();
+
+        return () => { 
+            supabase.removeChannel(msgChannel); 
+            supabase.removeChannel(presenceChannel);
+        };
+    }, [serviceId, currentUserId, supabase]);
+
+    useEffect(() => {
+        setIsOnline(onlineUsers.has(providerId));
+    }, [onlineUsers, providerId]);
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -81,11 +134,11 @@ export default function MobileChatRoom({
                                 style={providerAvatar ? { backgroundImage: `url("${providerAvatar}")` } : {}}>
                                 {!providerAvatar && providerName?.[0]?.toUpperCase() || 'P'}
                             </div>
-                            <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-[#0a0907]" />
+                            <div className={`absolute bottom-0 right-0 size-3 rounded-full border-2 border-[#0a0907] ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-gray-500'}`} />
                         </div>
                         <div className="flex flex-col">
                             <h2 className="text-white text-base font-bold leading-tight tracking-tight">{providerName}</h2>
-                            <p className="text-[#bab39c] text-xs font-medium">{providerStatus} • Premium Provider</p>
+                            <p className="text-[#bab39c] text-xs font-medium">{isOnline ? 'Online' : 'Offline'} • Premium Provider</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
