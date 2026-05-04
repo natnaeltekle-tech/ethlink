@@ -84,7 +84,7 @@ export default function MobileServiceDetails({
             </div>
 
             {/* Main Content */}
-            <main className="relative -mt-6 bg-[#f8f8f5] dark:bg-[#121212] rounded-t-2xl px-4 pb-32">
+            <main className="relative -mt-6 bg-[#f8f8f5] dark:bg-[#121212] rounded-t-2xl px-4 pb-44">
                 {/* Header Info */}
                 <div className="pt-6">
                     <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
@@ -221,7 +221,7 @@ export default function MobileServiceDetails({
             </main>
 
             {/* Sticky Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/5 backdrop-blur-xl border-t border-white/10 px-6 py-5 flex items-center justify-between">
+            <div className="fixed bottom-20 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-6 py-5 flex items-center justify-between shadow-2xl">
                 <div className="flex flex-col">
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Starting from</span>
                     <div className="flex items-baseline gap-1">
