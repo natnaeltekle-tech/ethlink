@@ -35,6 +35,19 @@ export default function MobileServiceDetails({
     
     const coverImage = service?.gallery?.[0] || service?.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
 
+    const handleShare = async () => {
+        try {
+            if (navigator.share) {
+                await navigator.share({ url: window.location.href, title: service?.title });
+            } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(window.location.href);
+                toast.success('Link copied to clipboard!');
+            }
+        } catch (e) {
+            console.log('Share error', e);
+        }
+    };
+
     if (showChat && provider) {
         return <div className="fixed inset-0 z-[100] bg-black"><MobileChatRoom serviceId={service.id} providerId={provider.id} providerName={provider.first_name} currentUserId={currentUser?.id || ''} onClose={() => setShowChat(false)} /></div>;
     }
@@ -57,11 +70,11 @@ export default function MobileServiceDetails({
                             <ChevronLeft className="w-6 h-6 ml-[-2px]" />
                         </Link>
                         <div className="flex gap-2">
-                            <button onClick={() => { navigator.share ? navigator.share({ url: window.location.href }) : navigator.clipboard.writeText(window.location.href); alert('Shared!'); }} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center text-white border border-white/10">
+                            <button onClick={handleShare} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors">
                                 <Share className="w-5 h-5" />
                             </button>
-                            <button onClick={() => { setIsSaved(!isSaved); toast.success(isSaved ? 'Removed from saved' : 'Saved to favorites!'); }} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center border border-white/10">
-                                <Heart className={`w-5 h-5 ${isSaved ? 'text-red-500 fill-red-500' : 'text-[#f5c619]'}`} />
+                            <button onClick={() => { setIsSaved(!isSaved); toast.success(isSaved ? 'Removed from favorites' : 'Saved to favorites!'); }} className="bg-black/40 backdrop-blur-md size-12 rounded-full flex items-center justify-center border border-white/10 hover:bg-black/60 transition-colors">
+                                <Heart className={`w-5 h-5 transition-colors ${isSaved ? 'text-red-500 fill-red-500' : 'text-[#f5c619]'}`} />
                             </button>
                         </div>
                     </div>
@@ -161,7 +174,7 @@ export default function MobileServiceDetails({
                                 <img 
                                     className="w-full h-full object-cover opacity-50 dark:opacity-40 grayscale" 
                                     alt="Map view" 
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzUVMt0LYpavyN9IMdHsaInXESds_JgwTmtaHjgZXKuI46QdCnk79ks7mRPfsS8JfW9EzPfdoqJKWY2jaxY3jeofWrjiqa3dgPlB4Ip07rOYf06BxXK__PPBWu615s_CAkT8jdRD1UAF7sZCTWaDn-p7CN52Y5W-g6uODDCWyuk3Gk4RjMDXgDvSZnmmflvWXRoNUoTiTm62G-BWucfommq9ZCeGyZtpIJbIIDzekt2c8kuynZb5sIw8iczgs5fkqH86PlbQcF95g"
+                                    src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80"
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="bg-[#f5c619] p-3 rounded-full shadow-lg">
@@ -216,8 +229,8 @@ export default function MobileServiceDetails({
                         <span className="text-sm font-semibold text-slate-900 dark:text-white uppercase">ETB</span>
                     </div>
                 </div>
-                <Link href={'/book/' + service?.id} className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] active:scale-95 transition-transform">
-                    Book Now
+                <Link href={'/book/' + service?.id} className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+                    Book & Pay
                 </Link>
             </div>
         </div>

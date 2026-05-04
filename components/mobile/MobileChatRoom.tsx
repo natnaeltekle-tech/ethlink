@@ -26,7 +26,7 @@ interface MobileChatRoomProps {
 const QUICK_REPLIES = ['Yes, please!', 'Tell me more', "What's the price?"];
 
 export default function MobileChatRoom({
-    providerId, providerName, providerAvatar, providerStatus = 'Online',
+    providerId, providerName = 'Provider', providerAvatar, providerStatus = 'Online',
     currentUserId, serviceId, onClose
 }: MobileChatRoomProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -75,7 +75,7 @@ export default function MobileChatRoom({
                         <div className="relative">
                             <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 border-2 border-[#f5c619]/20 bg-[#1A1C2E] flex items-center justify-center text-[#f5c619] font-bold"
                                 style={providerAvatar ? { backgroundImage: `url("${providerAvatar}")` } : {}}>
-                                {!providerAvatar && providerName[0]?.toUpperCase()}
+                                {!providerAvatar && providerName?.[0]?.toUpperCase() || 'P'}
                             </div>
                             <div className="absolute bottom-0 right-0 size-3 rounded-full bg-green-500 border-2 border-[#0a0907]" />
                         </div>
@@ -110,7 +110,7 @@ export default function MobileChatRoom({
                                     {!isSent && (
                                         <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 shrink-0 border border-white/10 bg-[#1A1C2E] flex items-center justify-center text-xs text-[#f5c619] font-bold"
                                             style={providerAvatar ? { backgroundImage: `url("${providerAvatar}")` } : {}}>
-                                            {!providerAvatar && providerName[0]?.toUpperCase()}
+                                            {!providerAvatar && providerName?.[0]?.toUpperCase() || 'P'}
                                         </div>
                                     )}
                                     <div className={`flex flex-col gap-1.5 ${isSent ? 'items-end' : 'items-start'} max-w-[80%]`}>
