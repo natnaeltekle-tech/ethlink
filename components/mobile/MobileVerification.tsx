@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, BookOpen, CreditCard, Car, ArrowRight, Camera, Scan, Lock, CheckCircle, Star, ShieldCheck, Sparkles, Diamond } from 'lucide-react';
+import { toast } from 'sonner';
 
 type VerifStep = 'select' | 'capture' | 'success';
 type DocType = 'passport' | 'national_id' | 'driver_license';
@@ -69,7 +70,7 @@ export default function MobileVerification({ onClose }: MobileVerificationProps)
 
                     <div className="flex-grow" />
                     <div className="mt-8 mb-4">
-                        <button onClick={onClose} className="w-full bg-gradient-to-r from-[#f5c619] to-[#d4a000] text-black font-extrabold text-lg py-4 rounded-full shadow-[0_4px_20px_rgba(245,198,25,0.25)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        <button onClick={() => { onClose?.(); toast.success('Identity verified successfully!'); }} className="w-full bg-gradient-to-r from-[#f5c619] to-[#d4a000] text-black font-extrabold text-lg py-4 rounded-full shadow-[0_4px_20px_rgba(245,198,25,0.25)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                             Return to Profile
                         </button>
                     </div>

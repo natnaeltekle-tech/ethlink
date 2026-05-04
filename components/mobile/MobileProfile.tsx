@@ -145,7 +145,7 @@ export default function MobileProfile({
                     <ChevronLeft className="w-6 h-6 ml-[-2px]" />
                 </Link>
                 <h2 className="text-white text-lg font-bold tracking-tight">Profile</h2>
-                <button className="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5">
+                <button className="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5" onClick={() => toast('Profile options opened')}>
                     <MoreHorizontal className="w-6 h-6" />
                 </button>
             </header>
@@ -164,7 +164,7 @@ export default function MobileProfile({
                                 {!profile?.avatar_url && displayName[0]?.toUpperCase()}
                             </div>
                         </div>
-                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center">
+                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center cursor-pointer hover:bg-[#e0b415] transition-colors" onClick={() => toast('Edit Profile feature coming soon!')}>
                             <Edit2 className="w-4 h-4 font-bold" />
                         </div>
                     </div>
@@ -319,7 +319,7 @@ export default function MobileProfile({
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast('Payment Methods setting coming soon!')}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <CreditCard className="w-5 h-5" />
@@ -347,7 +347,7 @@ export default function MobileProfile({
                             </div>
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => { window.location.href = 'mailto:support@ethlink.com'; toast('Opening Help & Support...'); }}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <LifeBuoy className="w-5 h-5" />

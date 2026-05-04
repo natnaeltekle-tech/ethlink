@@ -4,6 +4,7 @@ import {
   Handshake, Search, Building, Car, Map, Utensils, Camera, 
   Heart, Star, Home, Compass, Plus, MessageCircle, User, SlidersHorizontal 
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { NotificationBell } from '@/components/notification-bell';
 import MobileMapExplore from './MobileMapExplore';
 import MobileSearchFilters from './MobileSearchFilters';
@@ -31,7 +32,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
       <div className="sticky top-0 z-50 bg-[#f8f8f5]/80 dark:bg-[#0B0C15]/80 backdrop-blur-md">
         <div className="flex items-center p-4 pb-2 justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-[#f5c619] text-black p-1.5 rounded-lg flex items-center justify-center">
+            <div className="bg-[#f5c619] text-black p-1.5 rounded-lg flex items-center justify-center cursor-pointer" onClick={() => toast.success('Welcome to Eth-Links!')}>
               <Handshake className="w-5 h-5 text-primary" />
             </div>
             <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
@@ -72,7 +73,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             
             return (
               <div key={service.id || index} className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative">
-                <div className="absolute bottom-36 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white">
+                <div className="absolute bottom-36 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white" onClick={(e) => { e.preventDefault(); toast.success('Added to favorites!'); }}>
                     <Heart className="w-5 h-5 hover:fill-red-500 hover:text-red-500 transition-colors cursor-pointer" />
                 </div>
                 <div className="absolute bottom-36 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
