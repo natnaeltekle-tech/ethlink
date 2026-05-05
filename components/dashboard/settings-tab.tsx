@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff } from 'lucide-react'
+import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff, Loader2, Camera } from 'lucide-react'
 import { LogoutButton } from '@/components/logout-button'
 import { deleteService, updateProfile, resetServiceImage } from '@/lib/actions'
+import { updateAvatarUrl } from '@/lib/actions/avatar'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 import {
     AlertDialog,
@@ -28,6 +31,9 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
     const [isDeleting, setIsDeleting] = useState<string | null>(null)
     const [isResetting, setIsResetting] = useState<string | null>(null)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+    const avatarInputRef = useRef<HTMLInputElement>(null)
+    const router = useRouter()
 
     // Guard against null user during logout transition to prevent white screen crash.
     // Placed after all hooks to comply with React's Rules of Hooks.
@@ -55,6 +61,48 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
         return profile?.phone_number || ''
     }
 
+    const getAvatarDisplay = () => {
+        if (profile?.avatar_url) return null // Will show image
+        return (user?.email && user.email[0]) ? user.email[0].toUpperCase() : 'U'
+    }
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file')
+            return
+        }
+
+        setIsUploadingAvatar(true)
+        try {
+            const supabase = createClient()
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${user.id}_${Date.now()}.${fileExt}`
+
+            const { error: uploadError } = await supabase.storage
+                .from('service-images')
+                .upload(fileName, file)
+
+            if (uploadError) throw uploadError
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('service-images')
+                .getPublicUrl(fileName)
+
+            await updateAvatarUrl(publicUrl)
+
+            toast.success('Profile picture updated!')
+            router.refresh()
+        } catch (error: any) {
+            toast.error('Upload failed: ' + (error.message || 'Unknown error'))
+        } finally {
+            setIsUploadingAvatar(false)
+            // Reset file input so the same file can be re-selected
+            if (avatarInputRef.current) avatarInputRef.current.value = ''
+        }
+    }
 
     const handleDelete = async (id: string) => {
         // Confirmation is handled by AlertDialog now
@@ -109,10 +157,36 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-6">
-                        {/* Large Avatar */}
-                        <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl shadow-sm border border-primary/10">
-                            {(user?.email && user.email[0]) ? user.email[0].toUpperCase() : 'U'}
-                        </div>
+                        {/* Clickable Avatar with Upload */}
+                        <label htmlFor="avatar-upload" className="cursor-pointer relative group">
+                            <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl shadow-sm border border-primary/10 overflow-hidden">
+                                {profile?.avatar_url ? (
+                                    <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                                ) : (
+                                    getAvatarDisplay()
+                                )}
+                                {isUploadingAvatar && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="flex flex-col items-center gap-0.5">
+                                    <Camera className="h-4 w-4 text-white" />
+                                    <span className="text-white text-[9px] font-semibold leading-tight">Change Photo</span>
+                                </div>
+                            </div>
+                        </label>
+                        <input
+                            type="file"
+                            id="avatar-upload"
+                            ref={avatarInputRef}
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleAvatarUpload}
+                        />
 
                         <div className="space-y-2">
                             {/* Email with Icon */}
@@ -269,3 +343,4 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
         </div>
     )
 }
+
