@@ -497,7 +497,7 @@ export default function MobileProfile({
                     <h2 className="text-xl font-bold text-white tracking-tight px-1">Settings</h2>
                     <div className="w-full flex flex-col gap-px bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.08] overflow-hidden">
                         
-                        <Link href="/favorites" className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+                        <div onClick={() => toast.info('This feature is coming soon in V2!')} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ClipboardList className="w-5 h-5" />
@@ -505,9 +505,9 @@ export default function MobileProfile({
                                 <span className="text-white text-base font-medium">My Favorites</span>
                             </div>
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
-                        </Link>
+                        </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming in V2!')}>
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming soon in V2!')}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <CreditCard className="w-5 h-5" />
@@ -517,7 +517,7 @@ export default function MobileProfile({
                             <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
 
-                        <div onClick={() => toast.info('This feature is coming in V2!')} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
+                        <div onClick={() => toast.info('This feature is coming soon in V2!')} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ShieldCheck className="w-5 h-5" />
@@ -535,7 +535,7 @@ export default function MobileProfile({
                             </div>
                         </div>
 
-                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming in V2!')}>
+                        <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming soon in V2!')}>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <LifeBuoy className="w-5 h-5" />

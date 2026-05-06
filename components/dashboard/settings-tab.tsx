@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff, Loader2, Camera } from 'lucide-react'
+import { Trash2, UserCog, AlertCircle, Shield, Mail, ImageOff, Loader2, Camera, Heart, CreditCard, ShieldCheck, LifeBuoy } from 'lucide-react'
 import { LogoutButton } from '@/components/logout-button'
 import { deleteService, updateProfile, resetServiceImage } from '@/lib/actions'
 import { updateAvatarUrl } from '@/lib/actions/avatar'
@@ -288,6 +288,47 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
                             ))}
                         </div>
                     )}
+                </CardContent>
+            </Card>
+
+            {/* Quick Links */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <UserCog className="h-5 w-5" />
+                        Quick Links
+                    </CardTitle>
+                    <CardDescription>Access your account features.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                    <button
+                        onClick={() => toast.info('This feature is coming soon in V2!')}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                    >
+                        <Heart className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">My Favorites</span>
+                    </button>
+                    <button
+                        onClick={() => toast.info('This feature is coming soon in V2!')}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                    >
+                        <CreditCard className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Payment Methods</span>
+                    </button>
+                    <button
+                        onClick={() => toast.info('This feature is coming soon in V2!')}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                    >
+                        <ShieldCheck className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Identity Verification</span>
+                    </button>
+                    <button
+                        onClick={() => toast.info('This feature is coming soon in V2!')}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                    >
+                        <LifeBuoy className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Help &amp; Support</span>
+                    </button>
                 </CardContent>
             </Card>
 
