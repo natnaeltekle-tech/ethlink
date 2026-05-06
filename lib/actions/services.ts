@@ -234,15 +234,14 @@ export async function getMessages(serviceId: string) {
         .from('messages')
         .select('*')
         .eq('service_id', serviceId)
-        .order('created_at', { ascending: false }) // Get newest first
-        .limit(30)
+        .order('created_at')
 
     if (error) {
         console.error('Error fetching messages:', JSON.stringify(error, null, 2))
         return []
     }
 
-    return messages.reverse() // Return in chronological order
+    return messages
 }
 
 export async function sendMessage(serviceId: string, receiverId: string, content: string) {

@@ -60,7 +60,7 @@ export default function MobileChatRoom({
                 event: 'INSERT',
                 schema: 'public',
                 table: 'messages',
-                filter: `service_id=eq.${serviceId}`
+                filter: 'service_id=eq.' + serviceId
             }, (payload) => {
                 const newMsg = payload.new as ChatMessage;
                 setMessages((prev) => {

@@ -61,7 +61,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 event: 'INSERT',
                 schema: 'public',
                 table: 'messages',
-                filter: `service_id=eq.${serviceId}`
+                filter: 'service_id=eq.' + serviceId
             }, (payload) => {
                 const newMsg = payload.new as Message
                 setMessages((prev) => {
