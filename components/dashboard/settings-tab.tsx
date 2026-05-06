@@ -135,8 +135,13 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
     const handleUpdateProfile = async (formData: FormData) => {
         setIsUpdating(true)
         try {
-            await updateProfile(formData)
-            toast.success('Profile updated successfully')
+            const res = await updateProfile(formData)
+            if (res.error) {
+                toast.error(res.error)
+            } else {
+                toast.success('Saved!')
+                router.refresh()
+            }
         } catch (error) {
             toast.error('Failed to update profile')
             console.error(error)

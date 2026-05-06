@@ -5,33 +5,39 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfile(formData: FormData): Promise<{ success: boolean; error?: string }> {
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
-    if (!user) throw new Error('Not authenticated')
+    if (!user) return { success: false, error: 'Not authenticated' }
 
     const firstName = formData.get('firstName') as string
     const lastName = formData.get('lastName') as string
     const phoneNumber = formData.get('phoneNumber') as string
 
-    const { error } = await supabase
-        .from('profiles')
-        .upsert({
-            id: user.id,
-            first_name: firstName,
-            last_name: lastName,
-            phone_number: phoneNumber,
-        })
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .upsert({
+                id: user.id,
+                first_name: firstName,
+                last_name: lastName,
+                phone_number: phoneNumber,
+            })
 
-    if (error) {
-        console.error('Error updating profile:', error)
-        throw new Error(`Failed to update profile: ${error.message}`)
+        if (error) {
+            console.error('Error updating profile:', error)
+            return { success: false, error: error.message }
+        }
+
+        revalidatePath('/dashboard')
+        revalidatePath('/services/[id]')
+        return { success: true }
+    } catch (err: any) {
+        console.error('Exception updating profile:', err)
+        return { success: false, error: err?.message || 'Unknown error' }
     }
-
-    revalidatePath('/dashboard')
-    revalidatePath('/services/[id]')
 }
 
 export async function getProfile() {

@@ -52,8 +52,8 @@ export default function MobileChatRoom({
         if (!serviceId || !currentUserId) return;
 
         // Realtime & Presence
-        const msgChannel = supabase.channel(`room-${serviceId}`);
-        const presenceChannel = supabase.channel('global-presence');
+        const msgChannel = supabase.channel(`chat_room`);
+        const presenceChannel = supabase.channel(`presence-${serviceId}`);
 
         msgChannel
             .on('postgres_changes', {
@@ -87,7 +87,11 @@ export default function MobileChatRoom({
                 }
                 setOnlineUsers(ids);
             })
-            .subscribe();
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await presenceChannel.track({ user_id: currentUserId });
+                }
+            });
 
         return () => { 
             supabase.removeChannel(msgChannel); 

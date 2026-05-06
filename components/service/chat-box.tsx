@@ -53,8 +53,8 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     useEffect(() => {
         if (!serviceId || !currentUserId) return
 
-        const msgChannel = supabase.channel(`room-${serviceId}`)
-        const presenceChannel = supabase.channel('global-presence')
+        const msgChannel = supabase.channel(`chat_room`)
+        const presenceChannel = supabase.channel(`presence-${serviceId}`)
 
         msgChannel
             .on('postgres_changes', {
@@ -94,7 +94,11 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 }
                 setOnlineUsers(onlineIds)
             })
-            .subscribe()
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await presenceChannel.track({ user_id: currentUserId })
+                }
+            })
 
         return () => {
             supabase.removeChannel(msgChannel)
@@ -181,7 +185,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                         </div>
                     ) : (
                         <>
-                            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-muted-foreground/50'}`} />
+                            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`} />
                             <span className={`text-sm font-medium ${isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
                                 {isOnline ? 'Online' : 'Offline'}
                             </span>
@@ -194,10 +198,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                     <div className="flex-1" />
                 )}
                 {messages.map((msg) => {
-                    const isMe = msg.sender_id === currentUserId
+                    const isOwnMessage = msg.sender_id === currentUserId
                     return (
-                        <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                        <div key={msg.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${isOwnMessage ? 'bg-yellow-500 text-black ml-auto text-right' : 'bg-gray-800 text-white mr-auto text-left'
                                 }`}>
                                 {msg.content}
                             </div>
