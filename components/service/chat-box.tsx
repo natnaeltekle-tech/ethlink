@@ -53,7 +53,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     useEffect(() => {
         if (!serviceId || !currentUserId) return
 
-        const msgChannel = supabase.channel(`chat_room`)
+        const msgChannel = supabase.channel(`chat-${serviceId}`)
         const presenceChannel = supabase.channel(`presence-${serviceId}`)
 
         msgChannel
@@ -72,7 +72,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                         )
                         if (tempMatchIndex !== -1) {
                             const newMessages = [...prev]
-                            newMessages[tempMatchIndex] = newMsg 
+                            newMessages[tempMatchIndex] = newMsg
                             return newMessages
                         }
                     }
