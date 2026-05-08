@@ -65,14 +65,7 @@ export default function MobileChatRoom({
                 const newMsg = payload.new as ChatMessage;
                 setMessages((prev) => {
                     if (prev.some(m => m.id === newMsg.id)) return prev;
-                    if (newMsg.sender_id === currentUserId) {
-                        const tempMatchIndex = prev.findIndex(m => String(m.id).startsWith('temp-') && m.content === newMsg.content);
-                        if (tempMatchIndex !== -1) {
-                            const updated = [...prev];
-                            updated[tempMatchIndex] = newMsg;
-                            return updated;
-                        }
-                    }
+                    if (String(newMsg.id).startsWith('temp-')) return prev;
                     return [...prev, newMsg];
                 });
             })

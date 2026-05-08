@@ -65,18 +65,8 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
             }, (payload) => {
                 const newMsg = payload.new as Message
                 setMessages((prev) => {
-                    if (newMsg.sender_id === currentUserId) {
-                        const tempMatchIndex = prev.findIndex(m =>
-                            String(m.id).startsWith('temp-') &&
-                            m.content === newMsg.content
-                        )
-                        if (tempMatchIndex !== -1) {
-                            const newMessages = [...prev]
-                            newMessages[tempMatchIndex] = newMsg
-                            return newMessages
-                        }
-                    }
                     if (prev.some(m => m.id === newMsg.id)) return prev
+                    if (String(newMsg.id).startsWith('temp-')) return prev
                     return [...prev, newMsg]
                 })
             })

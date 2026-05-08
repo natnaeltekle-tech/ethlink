@@ -23,7 +23,7 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
                 id: user.id,
                 first_name: firstName,
                 last_name: lastName,
-                phone: phoneNumber,
+                phone_number: phoneNumber,
             })
 
         if (error) {
@@ -77,7 +77,7 @@ export async function updateProviderProfile(formData: FormData) {
         .upsert({
             id: user.id,
             full_name: `${firstName} ${lastName}`,
-            phone: phoneNumber,
+            phone_number: phoneNumber,
             id_card_link: idCardLink,
             role: 'provider'
         })

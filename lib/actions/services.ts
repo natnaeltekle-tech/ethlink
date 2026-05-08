@@ -611,7 +611,7 @@ export async function createServiceWithProfile(formData: FormData) {
         .upsert({
             id: user.id,
             full_name: `${firstName} ${lastName}`,
-            phone: phoneNumber,
+            phone_number: phoneNumber,
             id_card_link: idCardLink,
             role: 'provider'
         })
