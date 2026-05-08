@@ -52,7 +52,7 @@ export default function MobileChatRoom({
         if (!serviceId || !currentUserId) return;
 
         // Realtime & Presence
-        const msgChannel = supabase.channel(`chat_room`);
+        const msgChannel = supabase.channel(`chat-${serviceId}`);
         const presenceChannel = supabase.channel(`presence-${serviceId}`);
 
         msgChannel

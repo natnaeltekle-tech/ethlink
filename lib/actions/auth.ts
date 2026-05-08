@@ -16,18 +16,22 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     const lastName = formData.get('lastName') as string
     const phoneNumber = formData.get('phoneNumber') as string
 
+    if (!firstName && !lastName && !phoneNumber) {
+        return { success: false, error: 'No changes provided' }
+    }
+
     try {
         const { error } = await supabase
             .from('profiles')
             .upsert({
                 id: user.id,
-                first_name: firstName,
-                last_name: lastName,
-                phone_number: phoneNumber,
+                first_name: firstName || null,
+                last_name: lastName || null,
+                phone_number: phoneNumber || null,
             })
 
         if (error) {
-            console.error('Error updating profile:', error)
+            console.error('[updateProfile] Supabase error:', error)
             return { success: false, error: error.message }
         }
 
@@ -35,8 +39,8 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
         revalidatePath('/services/[id]')
         return { success: true }
     } catch (err: any) {
-        console.error('Exception updating profile:', err)
-        return { success: false, error: err?.message || 'Unknown error' }
+        console.error('[updateProfile] Unexpected error:', err)
+        return { success: false, error: err?.message || 'Failed to update profile' }
     }
 }
 
