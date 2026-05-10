@@ -28,20 +28,10 @@ export default function DesktopBooking({ service }: { service: any }) {
                         </div>
                     </div>
 
-                    <div className="p-5">
-                        <div className="flex justify-between items-start mb-5">
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Confirm Your Booking</h2>
-                                <p className="text-gray-500 dark:text-gray-400">
-                                    Please select a date and time for your service.
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Price</p>
-                                <p className="text-2xl font-bold text-blue-600">{service.price} ETB</p>
-                            </div>
-                        </div>
-
+                    <div className="p-6 flex flex-col items-center justify-center">
+                        <p className="text-gray-500 dark:text-gray-400 mb-6 text-center text-sm">
+                            Please select a date and time to confirm your booking.
+                        </p>
                         <BookingForm serviceId={service.id} price={service.price} category={service.category} />
                     </div>
                 </div>

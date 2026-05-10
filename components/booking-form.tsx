@@ -64,12 +64,17 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <input type="hidden" name="serviceId" value={serviceId} />
+        <div className="w-full max-w-sm mx-auto bg-card p-4 rounded-xl border shadow-sm">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold">Book Service</h3>
+                <span className="text-xl font-bold text-primary">{price} ETB</span>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <input type="hidden" name="serviceId" value={serviceId} />
 
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <label htmlFor="date" className="block text-sm font-medium text-foreground">
+                <div className="space-y-3">
+                <div className="space-y-1">
+                    <label htmlFor="date" className="block text-xs font-medium text-foreground">
                         Select Date & Time
                     </label>
                     <div className="relative">
@@ -78,21 +83,21 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                             name="date"
                             id="date"
                             required
-                            className="pl-10 h-11 w-full text-base bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
+                            className="pl-9 h-10 w-full text-sm bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
                             min={new Date().toISOString().slice(0, 16)}
                         />
-                        <Calendar className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                        <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     </div>
                 </div>
 
                 {showGuestSelector && (
-                    <div className="space-y-2">
-                        <label htmlFor="guests" className="block text-sm font-medium text-foreground">
+                    <div className="space-y-1">
+                        <label htmlFor="guests" className="block text-xs font-medium text-foreground">
                             Guests / Qty
                         </label>
                         <div className="relative">
                             <Select name="guests" defaultValue="1">
-                                <SelectTrigger className="h-11 text-base pl-10 bg-secondary text-foreground border-border focus:ring-primary focus:border-primary">
+                                <SelectTrigger className="h-10 text-sm pl-9 bg-secondary text-foreground border-border focus:ring-primary focus:border-primary">
                                     <SelectValue placeholder="Select quantity" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-popover text-popover-foreground border-border">
@@ -103,19 +108,20 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                                     <SelectItem value="5">5+ Group</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Users className="absolute left-3 top-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+                            <Users className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
                         </div>
                     </div>
                 )}
             </div>
 
-            <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-11 text-base font-bold bg-primary text-black hover:bg-yellow-500 transition-colors"
-            >
-                {isSubmitting ? 'Processing...' : 'Confirm Booking'}
-            </Button>
-        </form>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-10 text-sm font-bold bg-primary text-black hover:bg-yellow-500 transition-colors mt-2"
+                >
+                    {isSubmitting ? 'Processing...' : 'Confirm Booking'}
+                </Button>
+            </form>
+        </div>
     )
 }
