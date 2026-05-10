@@ -42,7 +42,7 @@ export function ServiceListing({ services }: { services: any[] }) {
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [sortedServices, setSortedServices] = useState<any[]>(services);
 
-    useEffect(() => {
+    const handleRequestLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -50,8 +50,6 @@ export function ServiceListing({ services }: { services: any[] }) {
                     const userLng = position.coords.longitude;
                     setUserLocation({ lat: userLat, lng: userLng });
 
-                    // Check if we are in/near Addis Ababa to apply logic (optional based on prompt, but keeping simple for now)
-                    // Logic: Calculate distance for each service
                     const servicesWithDistance = services.map(service => {
                         if (service.latitude && service.longitude) {
                             return {
@@ -62,8 +60,6 @@ export function ServiceListing({ services }: { services: any[] }) {
                         return service;
                     });
 
-                    // Sort by distance (nearest first)
-                    // Push those without distance to the end
                     const sorted = [...servicesWithDistance].sort((a, b) => {
                         if (a.distance !== undefined && b.distance !== undefined) {
                             return a.distance - b.distance;
@@ -74,12 +70,21 @@ export function ServiceListing({ services }: { services: any[] }) {
                     });
 
                     setSortedServices(sorted);
+                    toast.success("Location applied! Services sorted by distance.");
                 },
                 (error) => {
-                    // Handle geolocation errors (user denied permission or unavailable)
                     toast.error("Location permission denied. Services cannot be sorted by distance.");
                 }
             );
+        } else {
+            toast.error("Geolocation is not supported by your browser.");
+        }
+    };
+
+    useEffect(() => {
+        // If services change, just update the local state without forcing location prompt
+        if (!userLocation) {
+            setSortedServices(services);
         }
     }, [services]);
 
@@ -93,7 +98,10 @@ export function ServiceListing({ services }: { services: any[] }) {
                             <span>Sorted by distance from your location</span>
                         </>
                     ) : (
-                        <span>Enable location to sort by distance</span>
+                        <button onClick={handleRequestLocation} className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer">
+                            <MapPin className="h-4 w-4" />
+                            <span className="underline underline-offset-4 decoration-border hover:decoration-foreground">Enable location to sort by distance</span>
+                        </button>
                     )}
                 </div>
                 <div className="flex bg-secondary/50 p-1 rounded-lg border border-border/50">
