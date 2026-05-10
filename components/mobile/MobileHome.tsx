@@ -40,8 +40,9 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
       {/* Top Navigation Bar */}
       <div className="sticky top-0 z-50 bg-[#f8f8f5]/80 dark:bg-[#0B0C15]/80 backdrop-blur-md">
         <div className="flex items-center p-4 pb-2 justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-white text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
+          <div className="flex items-center justify-center gap-3">
+            <Handshake className="w-6 h-6 text-[#f5c619]" />
+            <h2 className="text-[#f5c619] text-xl font-extrabold leading-tight tracking-tight">Eth-Links</h2>
           </div>
           <div className="flex items-center gap-3">
             <NotificationBell userId={userId} />
@@ -68,8 +69,10 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
       {/* Main Feed Content */}
       <main>
         <div className="flex items-center justify-between px-4 pt-4">
-          <h2 className="text-white text-2xl font-extrabold tracking-tight">Featured Listings</h2>
-          <button className="text-[#f5c619] text-sm font-bold">View all</button>
+          <h2 className="text-[#f5c619] text-2xl font-extrabold tracking-tight">Featured Services</h2>
+          <Link href="/services">
+            <button className="text-[#f5c619] text-sm font-bold">View all</button>
+          </Link>
         </div>
 
         {/* Listing Cards */}

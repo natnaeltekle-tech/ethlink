@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Search, CalendarCheck, CheckCircle, ArrowRight } from 'lucide-react'
+import { Search, CalendarCheck, CheckCircle, ArrowRight, Handshake } from 'lucide-react'
 import { CategoryCarousel } from '@/components/category-carousel'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
@@ -15,8 +15,9 @@ export default function DesktopHome({ services = [] }: { services?: any[] }) {
         <section className="relative py-20 md:py-32 overflow-hidden">
           <div className="absolute inset-0 bg-secondary/30 -z-10" />
           <div className="container px-4 mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 flex items-center justify-center gap-3">
+              <Handshake className="h-10 w-10 md:h-14 md:w-14 text-primary" />
+              <span className="text-primary">
                 Eth-Links
               </span>
             </h1>
@@ -36,7 +37,7 @@ export default function DesktopHome({ services = [] }: { services?: any[] }) {
         {/* Featured Categories */}
         <section className="py-16 container px-4 mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold">Featured Services</h2>
+            <h2 className="text-2xl font-bold text-primary">Featured Services</h2>
             <Link href="/services">
               <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80">
                 View All Services <ArrowRight className="h-4 w-4" />
