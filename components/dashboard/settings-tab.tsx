@@ -76,27 +76,35 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
         }
 
         setIsUploadingAvatar(true)
-        try {
-            const supabase = createClient()
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${user.id}_${Date.now()}.${fileExt}`
+        const supabase = createClient()
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`
 
+        let publicUrl = '';
+        try {
             const { error: uploadError } = await supabase.storage
                 .from('service-images')
                 .upload(fileName, file)
 
             if (uploadError) throw uploadError
 
-            const { data: { publicUrl } } = supabase.storage
+            const { data } = supabase.storage
                 .from('service-images')
                 .getPublicUrl(fileName)
+            publicUrl = data.publicUrl
+        } catch (error: any) {
+            toast.error('Upload failed: ' + (error.message || 'Unknown error'))
+            setIsUploadingAvatar(false)
+            if (avatarInputRef.current) avatarInputRef.current.value = ''
+            return
+        }
 
+        try {
             await updateAvatarUrl(publicUrl)
-
             toast.success('Profile picture updated!')
             router.refresh()
         } catch (error: any) {
-            toast.error('Upload failed: ' + (error.message || 'Unknown error'))
+            toast.error('Database update failed: ' + (error.message || 'Unknown error'))
         } finally {
             setIsUploadingAvatar(false)
             // Reset file input so the same file can be re-selected

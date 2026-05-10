@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Send } from 'lucide-react'
 import { getMessages, sendMessage } from '@/lib/actions'
+import { toast } from 'sonner'
 
 interface Message {
     id: string
@@ -58,17 +59,20 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
 
         msgChannel
             .on('postgres_changes', {
-                event: 'INSERT',
+                event: '*',
                 schema: 'public',
                 table: 'messages',
                 filter: 'service_id=eq.' + serviceId
             }, (payload) => {
-                const newMsg = payload.new as Message
-                setMessages((prev) => {
-                    if (prev.some(m => m.id === newMsg.id)) return prev
-                    if (String(newMsg.id).startsWith('temp-')) return prev
-                    return [...prev, newMsg]
-                })
+                console.log("Realtime Payload:", payload);
+                if (payload.eventType === 'INSERT') {
+                    const newMsg = payload.new as Message
+                    setMessages((prev) => {
+                        if (prev.some(m => m.id === newMsg.id)) return prev
+                        if (String(newMsg.id).startsWith('temp-')) return prev
+                        return [...prev, newMsg]
+                    })
+                }
             })
             .subscribe()
 
@@ -126,11 +130,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
         try {
             await sendMessage(serviceId, providerId, tempMessage.content)
             // Realtime listener will handle the success case (replacing temp msg)
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to send message:', error)
             setMessages((prev) => prev.filter(m => m.id !== tempId)) // Rollback
-            const errorMessage = error instanceof Error ? error.message : 'Failed to send message'
-            alert(`Error: ${errorMessage}`)
+            toast.error(`Send failed: ${error.message || 'Unknown error'}`)
         } finally {
             setLoading(false)
         }

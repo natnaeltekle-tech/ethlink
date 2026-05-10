@@ -118,6 +118,7 @@ export default function MobileProfile({
         }
 
         setIsUploading(true);
+        let publicUrl = '';
         try {
             const fileExt = file.name.split('.').pop();
             const fileName = `${user.id}_${Date.now()}.${fileExt}`;
@@ -136,10 +137,17 @@ export default function MobileProfile({
 
             if (uploadError) throw uploadError;
 
-            const { data: { publicUrl } } = supabase.storage
+            const { data } = supabase.storage
                 .from(bucketName)
                 .getPublicUrl(fileName);
+            publicUrl = data.publicUrl;
+        } catch (error: any) {
+            toast.error("Upload failed: " + (error.message || "Unknown error"));
+            setIsUploading(false);
+            return;
+        }
 
+        try {
             const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ avatar_url: publicUrl })
@@ -150,7 +158,7 @@ export default function MobileProfile({
             toast.success("Profile picture updated!");
             router.refresh();
         } catch (error: any) {
-            toast.error("Upload failed: " + (error.message || "Unknown error"));
+            toast.error("Database update failed: " + (error.message || "Unknown error"));
         } finally {
             setIsUploading(false);
         }

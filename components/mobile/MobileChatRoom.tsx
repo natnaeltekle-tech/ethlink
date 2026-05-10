@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Phone, Info, PlusCircle, Camera, ArrowUp, Loader2 } from 'lucide-react';
 import { sendMessage, getMessages } from '@/lib/actions';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 interface ChatMessage {
     id: string;
@@ -57,17 +58,20 @@ export default function MobileChatRoom({
 
         msgChannel
             .on('postgres_changes', {
-                event: 'INSERT',
+                event: '*',
                 schema: 'public',
                 table: 'messages',
                 filter: 'service_id=eq.' + serviceId
             }, (payload) => {
-                const newMsg = payload.new as ChatMessage;
-                setMessages((prev) => {
-                    if (prev.some(m => m.id === newMsg.id)) return prev;
-                    if (String(newMsg.id).startsWith('temp-')) return prev;
-                    return [...prev, newMsg];
-                });
+                console.log("Realtime Payload:", payload);
+                if (payload.eventType === 'INSERT') {
+                    const newMsg = payload.new as ChatMessage;
+                    setMessages((prev) => {
+                        if (prev.some(m => m.id === newMsg.id)) return prev;
+                        if (String(newMsg.id).startsWith('temp-')) return prev;
+                        return [...prev, newMsg];
+                    });
+                }
             })
             .subscribe();
 
@@ -108,8 +112,10 @@ export default function MobileChatRoom({
         setMessages(prev => [...prev, opt]);
         try { 
             await sendMessage(serviceId, providerId, text); 
-        } catch (error) { 
-            console.error('Failed to send message, keeping in UI for demo purposes', error);
+        } catch (error: any) { 
+            console.error('Failed to send message:', error);
+            toast.error(`Send failed: ${error.message || 'Unknown database error'}`);
+            setMessages((prev) => prev.filter(m => m.id !== opt.id));
         }
         finally { setIsSending(false); }
     };
