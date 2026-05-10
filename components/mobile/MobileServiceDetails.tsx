@@ -127,35 +127,38 @@ export default function MobileServiceDetails({
                 )}
 
                 {/* Amenities Grid */}
-                <div className="mt-8">
-                    <h3 className="text-lg font-bold mb-4">Amenities</h3>
-                    <div className="grid grid-cols-4 gap-3">
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                <Wifi className="w-6 h-6 text-[#f5c619]" />
+                {(service.amenities?.length > 0 || service.features?.length > 0) && (
+                    <div className="mt-8">
+                        <h3 className="text-lg font-bold mb-4">Amenities</h3>
+                        <div className="grid grid-cols-4 gap-3">
+                            {/* Dynamically rendering logic could go here in V2, for now we conditionally hide if empty */}
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
+                                    <Wifi className="w-6 h-6 text-[#f5c619]" />
+                                </div>
+                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Wi-Fi</span>
                             </div>
-                            <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Wi-Fi</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                <Waves className="w-6 h-6 text-[#f5c619]" />
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
+                                    <Waves className="w-6 h-6 text-[#f5c619]" />
+                                </div>
+                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Pool</span>
                             </div>
-                            <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Pool</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                <Shield className="w-6 h-6 text-[#f5c619]" />
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
+                                    <Shield className="w-6 h-6 text-[#f5c619]" />
+                                </div>
+                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Security</span>
                             </div>
-                            <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Security</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                <Dumbbell className="w-6 h-6 text-[#f5c619]" />
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
+                                    <Dumbbell className="w-6 h-6 text-[#f5c619]" />
+                                </div>
+                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Gym</span>
                             </div>
-                            <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Gym</span>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Description */}
                 <div className="mt-8">
@@ -165,31 +168,7 @@ export default function MobileServiceDetails({
                     </p>
                 </div>
 
-                {/* Location Map Placeholder */}
-                <div className="mt-8">
-                    <h3 className="text-lg font-bold mb-4">Location</h3>
-                    <div className="h-64 w-full z-0 relative bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden">
-                        {service?.latitude ? (
-                            <>
-                                <img 
-                                    className="w-full h-full object-cover opacity-50 dark:opacity-40 grayscale" 
-                                    alt="Map view" 
-                                    src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80"
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="bg-[#f5c619] p-3 rounded-full shadow-lg">
-                                        <MapPin className="w-6 h-6 text-[#121212] fill-[#121212]" />
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-                                <MapPin className="w-8 h-8 mb-2 opacity-50" />
-                                <p className="text-sm font-medium">Location map not available</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                {/* Location Map Placeholder - DELETED */}
 
                 {/* Reviews Summary Section */}
                 <div className="mt-8 mb-4">

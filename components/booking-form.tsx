@@ -78,10 +78,10 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                             name="date"
                             id="date"
                             required
-                            className="pl-12 h-14 w-full text-lg bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
+                            className="pl-10 h-11 w-full text-base bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
                             min={new Date().toISOString().slice(0, 16)}
                         />
-                        <Calendar className="absolute left-4 top-4 h-6 w-6 text-muted-foreground" />
+                        <Calendar className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     </div>
                 </div>
 
@@ -92,7 +92,7 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                         </label>
                         <div className="relative">
                             <Select name="guests" defaultValue="1">
-                                <SelectTrigger className="h-12 text-lg pl-10 bg-secondary text-foreground border-border focus:ring-primary focus:border-primary">
+                                <SelectTrigger className="h-11 text-base pl-10 bg-secondary text-foreground border-border focus:ring-primary focus:border-primary">
                                     <SelectValue placeholder="Select quantity" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-popover text-popover-foreground border-border">
@@ -103,7 +103,7 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
                                     <SelectItem value="5">5+ Group</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Users className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                            <Users className="absolute left-3 top-3 h-5 w-5 text-muted-foreground pointer-events-none" />
                         </div>
                     </div>
                 )}
@@ -112,7 +112,7 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
             <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-12 text-lg font-bold bg-primary text-black hover:bg-yellow-500 transition-colors"
+                className="w-full h-11 text-base font-bold bg-primary text-black hover:bg-yellow-500 transition-colors"
             >
                 {isSubmitting ? 'Processing...' : 'Confirm Booking'}
             </Button>

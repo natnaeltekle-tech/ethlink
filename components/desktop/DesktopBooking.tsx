@@ -28,10 +28,10 @@ export default function DesktopBooking({ service }: { service: any }) {
                         </div>
                     </div>
 
-                    <div className="p-8">
-                        <div className="flex justify-between items-start mb-8">
+                    <div className="p-5">
+                        <div className="flex justify-between items-start mb-5">
                             <div>
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Confirm Your Booking</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Confirm Your Booking</h2>
                                 <p className="text-gray-500 dark:text-gray-400">
                                     Please select a date and time for your service.
                                 </p>

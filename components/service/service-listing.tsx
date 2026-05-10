@@ -76,8 +76,8 @@ export function ServiceListing({ services }: { services: any[] }) {
                     setSortedServices(sorted);
                 },
                 (error) => {
-                    // Silently handle geolocation errors (user denied permission or unavailable)
-                    // Services will display in default order without distance sorting
+                    // Handle geolocation errors (user denied permission or unavailable)
+                    toast.error("Location permission denied. Services cannot be sorted by distance.");
                 }
             );
         }
