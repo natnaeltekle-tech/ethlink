@@ -113,12 +113,20 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     const handleSend = async () => {
         if (!newMessage.trim() || !currentUserId) return
 
+        // Dynamic Receiver Logic:
+        // If I am the customer, I send to the provider.
+        // If I am the provider, I send to the customer (found by looking at the last message not from me).
+        const lastOtherMessage = [...messages].reverse().find(m => m.sender_id !== currentUserId);
+        const targetReceiverId = currentUserId === providerId 
+            ? (lastOtherMessage ? lastOtherMessage.sender_id : providerId) 
+            : providerId;
+
         const tempId = `temp-${Date.now()}`
         const tempMessage: Message = {
             id: tempId,
             content: newMessage,
             sender_id: currentUserId,
-            receiver_id: providerId,
+            receiver_id: targetReceiverId,
             created_at: new Date().toISOString()
         }
 
@@ -128,7 +136,7 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
         setLoading(true)
 
         try {
-            await sendMessage(serviceId, providerId, tempMessage.content)
+            await sendMessage(serviceId, targetReceiverId, tempMessage.content)
             // Realtime listener will handle the success case (replacing temp msg)
         } catch (error: any) {
             console.error('Failed to send message:', error)

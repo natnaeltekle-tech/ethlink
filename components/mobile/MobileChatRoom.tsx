@@ -107,11 +107,20 @@ export default function MobileChatRoom({
     const handleSend = async (content?: string) => {
         const text = content || input.trim();
         if (!text || !serviceId) return;
+
+        // Dynamic Receiver Logic:
+        // If I am the customer, I send to the provider.
+        // If I am the provider, I send to the customer (found by looking at the last message not from me).
+        const lastOtherMessage = [...messages].reverse().find(m => m.sender_id !== currentUserId);
+        const targetReceiverId = currentUserId === providerId 
+            ? (lastOtherMessage ? lastOtherMessage.sender_id : providerId) 
+            : providerId;
+
         setIsSending(true); setInput('');
         const opt: ChatMessage = { id: `temp-${Date.now()}`, content: text, sender_id: currentUserId, created_at: new Date().toISOString() };
         setMessages(prev => [...prev, opt]);
         try { 
-            await sendMessage(serviceId, providerId, text); 
+            await sendMessage(serviceId, targetReceiverId, text); 
         } catch (error: any) { 
             console.error('Failed to send message:', error);
             toast.error(`Send failed: ${error.message || 'Unknown database error'}`);
