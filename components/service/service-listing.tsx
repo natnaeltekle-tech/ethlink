@@ -41,14 +41,16 @@ export function ServiceListing({ services }: { services: any[] }) {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [sortedServices, setSortedServices] = useState<any[]>(services);
+    const [locationStatus, setLocationStatus] = useState<'prompt' | 'granted' | 'denied' | 'unsupported'>('prompt');
 
-    const handleRequestLocation = () => {
+    const requestLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
                     setUserLocation({ lat: userLat, lng: userLng });
+                    setLocationStatus('granted');
 
                     const servicesWithDistance = services.map(service => {
                         if (service.latitude && service.longitude) {
@@ -73,10 +75,12 @@ export function ServiceListing({ services }: { services: any[] }) {
                     toast.success("Location applied! Services sorted by distance.");
                 },
                 (error) => {
-                    toast.error("Location permission denied. Services cannot be sorted by distance.");
+                    setLocationStatus('denied');
+                    toast.error("Location access denied by your browser settings.");
                 }
             );
         } else {
+            setLocationStatus('unsupported');
             toast.error("Geolocation is not supported by your browser.");
         }
     };
@@ -92,16 +96,31 @@ export function ServiceListing({ services }: { services: any[] }) {
         <div className="flex flex-col gap-6">
             <div className="flex justify-between items-end border-b pb-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {userLocation ? (
+                    {locationStatus === 'granted' ? (
                         <>
                             <MapPin className="h-4 w-4 text-green-600" />
-                            <span>Sorted by distance from your location</span>
+                            <span>📍 Sorted by nearest</span>
                         </>
-                    ) : (
-                        <button onClick={handleRequestLocation} className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer">
+                    ) : locationStatus === 'denied' ? (
+                        <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="flex items-center gap-2"
+                            onClick={() => alert("Your browser has blocked location access. Please click the lock icon in your URL bar and allow location for Eth-Links.")}
+                        >
                             <MapPin className="h-4 w-4" />
-                            <span className="underline underline-offset-4 decoration-border hover:decoration-foreground">Enable location to sort by distance</span>
-                        </button>
+                            Location Blocked - Check Browser Settings
+                        </Button>
+                    ) : (
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="flex items-center gap-2"
+                            onClick={requestLocation}
+                        >
+                            <MapPin className="h-4 w-4" />
+                            Enable location to sort by distance
+                        </Button>
                     )}
                 </div>
                 <div className="flex bg-secondary/50 p-1 rounded-lg border border-border/50">
