@@ -77,6 +77,29 @@ export function AppInitializer({ children }: AppInitializerProps) {
     };
   }, []);
 
+  // Service Worker purge: if app fails to hydrate within 3s, nuke dead SWs and reload
+  useEffect(() => {
+    const swTimeout = setTimeout(async () => {
+      if (!state.isReady && 'serviceWorker' in navigator) {
+        console.warn('⚠️ PWA hydration stalled — purging service workers');
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(r => r.unregister()));
+          // Clear all caches
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+          }
+          window.location.reload();
+        } catch (e) {
+          console.error('SW purge failed:', e);
+        }
+      }
+    }, 3000);
+
+    return () => clearTimeout(swTimeout);
+  }, [state.isReady]);
+
   // Hide splash screen when app is ready
   useEffect(() => {
     if (state.isReady) {

@@ -38,6 +38,9 @@ export const viewport: Viewport = {
   userScalable: false, // Disables zoom for App feel
 };
 
+// Prevent Next.js from caching server fetches — avoids stale HTML on PWA resume
+export const fetchCache = 'force-no-store';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   display: "swap",
@@ -51,6 +54,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="dark" style={{ backgroundColor: '#0B0C15' }}>
+      <head>
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+      </head>
       <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`} style={{ backgroundColor: '#0B0C15', minHeight: '100vh' }}>
         <ClientErrorBoundary>
           <ThemeProvider
