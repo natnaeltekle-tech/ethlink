@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, Share, Heart, MapPin, Star, 
-  Wifi, Waves, Shield, Dumbbell, MessageSquare, Edit2 
+  Wifi, Waves, Shield, Dumbbell, MessageSquare, Edit2,
+  Car, Snowflake, Laptop, UtensilsCrossed, Plane, CheckCircle2
 } from 'lucide-react';
 import MobileChatRoom from './MobileChatRoom';
 import MobileReviewForm from './MobileReviewForm';
@@ -127,35 +128,33 @@ export default function MobileServiceDetails({
                 )}
 
                 {/* Amenities Grid */}
-                {(service.amenities?.length > 0 || service.features?.length > 0) && (
+                {service.amenities?.length > 0 && (
                     <div className="mt-8">
                         <h3 className="text-lg font-bold mb-4">Amenities</h3>
                         <div className="grid grid-cols-4 gap-3">
-                            {/* Dynamically rendering logic could go here in V2, for now we conditionally hide if empty */}
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                    <Wifi className="w-6 h-6 text-[#f5c619]" />
-                                </div>
-                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Wi-Fi</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                    <Waves className="w-6 h-6 text-[#f5c619]" />
-                                </div>
-                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Pool</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                    <Shield className="w-6 h-6 text-[#f5c619]" />
-                                </div>
-                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Security</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
-                                    <Dumbbell className="w-6 h-6 text-[#f5c619]" />
-                                </div>
-                                <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400">Gym</span>
-                            </div>
+                            {service.amenities.map((amenity: string) => {
+                                const iconMap: Record<string, React.ReactNode> = {
+                                    'Wi-Fi': <Wifi className="w-6 h-6 text-[#f5c619]" />,
+                                    'Swimming Pool': <Waves className="w-6 h-6 text-[#f5c619]" />,
+                                    '24/7 Security': <Shield className="w-6 h-6 text-[#f5c619]" />,
+                                    'Gym': <Dumbbell className="w-6 h-6 text-[#f5c619]" />,
+                                    'Parking': <Car className="w-6 h-6 text-[#f5c619]" />,
+                                    'Air Conditioning': <Snowflake className="w-6 h-6 text-[#f5c619]" />,
+                                    'Workspace': <Laptop className="w-6 h-6 text-[#f5c619]" />,
+                                    'Restaurant': <UtensilsCrossed className="w-6 h-6 text-[#f5c619]" />,
+                                    'Airport Transfer': <Plane className="w-6 h-6 text-[#f5c619]" />,
+                                };
+                                const icon = iconMap[amenity] || <CheckCircle2 className="w-6 h-6 text-[#f5c619]" />;
+                                const shortLabel = amenity === 'Swimming Pool' ? 'Pool' : amenity === '24/7 Security' ? 'Security' : amenity === 'Air Conditioning' ? 'A/C' : amenity === 'Airport Transfer' ? 'Transfer' : amenity;
+                                return (
+                                    <div key={amenity} className="flex flex-col items-center gap-2">
+                                        <div className="size-14 rounded-full bg-slate-100 dark:bg-[#f5c619]/10 flex items-center justify-center border border-slate-200 dark:border-[#f5c619]/20">
+                                            {icon}
+                                        </div>
+                                        <span className="text-[12px] font-medium text-slate-500 dark:text-slate-400 text-center leading-tight">{shortLabel}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}

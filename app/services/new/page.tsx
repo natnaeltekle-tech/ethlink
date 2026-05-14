@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
 import { ImageUploader } from '@/components/service/image-uploader'
 import { useState, useEffect } from 'react'
+// Native checkboxes used for amenities (Radix Checkbox doesn't submit in FormData)
 import dynamic from 'next/dynamic'
 
 
@@ -229,6 +230,47 @@ export default function NewServicePage() {
                                     className="min-h-[150px] w-full"
                                     required
                                 />
+                            </div>
+
+                            <div className="space-y-4 pt-4">
+                                <Label className="text-base font-semibold">Amenities (Optional)</Label>
+                                <p className="text-xs text-muted-foreground -mt-2">Select any amenities your service offers.</p>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-5 rounded-xl border border-border/40 bg-gradient-to-br from-secondary/5 to-secondary/10 shadow-inner">
+                                    {[
+                                        { label: 'Wi-Fi', icon: '📶' },
+                                        { label: 'Parking', icon: '🅿️' },
+                                        { label: 'Swimming Pool', icon: '🏊' },
+                                        { label: 'Gym', icon: '🏋️' },
+                                        { label: 'Air Conditioning', icon: '❄️' },
+                                        { label: 'Workspace', icon: '💻' },
+                                        { label: 'Restaurant', icon: '🍽️' },
+                                        { label: 'Airport Transfer', icon: '✈️' },
+                                        { label: '24/7 Security', icon: '🛡️' },
+                                    ].map(({ label, icon }) => (
+                                        <label
+                                            key={label}
+                                            htmlFor={`amenity-${label}`}
+                                            className="group flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent bg-background/60 hover:bg-blue-500/5 hover:border-blue-500/20 has-[:checked]:bg-blue-500/10 has-[:checked]:border-blue-500/30 has-[:checked]:shadow-sm cursor-pointer transition-all duration-200 select-none"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id={`amenity-${label}`}
+                                                name="amenities"
+                                                value={label}
+                                                className="peer sr-only"
+                                            />
+                                            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-secondary/30 group-hover:bg-blue-500/10 peer-checked:bg-blue-500/15 transition-colors text-base">
+                                                {icon}
+                                            </span>
+                                            <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground peer-checked:text-blue-600 dark:peer-checked:text-blue-400 transition-colors">
+                                                {label}
+                                            </span>
+                                            <span className="ml-auto w-5 h-5 rounded-md border-2 border-border/60 group-hover:border-blue-500/40 peer-checked:border-blue-500 peer-checked:bg-blue-500 flex items-center justify-center transition-all duration-200">
+                                                <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

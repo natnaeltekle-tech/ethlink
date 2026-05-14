@@ -296,6 +296,9 @@ export async function createService(formData: FormData) {
         longitude: formData.get('longitude'),
     };
 
+    // Extract amenities (optional)
+    const amenities = formData.getAll('amenities') as string[]
+
     try {
         const validatedData = serviceSchema.parse(rawData);
 
@@ -303,7 +306,8 @@ export async function createService(formData: FormData) {
             .from('services')
             .insert({
                 ...validatedData,
-                user_id: user.id
+                user_id: user.id,
+                amenities: amenities.length > 0 ? amenities : null
             })
             .select()
             .single()
@@ -597,6 +601,9 @@ export async function createServiceWithProfile(formData: FormData) {
     const latitude = latitudeStr ? parseFloat(latitudeStr) : null
     const longitude = longitudeStr ? parseFloat(longitudeStr) : null
 
+    // 2b. Extract Amenities (optional, submitted as multiple checkbox values)
+    const amenities = formData.getAll('amenities') as string[]
+
     // Validation
     if (!firstName || !lastName || !phoneNumber || !idCardLink) {
         throw new Error('All Provider Details are required')
@@ -632,7 +639,8 @@ export async function createServiceWithProfile(formData: FormData) {
             image_url: imageUrl,
             user_id: user.id,
             latitude,
-            longitude
+            longitude,
+            amenities: amenities.length > 0 ? amenities : null
         })
         .select()
         .single()

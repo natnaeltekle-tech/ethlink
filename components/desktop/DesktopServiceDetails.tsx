@@ -5,6 +5,10 @@ import { ProviderCard } from '@/components/service/provider-card'
 import { ChatBox } from '@/components/service/chat-box'
 import { ReviewsList } from '@/components/service/reviews-list'
 import { ReviewForm } from '@/components/review-form'
+import {
+    Wifi, Waves, Shield, Dumbbell, Car, Snowflake,
+    Laptop, UtensilsCrossed, Plane, CheckCircle2
+} from 'lucide-react'
 
 interface DesktopServiceDetailsProps {
     service: any
@@ -14,6 +18,18 @@ interface DesktopServiceDetailsProps {
     provider: any
     averageRating: number
     reviewCount: number
+}
+
+const AMENITY_ICONS: Record<string, React.ReactNode> = {
+    'Wi-Fi': <Wifi className="w-5 h-5" />,
+    'Swimming Pool': <Waves className="w-5 h-5" />,
+    '24/7 Security': <Shield className="w-5 h-5" />,
+    'Gym': <Dumbbell className="w-5 h-5" />,
+    'Parking': <Car className="w-5 h-5" />,
+    'Air Conditioning': <Snowflake className="w-5 h-5" />,
+    'Workspace': <Laptop className="w-5 h-5" />,
+    'Restaurant': <UtensilsCrossed className="w-5 h-5" />,
+    'Airport Transfer': <Plane className="w-5 h-5" />,
 }
 
 export default function DesktopServiceDetails({
@@ -50,6 +66,23 @@ export default function DesktopServiceDetails({
                         serviceId={service.id}
                         imageUrl={service.image_url}
                     />
+
+                    {/* Amenities */}
+                    {service.amenities?.length > 0 && (
+                        <div className="p-6 rounded-xl border border-border/40 bg-card">
+                            <h3 className="text-lg font-semibold mb-4">Amenities</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {service.amenities.map((amenity: string) => (
+                                    <div key={amenity} className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary/10 border border-border/20">
+                                        <span className="text-blue-500">
+                                            {AMENITY_ICONS[amenity] || <CheckCircle2 className="w-5 h-5" />}
+                                        </span>
+                                        <span className="text-sm font-medium text-foreground">{amenity}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column: The Deal Zone */}
