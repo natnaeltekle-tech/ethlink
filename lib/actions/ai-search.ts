@@ -4,6 +4,13 @@ import { getModel, GEMINI_MODEL_VERSION, logAIRequest } from "@/lib/gemini";
 import { searchServicesAdvanced } from "@/lib/actions";
 
 export async function processUserMessage(userMessage: string): Promise<string> {
+    // Validate input
+    if (!userMessage || userMessage.length > 500) {
+        return "Please keep your message under 500 characters.";
+    }
+    // Sanitize: strip potential prompt injection delimiters
+    const sanitizedMessage = userMessage.replace(/[`'"{}]/g, '');
+
     const model = getModel();
     
     try {

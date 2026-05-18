@@ -5,10 +5,9 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-let ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
-if (!process.env.ADMIN_EMAIL) {
-    console.warn("ADMIN_EMAIL env var missing — using default for dev");
-    ADMIN_EMAIL = 'natnaeltekle236@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+if (!ADMIN_EMAIL) {
+    console.error("CRITICAL: ADMIN_EMAIL env var is not set. Admin features are disabled.");
 }
 
 async function checkAdmin() {

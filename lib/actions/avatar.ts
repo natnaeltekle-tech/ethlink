@@ -3,7 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+import { urlSchema } from '@/lib/validations'
+
 export async function updateAvatarUrl(avatarUrl: string) {
+    // Validate URL
+    const parsed = urlSchema.safeParse(avatarUrl)
+    if (!parsed.success) throw new Error('Invalid avatar URL format')
+
     const supabase = await createClient()
     let user = null
     try {

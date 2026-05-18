@@ -50,21 +50,9 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  console.log("Supabase client init with URL:", supabaseUrl ? "present" : "MISSING");
-  console.log("Supabase client init with KEY:", supabaseAnonKey ? "present" : "MISSING");
-
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables:');
-    console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
     throw new Error('Missing required Supabase environment variables. Please check your .env.local file or Vercel environment settings.');
   }
-
-  // Log the configuration (first 20 chars of key for security)
-  console.log("=== Supabase Client Configuration ===");
-  console.log("URL:", supabaseUrl);
-  console.log("Key (first 20 chars):", supabaseAnonKey.substring(0, 20) + "...");
-  console.log("================================");
 
   return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {

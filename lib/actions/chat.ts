@@ -110,6 +110,11 @@ function findCategoryWithFuzzyMatching(message: string): string | null {
 
 export async function getChatResponse(userMessage: string) {
     try {
+        // Cap input length to prevent abuse
+        if (!userMessage || userMessage.length > 500) {
+            return "Please keep your message under 500 characters.";
+        }
+
         const supabase = await createClient();
 
         // --- 0. Initial Cleaning & Setup ---

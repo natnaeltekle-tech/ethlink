@@ -4,7 +4,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { serviceSchema } from '@/lib/validations'
+import { serviceSchema, messageSchema, reviewSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -14,6 +14,9 @@ export async function searchServices(query: string) {
     if (!query) {
         return []
     }
+
+    // Cap input length to prevent abuse
+    if (query.length > 500) query = query.slice(0, 500)
 
     // Sanitize query to prevent injection in .or()
     const safeQuery = query.replace(/[.(),]/g, ' ')
@@ -245,6 +248,10 @@ export async function getMessages(serviceId: string) {
 }
 
 export async function sendMessage(serviceId: string, receiverId: string, content: string) {
+    // Validate inputs
+    const parsed = messageSchema.safeParse({ serviceId, receiverId, content })
+    if (!parsed.success) throw new Error('Invalid message data')
+
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
@@ -330,16 +337,16 @@ export async function createService(formData: FormData) {
 }
 
 export async function submitReview(serviceId: string, rating: number, comment: string) {
+    // Validate inputs with Zod schema
+    const parsed = reviewSchema.safeParse({ serviceId, rating, comment })
+    if (!parsed.success) throw new Error('Invalid review data')
+
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
 
     if (!user) {
         throw new Error('Not authenticated')
-    }
-
-    if (rating < 1 || rating > 5) {
-        throw new Error('Invalid rating')
     }
 
     const { error } = await supabase
@@ -579,37 +586,41 @@ export async function createServiceWithProfile(formData: FormData) {
         redirect('/auth/login')
     }
 
-    // 1. Extract Provider Details
-    const firstName = formData.get('firstName') as string
-    const lastName = formData.get('lastName') as string
-    const phoneNumber = formData.get('phoneNumber') as string
-    const idCardLink = formData.get('idCardLink') as string
+    // 1. Extract and Validate Provider Details
+    const firstName = (formData.get('firstName') as string || '').slice(0, 100).trim()
+    const lastName = (formData.get('lastName') as string || '').slice(0, 100).trim()
+    const phoneNumber = (formData.get('phoneNumber') as string || '').slice(0, 50).trim()
+    const idCardLink = (formData.get('idCardLink') as string || '').slice(0, 2000).trim()
 
-    // 2. Extract Service Details
-    const title = formData.get('title') as string
-    const rawCategory = formData.get('category') as string
-    const customCategory = formData.get('custom_category') as string
-    const category = rawCategory === 'Other' && customCategory ? customCategory : rawCategory
-    const location = formData.get('location') as string
-    const price = parseFloat(formData.get('price') as string)
-    const description = formData.get('description') as string
-    const imageUrl = formData.get('image_url') as string
-
-    // Extract coordinates if available
-    const latitudeStr = formData.get('latitude') as string
-    const longitudeStr = formData.get('longitude') as string
-    const latitude = latitudeStr ? parseFloat(latitudeStr) : null
-    const longitude = longitudeStr ? parseFloat(longitudeStr) : null
-
-    // 2b. Extract Amenities (optional, submitted as multiple checkbox values)
-    const amenities = formData.getAll('amenities') as string[]
-
-    // Validation
     if (!firstName || !lastName || !phoneNumber || !idCardLink) {
         throw new Error('All Provider Details are required')
     }
-    if (!title || !category || !location || isNaN(price) || !description) {
-        throw new Error('All Service Details are required')
+
+    // 2. Parse and Validate Service Details with Zod
+    const rawCategory = formData.get('category') as string
+    const customCategory = formData.get('custom_category') as string
+    const category = rawCategory === 'Other' && customCategory ? customCategory : rawCategory
+
+    const rawData = {
+        title: formData.get('title'),
+        category: category,
+        location: formData.get('location'),
+        price: formData.get('price'),
+        description: formData.get('description'),
+        image_url: formData.get('image_url') || '',
+        latitude: formData.get('latitude'),
+        longitude: formData.get('longitude'),
+    };
+
+    // Extract amenities (optional)
+    const amenities = formData.getAll('amenities') as string[]
+
+    let validatedData;
+    try {
+        validatedData = serviceSchema.parse(rawData);
+    } catch (e: any) {
+        console.error('Validation failed:', e)
+        throw new Error('Invalid service details provided')
     }
 
     // 3. Upsert Profile
@@ -631,15 +642,8 @@ export async function createServiceWithProfile(formData: FormData) {
     const { data: service, error: serviceError } = await supabase
         .from('services')
         .insert({
-            title,
-            category,
-            location,
-            price,
-            description,
-            image_url: imageUrl,
+            ...validatedData,
             user_id: user.id,
-            latitude,
-            longitude,
             amenities: amenities.length > 0 ? amenities : null
         })
         .select()

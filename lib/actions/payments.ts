@@ -94,7 +94,7 @@ export async function initiatePayment(bookingId: string) {
 
     // Generate a unique transaction reference that embeds the bookingId
     // Format: tx-ethlink-<bookingId>-<timestamp>-<random>
-    const tx_ref = `tx-ethlink-${bookingId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const tx_ref = `tx-ethlink-${bookingId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 
     // ── Test-mode fallback ──────────────────────────────────────────────
     // If no CHAPA_SECRET_KEY is configured, return a simulated response

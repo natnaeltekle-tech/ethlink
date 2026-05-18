@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CONFIG } from '@/lib/constants'
 import { createHmac } from 'crypto'
+import { txRefSchema } from '@/lib/validations'
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Chapa Webhook / Callback Handler
@@ -81,11 +82,31 @@ export async function POST(request: NextRequest) {
     let rawBody = ''
 
     try {
+        // ── DoS Protection: Limit body size to 1MB ────────────────────────
+        const contentLength = request.headers.get('content-length')
+        if (contentLength && parseInt(contentLength, 10) > 1024 * 1024) {
+            return NextResponse.json({ code: 1, msg: 'Payload too large' }, { status: 413 })
+        }
+
         // Read raw body for signature verification
         rawBody = await request.text()
+        
+        // Double check length after reading
+        if (rawBody.length > 1024 * 1024) {
+            return NextResponse.json({ code: 1, msg: 'Payload too large' }, { status: 413 })
+        }
+
         const body: ChapaWebhookPayload = JSON.parse(rawBody)
 
         console.log('[Chapa Webhook] Received callback for tx_ref:', body.tx_ref)
+
+        // Validate tx_ref format
+        if (!body.tx_ref || !txRefSchema.safeParse(body.tx_ref).success) {
+            return NextResponse.json(
+                { code: 1, msg: 'Missing or invalid tx_ref' },
+                { status: 400 }
+            )
+        }
 
         // ── Step 1: Verify webhook signature ────────────────────────────
         const signature =

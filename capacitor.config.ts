@@ -5,13 +5,13 @@ const config: CapacitorConfig = {
   appName: 'Eth-Links',
   webDir: 'out',                     // or 'dist' depending on your Next.js output
   server: {
-    url: 'https://ethlink-app.vercel.app',   // your live Vercel URL
-    cleartext: true,                         // allows HTTP traffic when needed
+    url: 'https://ethlink-app.vercel.app',
+    cleartext: false, // Security: enforce HTTPS
   },
   android: {
-    allowMixedContent: true,                 // ← This was in the wrong place
+    allowMixedContent: false, // Security: block mixed content
     backgroundColor: '#0B0C15',
-    webContentsDebuggingEnabled: true,       // helpful for debugging
+    webContentsDebuggingEnabled: false, // Security: disable devtools in production
   },
   plugins: {
     SplashScreen: {

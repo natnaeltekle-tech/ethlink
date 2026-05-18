@@ -22,7 +22,6 @@
 
 # misc
 .DS_Store
-*.pem
 
 # debug
 npm-debug.log*
@@ -30,9 +29,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*.local
+# ─── Security: Environment & Secrets ───
 .env
+.env.*
+!.env.example
+credentials.*
+secrets.*
+*.pem
+*.key
+*.pkcs12
+*.pfx
 
 # vercel
 .vercel
@@ -41,31 +47,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
-nul### Role: Senior Full-Stack Debugger (Next.js & Supabase/Firebase)
-### Task: Fix Image Rendering, Identity Resolution, and Deployment Errors
-
-**1. Fix Broken Image Placeholders**
-- **Issue:** Uploaded images show a broken icon instead of the preview.
-- **Action:** Check the `Image` component and the URL return logic.
-- **Verification:** Ensure the public URL is correctly constructed from the Storage Bucket. 
-- **Requirement:** Implement a fallback `src` for the `<img>` or `<Image />` tag to handle 404s gracefully without showing the broken icon.
-
-**2. Fix "Anonymous" Commenter Name**
-- **Issue:** Users are signed in, but comments display as "Anonymous".
-- **Action:** Inspect the comment submission handler. Ensure the `user_id` is being joined with the `profiles` or `users` table to fetch the `display_name` or `username`.
-- **Logic:** Update the database query to select the author's metadata rather than just the raw comment text. Confirm the Auth context is correctly passing the user object during the `POST` request.
-
-**3. Fix Vercel White Screen (Broken Test Message)**
-- **Issue:** The production build is failing or showing a blank screen.
-- **Action:** - Check for missing Environment Variables in the Vercel Dashboard.
-    - Inspect the build logs for "Client-side exceptions" or "Module not found" errors.
-    - Ensure all new AI-related `.env` variables added in the last sprint are mirrored in Vercel Settings.
-- **Fix:** Resolve any hydration mismatches or undefined variables causing the crash.
-
-**Constraints:**
-- Maintain Type Safety.
-- Do not bypass authentication requirements.
-- Use the existing UI components; fix the data pipeline, don't redesign the layout.
+# IDE
+.idea/
+.cursor/

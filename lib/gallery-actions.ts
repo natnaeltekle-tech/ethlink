@@ -3,10 +3,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Database } from '@/lib/database.types'
+import { urlSchema } from '@/lib/validations'
 
 type ServiceUpdate = Database['public']['Tables']['services']['Update']
 
 export async function addImageToGallery(serviceId: string, imageUrl: string) {
+    // Validate URL
+    if (!urlSchema.safeParse(imageUrl).success) throw new Error('Invalid image URL format')
+
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
@@ -56,6 +60,8 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
 }
 
 export async function removeImageFromGallery(serviceId: string, imageUrlToRemove: string) {
+    if (!urlSchema.safeParse(imageUrlToRemove).success) throw new Error('Invalid image URL format')
+    
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
