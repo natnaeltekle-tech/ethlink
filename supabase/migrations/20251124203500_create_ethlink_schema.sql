@@ -19,20 +19,23 @@ create policy "Listings are viewable by everyone"
   on listings for select
   using ( true );
 
+DROP POLICY IF EXISTS "Users can insert their own listings" ON listings;
 create policy "Users can insert their own listings"
   on listings for insert
   with check ( auth.uid() = user_id );
 
+DROP POLICY IF EXISTS "Users can update their own listings" ON listings;
 create policy "Users can update their own listings"
   on listings for update
   using ( auth.uid() = user_id );
 
+DROP POLICY IF EXISTS "Users can delete their own listings" ON listings;
 create policy "Users can delete their own listings"
   on listings for delete
   using ( auth.uid() = user_id );
 
 -- Create messages table
-create table messages (
+create table if not exists messages (
   id bigint primary key generated always as identity,
   sender_id uuid references auth.users not null,
   receiver_id uuid references auth.users not null,
@@ -45,10 +48,12 @@ create table messages (
 alter table messages enable row level security;
 
 -- Policies for messages
+DROP POLICY IF EXISTS "Users can view their own messages" ON messages;
 create policy "Users can view their own messages"
   on messages for select
   using ( auth.uid() = sender_id or auth.uid() = receiver_id );
 
+DROP POLICY IF EXISTS "Users can insert messages" ON messages;
 create policy "Users can insert messages"
   on messages for insert
   with check ( auth.uid() = sender_id );
