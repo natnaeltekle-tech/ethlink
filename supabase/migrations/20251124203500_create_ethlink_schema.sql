@@ -1,5 +1,5 @@
 -- Create listings table
-create table listings (
+create table if not exists listings (
   id bigint primary key generated always as identity,
   title text not null,
   description text,
