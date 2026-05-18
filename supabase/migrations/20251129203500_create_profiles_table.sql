@@ -1,5 +1,5 @@
 -- Create a table for public profiles
-create table profiles (
+create table if not exists profiles (
   id uuid references auth.users on delete cascade not null primary key,
   role text not null check (role in ('user', 'provider')),
   full_name text,
@@ -12,14 +12,17 @@ create table profiles (
 -- Set up Row Level Security (RLS)
 alter table profiles enable row level security;
 
+drop policy if exists "Public profiles are viewable by everyone." on profiles;
 create policy "Public profiles are viewable by everyone."
   on profiles for select
   using ( true );
 
+drop policy if exists "Users can insert their own profile." on profiles;
 create policy "Users can insert their own profile."
   on profiles for insert
   with check ( auth.uid() = id );
 
+drop policy if exists "Users can update own profile." on profiles;
 create policy "Users can update own profile."
   on profiles for update
   using ( auth.uid() = id );

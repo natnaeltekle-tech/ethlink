@@ -1,5 +1,5 @@
 -- Create profiles table
-create table profiles (
+create table if not exists profiles (
   id uuid references auth.users not null primary key,
   updated_at timestamp with time zone,
   username text unique,
@@ -12,14 +12,17 @@ create table profiles (
 
 alter table profiles enable row level security;
 
+drop policy if exists "Public profiles are viewable by everyone." on profiles;
 create policy "Public profiles are viewable by everyone."
   on profiles for select
   using ( true );
 
+drop policy if exists "Users can insert their own profile." on profiles;
 create policy "Users can insert their own profile."
   on profiles for insert
   with check ( auth.uid() = id );
 
+drop policy if exists "Users can update own profile." on profiles;
 create policy "Users can update own profile."
   on profiles for update
   using ( auth.uid() = id );
