@@ -12,17 +12,17 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
-drop policy if exists "Public profiles are viewable by everyone." on profiles;
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON profiles;
 create policy "Public profiles are viewable by everyone."
   on profiles for select
   using ( true );
 
-drop policy if exists "Users can insert their own profile." on profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile." ON profiles;
 create policy "Users can insert their own profile."
   on profiles for insert
   with check ( auth.uid() = id );
 
-drop policy if exists "Users can update own profile." on profiles;
+DROP POLICY IF EXISTS "Users can update own profile." ON profiles;
 create policy "Users can update own profile."
   on profiles for update
   using ( auth.uid() = id );
@@ -40,7 +40,7 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
@@ -55,12 +55,12 @@ create table if not exists chat_rooms (
 
 alter table chat_rooms enable row level security;
 
-drop policy if exists "Users can view chat rooms they are part of." on chat_rooms;
+DROP POLICY IF EXISTS "Users can view chat rooms they are part of." ON chat_rooms;
 create policy "Users can view chat rooms they are part of."
   on chat_rooms for select
   using ( auth.uid() = participant1_id or auth.uid() = participant2_id );
 
-drop policy if exists "Users can create chat rooms." on chat_rooms;
+DROP POLICY IF EXISTS "Users can create chat rooms." ON chat_rooms;
 create policy "Users can create chat rooms."
   on chat_rooms for insert
   with check ( auth.uid() = participant1_id or auth.uid() = participant2_id );
@@ -83,7 +83,7 @@ create table if not exists chat_messages (
 
 alter table chat_messages enable row level security;
 
-drop policy if exists "Users can view messages in their chat rooms." on chat_messages;
+DROP POLICY IF EXISTS "Users can view messages in their chat rooms." ON chat_messages;
 create policy "Users can view messages in their chat rooms."
   on chat_messages for select
   using (
@@ -94,7 +94,7 @@ create policy "Users can view messages in their chat rooms."
     )
   );
 
-drop policy if exists "Users can insert messages in their chat rooms." on chat_messages;
+DROP POLICY IF EXISTS "Users can insert messages in their chat rooms." ON chat_messages;
 create policy "Users can insert messages in their chat rooms."
   on chat_messages for insert
   with check (
@@ -117,17 +117,17 @@ create table if not exists saved_searches (
 
 alter table saved_searches enable row level security;
 
-drop policy if exists "Users can view their own saved searches." on saved_searches;
+DROP POLICY IF EXISTS "Users can view their own saved searches." ON saved_searches;
 create policy "Users can view their own saved searches."
   on saved_searches for select
   using ( auth.uid() = user_id );
 
-drop policy if exists "Users can insert their own saved searches." on saved_searches;
+DROP POLICY IF EXISTS "Users can insert their own saved searches." ON saved_searches;
 create policy "Users can insert their own saved searches."
   on saved_searches for insert
   with check ( auth.uid() = user_id );
 
-drop policy if exists "Users can delete their own saved searches." on saved_searches;
+DROP POLICY IF EXISTS "Users can delete their own saved searches." ON saved_searches;
 create policy "Users can delete their own saved searches."
   on saved_searches for delete
   using ( auth.uid() = user_id );

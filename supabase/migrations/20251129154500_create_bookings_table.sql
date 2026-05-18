@@ -11,12 +11,12 @@ create table if not exists bookings (
 alter table bookings enable row level security;
 
 -- Policies
-drop policy if exists "Users can view their own bookings" on bookings;
+DROP POLICY IF EXISTS "Users can view their own bookings" ON bookings;
 create policy "Users can view their own bookings"
   on bookings for select
   using (auth.uid() = user_id);
 
-drop policy if exists "Users can create bookings" on bookings;
+DROP POLICY IF EXISTS "Users can create bookings" ON bookings;
 create policy "Users can create bookings"
   on bookings for insert
   with check (auth.uid() = user_id);

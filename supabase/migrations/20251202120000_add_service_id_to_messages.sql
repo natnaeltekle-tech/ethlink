@@ -1,1 +1,1 @@
-alter table messages add column if not exists service_id uuid references services(id);
+DO $$ BEGIN alter table messages add column service_id uuid references services(id); EXCEPTION WHEN duplicate_column THEN END $$;

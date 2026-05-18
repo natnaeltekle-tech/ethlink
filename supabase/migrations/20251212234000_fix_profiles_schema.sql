@@ -1,8 +1,8 @@
 -- Ensure profiles table has all required columns
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name text;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone_number text;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS id_card_link text;
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role text check (role in ('user', 'provider')) default 'user';
+DO $$ BEGIN alter table profiles add column full_name text; EXCEPTION WHEN duplicate_column THEN END $$;
+DO $$ BEGIN alter table profiles add column phone_number text; EXCEPTION WHEN duplicate_column THEN END $$;
+DO $$ BEGIN alter table profiles add column id_card_link text; EXCEPTION WHEN duplicate_column THEN END $$;
+DO $$ BEGIN alter table profiles add column role text check (role in ('user', 'provider')) default 'user'; EXCEPTION WHEN duplicate_column THEN END $$;
 
 -- Update RLS if needed (idempotent)
 alter table profiles enable row level security;

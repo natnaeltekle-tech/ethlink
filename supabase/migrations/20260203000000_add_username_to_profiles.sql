@@ -1,5 +1,5 @@
 -- Add username column to profiles table
-alter table profiles add column if not exists username text;
+DO $$ BEGIN alter table profiles add column username text; EXCEPTION WHEN duplicate_column THEN END $$;
 
 -- Update the public_profiles view to include username
 create or replace view public_profiles as

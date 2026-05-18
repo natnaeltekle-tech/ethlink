@@ -5,27 +5,27 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Set up security policies for the bucket
 -- 1. Allow public access to view images
-drop policy if exists "Public Access" on storage.objects;
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access"
 ON storage.objects FOR SELECT
 TO public
 USING ( bucket_id = 'service-images' );
 
 -- 2. Allow authenticated users to upload images
-drop policy if exists "Authenticated Upload" on storage.objects;
+DROP POLICY IF EXISTS "Authenticated Upload" ON storage.objects;
 CREATE POLICY "Authenticated Upload"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK ( bucket_id = 'service-images' );
 
 -- 3. Allow users to update/delete their own images (Optional but good practice)
-drop policy if exists "Users can update their own images" on storage.objects;
+DROP POLICY IF EXISTS "Users can update their own images" ON storage.objects;
 CREATE POLICY "Users can update their own images"
 ON storage.objects FOR UPDATE
 TO authenticated
 USING ( bucket_id = 'service-images' AND auth.uid() = owner );
 
-drop policy if exists "Users can delete their own images" on storage.objects;
+DROP POLICY IF EXISTS "Users can delete their own images" ON storage.objects;
 CREATE POLICY "Users can delete their own images"
 ON storage.objects FOR DELETE
 TO authenticated

@@ -12,17 +12,17 @@ create table if not exists profiles (
 -- Set up Row Level Security (RLS)
 alter table profiles enable row level security;
 
-drop policy if exists "Public profiles are viewable by everyone." on profiles;
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON profiles;
 create policy "Public profiles are viewable by everyone."
   on profiles for select
   using ( true );
 
-drop policy if exists "Users can insert their own profile." on profiles;
+DROP POLICY IF EXISTS "Users can insert their own profile." ON profiles;
 create policy "Users can insert their own profile."
   on profiles for insert
   with check ( auth.uid() = id );
 
-drop policy if exists "Users can update own profile." on profiles;
+DROP POLICY IF EXISTS "Users can update own profile." ON profiles;
 create policy "Users can update own profile."
   on profiles for update
   using ( auth.uid() = id );
@@ -48,7 +48,7 @@ end;
 $$;
 
 -- Trigger the function every time a user is created
-drop trigger if exists on_auth_user_created on auth.users;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();

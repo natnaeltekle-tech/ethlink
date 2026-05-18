@@ -13,17 +13,17 @@ create table if not exists notifications (
 alter table notifications enable row level security;
 
 -- Policies
-drop policy if exists "Users can view their own notifications." on notifications;
+DROP POLICY IF EXISTS "Users can view their own notifications." ON notifications;
 create policy "Users can view their own notifications."
   on notifications for select
   using ( auth.uid() = user_id );
 
-drop policy if exists "Authenticated users can insert notifications." on notifications;
+DROP POLICY IF EXISTS "Authenticated users can insert notifications." ON notifications;
 create policy "Authenticated users can insert notifications."
   on notifications for insert
   with check ( auth.uid() is not null );
 
-drop policy if exists "Users can update their own notifications." on notifications;
+DROP POLICY IF EXISTS "Users can update their own notifications." ON notifications;
 create policy "Users can update their own notifications."
   on notifications for update
   using ( auth.uid() = user_id );

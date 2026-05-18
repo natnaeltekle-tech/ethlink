@@ -9,6 +9,6 @@
 -- Let's include 'pending', 'confirmed', 'paid', 'completed'.
 -- 'cancelled' is the only status that frees up a slot.
 
-CREATE UNIQUE INDEX idx_active_bookings_per_slot
+create UNIQUE index if not exists idx_active_bookings_per_slot
 ON bookings (service_id, date)
 WHERE status IN ('pending', 'confirmed', 'paid', 'completed');
