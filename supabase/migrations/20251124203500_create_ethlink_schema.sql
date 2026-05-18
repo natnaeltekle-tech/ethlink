@@ -14,6 +14,7 @@ create table if not exists listings (
 alter table listings enable row level security;
 
 -- Policies for listings
+DROP POLICY IF EXISTS "Listings are viewable by everyone" ON listings;
 create policy "Listings are viewable by everyone"
   on listings for select
   using ( true );
