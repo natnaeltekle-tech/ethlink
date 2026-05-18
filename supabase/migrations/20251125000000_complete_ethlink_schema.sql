@@ -46,7 +46,7 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- Create chat_rooms table
-create table chat_rooms (
+create table if not exists chat_rooms (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   participant1_id uuid references auth.users not null,
@@ -55,10 +55,12 @@ create table chat_rooms (
 
 alter table chat_rooms enable row level security;
 
+drop policy if exists "Users can view chat rooms they are part of." on chat_rooms;
 create policy "Users can view chat rooms they are part of."
   on chat_rooms for select
   using ( auth.uid() = participant1_id or auth.uid() = participant2_id );
 
+drop policy if exists "Users can create chat rooms." on chat_rooms;
 create policy "Users can create chat rooms."
   on chat_rooms for insert
   with check ( auth.uid() = participant1_id or auth.uid() = participant2_id );
@@ -71,7 +73,7 @@ create policy "Users can create chat rooms."
 -- let's just add the column if it doesn't exist (idempotent-ish) or recreate.
 -- To be safe and simple for the user, let's create a new table `chat_messages` to avoid conflicts with the previous simple `messages` table.
 
-create table chat_messages (
+create table if not exists chat_messages (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   chat_room_id uuid references chat_rooms not null,
@@ -81,6 +83,7 @@ create table chat_messages (
 
 alter table chat_messages enable row level security;
 
+drop policy if exists "Users can view messages in their chat rooms." on chat_messages;
 create policy "Users can view messages in their chat rooms."
   on chat_messages for select
   using (
@@ -91,6 +94,7 @@ create policy "Users can view messages in their chat rooms."
     )
   );
 
+drop policy if exists "Users can insert messages in their chat rooms." on chat_messages;
 create policy "Users can insert messages in their chat rooms."
   on chat_messages for insert
   with check (
@@ -103,7 +107,7 @@ create policy "Users can insert messages in their chat rooms."
   );
 
 -- Create saved_searches table
-create table saved_searches (
+create table if not exists saved_searches (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   user_id uuid references auth.users not null,
@@ -113,14 +117,17 @@ create table saved_searches (
 
 alter table saved_searches enable row level security;
 
+drop policy if exists "Users can view their own saved searches." on saved_searches;
 create policy "Users can view their own saved searches."
   on saved_searches for select
   using ( auth.uid() = user_id );
 
+drop policy if exists "Users can insert their own saved searches." on saved_searches;
 create policy "Users can insert their own saved searches."
   on saved_searches for insert
   with check ( auth.uid() = user_id );
 
+drop policy if exists "Users can delete their own saved searches." on saved_searches;
 create policy "Users can delete their own saved searches."
   on saved_searches for delete
   using ( auth.uid() = user_id );
