@@ -1,5 +1,32 @@
 -- Create profiles table
-create table if not exists profiles (
+DO $$
+DECLARE
+  r_kind char;
+  t_exists boolean;
+BEGIN
+  SELECT c.relkind INTO r_kind
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname = 'profiles';
+
+  IF r_kind = 'v' THEN
+    EXECUTE 'DROP VIEW IF EXISTS public.profiles CASCADE';
+  ELSIF r_kind = 'm' THEN
+    EXECUTE 'DROP MATERIALIZED VIEW IF EXISTS public.profiles CASCADE';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'profiles' AND t.typtype != 'c'
+  ) INTO t_exists;
+
+  IF t_exists THEN
+    EXECUTE 'DROP TYPE IF EXISTS public.profiles CASCADE';
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS profiles (
   id uuid references auth.users not null primary key,
   updated_at timestamp with time zone,
   username text unique,
@@ -46,7 +73,7 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- Create chat_rooms table
-create table if not exists chat_rooms (
+CREATE TABLE IF NOT EXISTS chat_rooms (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   participant1_id uuid references auth.users not null,
@@ -73,7 +100,7 @@ create policy "Users can create chat rooms."
 -- let's just add the column if it doesn't exist (idempotent-ish) or recreate.
 -- To be safe and simple for the user, let's create a new table `chat_messages` to avoid conflicts with the previous simple `messages` table.
 
-create table if not exists chat_messages (
+CREATE TABLE IF NOT EXISTS chat_messages (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   chat_room_id uuid references chat_rooms not null,
@@ -107,7 +134,7 @@ create policy "Users can insert messages in their chat rooms."
   );
 
 -- Create saved_searches table
-create table if not exists saved_searches (
+CREATE TABLE IF NOT EXISTS saved_searches (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   user_id uuid references auth.users not null,

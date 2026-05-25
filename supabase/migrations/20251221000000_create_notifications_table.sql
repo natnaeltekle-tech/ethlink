@@ -1,5 +1,5 @@
 -- Create notifications table
-create table if not exists notifications (
+CREATE TABLE IF NOT EXISTS notifications (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
   content text not null,
@@ -29,4 +29,14 @@ create policy "Users can update their own notifications."
   using ( auth.uid() = user_id );
 
 -- Add to realtime publication
-alter publication supabase_realtime add table notifications;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_rel pr
+    JOIN pg_class c ON pr.prrelid = c.oid
+    JOIN pg_publication p ON pr.prpubid = p.oid
+    WHERE c.relname = 'notifications' AND p.pubname = 'supabase_realtime'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+  END IF;
+END $$;

@@ -1,5 +1,5 @@
 -- Create listings table
-create table if not exists listings (
+CREATE TABLE IF NOT EXISTS listings (
   id bigint primary key generated always as identity,
   title text not null,
   description text,
@@ -35,7 +35,7 @@ create policy "Users can delete their own listings"
   using ( auth.uid() = user_id );
 
 -- Create messages table
-create table if not exists messages (
+CREATE TABLE IF NOT EXISTS messages (
   id bigint primary key generated always as identity,
   sender_id uuid references auth.users not null,
   receiver_id uuid references auth.users not null,

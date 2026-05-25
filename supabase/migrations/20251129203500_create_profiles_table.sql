@@ -1,5 +1,32 @@
 -- Create a table for public profiles
-create table if not exists profiles (
+DO $$
+DECLARE
+  r_kind char;
+  t_exists boolean;
+BEGIN
+  SELECT c.relkind INTO r_kind
+  FROM pg_class c
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE n.nspname = 'public' AND c.relname = 'profiles';
+
+  IF r_kind = 'v' THEN
+    EXECUTE 'DROP VIEW IF EXISTS public.profiles CASCADE';
+  ELSIF r_kind = 'm' THEN
+    EXECUTE 'DROP MATERIALIZED VIEW IF EXISTS public.profiles CASCADE';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'profiles' AND t.typtype != 'c'
+  ) INTO t_exists;
+
+  IF t_exists THEN
+    EXECUTE 'DROP TYPE IF EXISTS public.profiles CASCADE';
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS profiles (
   id uuid references auth.users on delete cascade not null primary key,
   role text not null check (role in ('user', 'provider')),
   full_name text,

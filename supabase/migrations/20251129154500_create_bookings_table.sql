@@ -1,4 +1,4 @@
-create table if not exists bookings (
+CREATE TABLE IF NOT EXISTS bookings (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   service_id uuid references services(id) not null,
