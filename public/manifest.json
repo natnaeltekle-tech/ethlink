@@ -2,7 +2,7 @@
     "name": "Eth-Links",
     "short_name": "Eth-Links",
     "description": "Premium service booking platform for Ethiopia",
-    "start_url": "/?mode=pwa&v=2",
+    "start_url": "/?source=pwa&v=3",
     "display": "standalone",
     "background_color": "#0B0C15",
     "theme_color": "#F5C518",
