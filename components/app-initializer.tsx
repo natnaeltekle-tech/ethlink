@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, createContext, useContext } from "react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { Capacitor } from "@capacitor/core";
+
+interface AppInitializerContextType {
+  setAuthReady: (ready: boolean) => void;
+}
+
+export const AppInitializerContext = createContext<AppInitializerContextType | null>(null);
+
+export function useAppInitializer() {
+  return useContext(AppInitializerContext);
+}
 
 interface AppInitializerProps {
   children: React.ReactNode;
@@ -23,6 +33,11 @@ export function AppInitializer({ children }: AppInitializerProps) {
     isReady: false,
     error: null,
   });
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  const setAuthReady = useCallback((ready: boolean) => {
+    setIsAuthReady(ready);
+  }, []);
 
   // Hide splash screen with fade animation
   const hideSplashScreen = useCallback(async () => {
@@ -100,24 +115,31 @@ export function AppInitializer({ children }: AppInitializerProps) {
     return () => clearTimeout(swTimeout);
   }, [state.isReady]);
 
-  // Hide splash screen when app is ready
+  // Hide splash screen when app and auth are ready
   useEffect(() => {
-    if (state.isReady) {
+    if (state.isReady && isAuthReady) {
       hideSplashScreen();
     }
-  }, [state.isReady, hideSplashScreen]);
+  }, [state.isReady, isAuthReady, hideSplashScreen]);
 
-  // Show loading state with dark background to prevent white flash
-  if (!state.isReady) {
-    return null; // Return null so the native splash stays visible
-  }
+  // If there's an initialization error, make sure the splash screen is hidden
+  // so the user can see the retry options.
+  useEffect(() => {
+    if (state.error) {
+      hideSplashScreen();
+    }
+  }, [state.error, hideSplashScreen]);
 
   // Show error state if initialization failed
   if (state.error) {
     return <AppErrorScreen error={state.error} onRetry={() => setState({ isReady: false, error: null })} />;
   }
 
-  return <>{children}</>;
+  return (
+    <AppInitializerContext.Provider value={{ setAuthReady }}>
+      {children}
+    </AppInitializerContext.Provider>
+  );
 }
 
 /**
