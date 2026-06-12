@@ -13,7 +13,6 @@ import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
 import "./globals.css";
-import Loading from "./loading";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -69,29 +68,27 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CapacitorBackButton />
-            <Suspense fallback={<Loading />}>
-              <AppInitializer>
-                <AuthGate>
-                  <PresenceTracker />
-                  <ErrorBoundary name="Global Banner">
-                    <GlobalBanner />
-                  </ErrorBoundary>
-                  <div className="flex flex-col min-h-screen">
-                    {children}
-                  </div>
-                  <ErrorBoundary name="Mobile Navigation">
-                    <Suspense fallback={null}>
-                      <MobileNav />
-                    </Suspense>
-                  </ErrorBoundary>
+            <AppInitializer>
+              <AuthGate>
+                <PresenceTracker />
+                <ErrorBoundary name="Global Banner">
+                  <GlobalBanner />
+                </ErrorBoundary>
+                <div className="flex flex-col min-h-screen">
+                  {children}
+                </div>
+                <ErrorBoundary name="Mobile Navigation">
+                  <Suspense fallback={null}>
+                    <MobileNav />
+                  </Suspense>
+                </ErrorBoundary>
 
-                  <ErrorBoundary name="AI Chat">
-                    <FloatingChat />
-                  </ErrorBoundary>
-                  <Toaster />
-                </AuthGate>
-              </AppInitializer>
-            </Suspense>
+                <ErrorBoundary name="AI Chat">
+                  <FloatingChat />
+                </ErrorBoundary>
+                <Toaster />
+              </AuthGate>
+            </AppInitializer>
           </ThemeProvider>
         </ClientErrorBoundary>
       </body>

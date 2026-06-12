@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Handshake, AlertCircle, RefreshCw, WifiOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useAppInitializer } from "@/components/app-initializer";
 
 function Loading({ retrying = false }: { retrying?: boolean }) {
   return (
@@ -73,7 +72,6 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 2000;
-  const appInitializer = useAppInitializer();
 
   const initializeAuth = useCallback(async (mounted: { current: boolean }, isRetry = false) => {
     const currentRetry = retryCountRef.current;
@@ -131,6 +129,9 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
       setIsReady(true);
       setIsOfflineMode(!sessionResult?.data?.session);
       setIsRetrying(false);
+      // Notify parent that auth is ready
+      onReady?.();
+      
     } catch (err: any) {
       console.error("[AuthGate] Auth error:", err);
       console.error("[AuthGate] Full error:", JSON.stringify(err, Object.getOwnPropertyNames(err)));
@@ -180,7 +181,8 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
     setIsOfflineMode(true);
     setIsReady(true);
     setError(null);
-  }, []);
+    onReady?.();
+  }, [onReady]);
 
   useEffect(() => {
     const mounted = { current: true };
@@ -190,15 +192,6 @@ export function AuthGate({ children, onReady }: AuthGateProps) {
       mounted.current = false;
     };
   }, [initializeAuth]);
-
-  useEffect(() => {
-    if (isReady || error) {
-      onReady?.();
-      if (appInitializer) {
-        appInitializer.setAuthReady(true);
-      }
-    }
-  }, [isReady, error, onReady, appInitializer]);
 
   if (error) {
     return (
