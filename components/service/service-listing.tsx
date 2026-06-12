@@ -159,7 +159,7 @@ export function ServiceListing({ services }: { services: Service[] }) {
 
             {viewMode === 'map' ? (
                 <div className="w-full animate-in fade-in duration-300">
-                    <ServiceMap services={sortedServices} userLocation={userLocation} />
+                    <ServiceMap services={sortedServices.map(s => ({...s, images: s.images ?? null, location: s.location ?? undefined }))} userLocation={userLocation} />
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
