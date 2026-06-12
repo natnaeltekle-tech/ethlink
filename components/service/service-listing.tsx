@@ -164,7 +164,7 @@ export function ServiceListing({ services }: { services: Service[] }) {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
                     {sortedServices.map((service) => (
-                        <ServiceCard key={service.id} service={service} distance={service.distance} />
+                        <ServiceCard key={service.id} service={{ ...service, price: service.price ?? 0, location: service.location ?? '', images: service.images ?? undefined }} distance={service.distance} />
                     ))}
                     {sortedServices.length === 0 && (
                         <p className="col-span-full text-center py-10 text-muted-foreground">
