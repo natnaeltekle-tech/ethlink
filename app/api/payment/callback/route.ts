@@ -1,28 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createHmac } from 'crypto'
-import { txRefSchema } from '@/lib/validations'
 import { getCommissionRate } from '@/lib/actions/payments'
+import { paymentWebhookSchema } from '@/lib/validations'
+import { z } from 'zod'
+import {
+    confirmBookingPaymentAtomic,
+    detectPaymentProvider,
+    extractBookingIdFromTxRef,
+    type PaymentProvider,
+} from '@/lib/services/payments'
 import { Booking } from '@/lib/types/database'
-
-interface WebhookPayload {
-    tx_ref: string
-    status: string
-    [key: string]: unknown
-}
 
 interface ChapaVerifyResponse {
     data?: { status?: string }
 }
 
-type PaymentProvider = 'chapa' | 'telebirr' | 'cbe'
-
-function detectPaymentProvider(txRef: string): PaymentProvider | null {
-    if (txRef.startsWith('tx-ethlink-')) return 'chapa'
-    if (txRef.startsWith('tx-telebirr-')) return 'telebirr'
-    if (txRef.startsWith('tx-cbe-')) return 'cbe'
-    return null
-}
+type WebhookPayload = z.infer<typeof paymentWebhookSchema>
 
 function getProviderWebhookSecret(provider: PaymentProvider): string | undefined {
     switch (provider) {
@@ -69,23 +63,28 @@ function verifyProviderSignature(
         .update(rawBody)
         .digest('hex')
 
-    return expectedSignature === signatureHeader
+    try {
+        const expectedBuffer = Buffer.from(expectedSignature, 'utf8')
+        const receivedBuffer = Buffer.from(signatureHeader, 'utf8')
+
+        if (expectedBuffer.length !== receivedBuffer.length) {
+            return false
+        }
+
+        return timingSafeEqual(expectedBuffer, receivedBuffer)
+    } catch {
+        return false
+    }
 }
 
 async function confirmChapaPayment(
     txRef: string
 ): Promise<{ confirmed: boolean; ackMessage: string }> {
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
-    const isProduction = process.env.NODE_ENV === 'production'
 
     if (!chapaSecretKey) {
         console.error('[Payment Webhook] CHAPA_SECRET_KEY not configured')
-        return {
-            confirmed: false,
-            ackMessage: isProduction
-                ? 'acknowledged (chapa not configured)'
-                : 'acknowledged (chapa not configured)',
-        }
+        return { confirmed: false, ackMessage: 'acknowledged (chapa not configured)' }
     }
 
     const verifyResponse = await fetch(
@@ -114,7 +113,6 @@ function confirmWebhookOnlyPayment(
     provider: 'telebirr' | 'cbe',
     body: WebhookPayload
 ): { confirmed: boolean; ackMessage: string } {
-    // No provider verify API in codebase — require explicit success in webhook payload
     if (body.status !== 'success') {
         console.warn(`[Payment Webhook] ${provider} webhook status not success:`, body.status)
         return { confirmed: false, ackMessage: 'acknowledged (not successful)' }
@@ -139,17 +137,10 @@ async function confirmPaymentWithProvider(
 
 type BookingWithService = Booking & { services: { price: number; user_id: string } }
 
-function extractBookingId(txRef: string): string | null {
-    const parts = txRef.split('-')
-    if (parts.length < 8) return null
-    return parts.slice(2, 7).join('-')
-}
-
 export async function POST(request: NextRequest) {
     let rawBody = ''
 
     try {
-        // Limit body size to 1MB
         const contentLength = request.headers.get('content-length')
         if (contentLength && parseInt(contentLength, 10) > 1024 * 1024) {
             return NextResponse.json({ code: 1, msg: 'Payload too large' }, { status: 413 })
@@ -160,20 +151,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ code: 1, msg: 'Payload too large' }, { status: 413 })
         }
 
-        const body: WebhookPayload = JSON.parse(rawBody)
-        console.log('[Payment Webhook] Received callback for tx_ref:', body.tx_ref)
+        let parsedBody: unknown
+        try {
+            parsedBody = JSON.parse(rawBody)
+        } catch {
+            return NextResponse.json({ code: 1, msg: 'Invalid JSON payload' }, { status: 400 })
+        }
 
-        // Validate tx_ref format
-        if (!body.tx_ref || !txRefSchema.safeParse(body.tx_ref).success) {
+        const bodyResult = paymentWebhookSchema.safeParse(parsedBody)
+        if (!bodyResult.success) {
             return NextResponse.json(
                 { code: 1, msg: 'Missing or invalid tx_ref' },
                 { status: 400 }
             )
         }
 
+        const body = bodyResult.data
         const txRef = body.tx_ref
-        const provider = detectPaymentProvider(txRef)
+        console.log('[Payment Webhook] Received callback for tx_ref:', txRef)
 
+        const provider = detectPaymentProvider(txRef)
         if (!provider) {
             console.error('[Payment Webhook] Unrecognized payment provider for tx_ref:', txRef)
             return NextResponse.json(
@@ -207,17 +204,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ code: 0, msg: ackMessage })
         }
 
-        const meta = body.meta as Record<string, string> | undefined
-        const bookingId = extractBookingId(txRef) || meta?.booking_id
-
+        const bookingId = extractBookingIdFromTxRef(txRef) || body.meta?.booking_id
         if (!bookingId) {
             console.error('[Payment Webhook] Could not extract bookingId from tx_ref:', txRef)
             return NextResponse.json({ code: 0, msg: 'acknowledged (no booking ID)' })
         }
 
         const adminSupabase = createAdminClient()
-
-        // Fetch booking to get price for commission calculation
         const { data, error: fetchError } = await adminSupabase
             .from('bookings')
             .select('*, services(price, user_id)')
@@ -230,44 +223,35 @@ export async function POST(request: NextRequest) {
         }
 
         const booking = data as BookingWithService
-
-        if (booking.status === 'paid') {
-            console.log('[Payment Webhook] Booking already paid — skipping:', bookingId)
-            return NextResponse.json({ code: 0, msg: 'already processed' })
-        }
-
-        // Calculate dynamic commission and update booking
         const price = booking.services.price
         const commissionRate = await getCommissionRate()
         const commission = price * commissionRate
         const earnings = price - commission
 
-        const { error: updateError } = await adminSupabase
-            .from('bookings')
-            .update({
-                status: 'paid',
-                commission_amount: commission,
-                provider_earnings: earnings,
-            })
-            .eq('id', bookingId)
+        const result = await confirmBookingPaymentAtomic({
+            txRef,
+            bookingId,
+            provider,
+            commission,
+            providerEarnings: earnings,
+        })
 
-        if (updateError) {
-            console.error('[Payment Webhook] Failed to update booking:', updateError)
+        if (result.status === 'error') {
+            if (result.message === 'booking_not_found') {
+                return NextResponse.json({ code: 0, msg: 'acknowledged (booking not found)' })
+            }
+
+            console.error('[Payment Webhook] Atomic payment confirmation failed:', result.message)
             return NextResponse.json(
                 { code: 1, msg: 'Failed to update booking' },
                 { status: 500 }
             )
         }
 
-        // Send notification to user
-        await adminSupabase
-            .from('notifications')
-            .insert({
-                user_id: booking.user_id,
-                content: 'Payment Received — your booking is confirmed!',
-                type: 'payment',
-                link: '/dashboard',
-            })
+        if (result.status === 'already_processed') {
+            console.log('[Payment Webhook] Payment already processed:', txRef)
+            return NextResponse.json({ code: 0, msg: 'already processed' })
+        }
 
         console.log('[Payment Webhook] Booking updated to paid:', bookingId)
         return NextResponse.json({ code: 0, msg: 'success' })
