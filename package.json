@@ -4,7 +4,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "verify:prod": "node scripts/verify-production.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",

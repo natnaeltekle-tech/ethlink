@@ -2,7 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { bookingSchema } from '@/lib/validations'
+import { bookingSchema, txRefSchema } from '@/lib/validations'
+import {
+    confirmBookingPaymentAtomic,
+    detectPaymentProvider,
+} from '@/lib/services/payments'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { Booking, Service } from '@/lib/types/database'
@@ -568,42 +572,52 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
 
     if (!user) throw new Error('Not authenticated')
 
+    if (!txRefSchema.safeParse(tx_ref).success) {
+        throw new Error('Invalid transaction reference')
+    }
+
+    const provider = detectPaymentProvider(tx_ref)
+    if (!provider) {
+        throw new Error('Unrecognized payment provider')
+    }
+
+    const { data: booking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('*, services(price, user_id, title)')
+        .eq('id', bookingId)
+        .single()
+
+    if (fetchError || !booking) {
+        throw new Error('Booking not found')
+    }
+
+    if (booking.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    if (booking.status === 'paid') {
+        return { success: true, message: 'Already processed' }
+    }
+
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const commissionRate = await getCommissionRate()
 
     if (!chapaSecretKey) {
         console.warn('[Chapa] No CHAPA_SECRET_KEY — simulating verification success.')
 
-        const { data: booking, error: fetchError } = await supabase
-            .from('bookings')
-            .select('*, services(price, user_id, title)')
-            .eq('id', bookingId)
-            .single()
-
-        if (fetchError || !booking) {
-            throw new Error('Booking not found')
-        }
-
-        if (booking.status === 'paid') {
-            return { success: true, message: 'Already processed' }
-        }
-
         const price = booking.services.price
         const commission = price * commissionRate
         const earnings = price - commission
 
-        const { error: updateError } = await supabase
-            .from('bookings')
-            .update({
-                status: 'paid',
-                commission_amount: commission,
-                provider_earnings: earnings,
-            })
-            .eq('id', bookingId)
-            .eq('user_id', booking.user_id)
+        const result = await confirmBookingPaymentAtomic({
+            txRef: tx_ref,
+            bookingId,
+            provider,
+            commission,
+            providerEarnings: earnings,
+        })
 
-        if (updateError) {
-            console.error('Error updating payment status:', updateError)
+        if (result.status === 'error') {
             throw new Error('Failed to update booking status')
         }
 
@@ -633,36 +647,19 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         throw new Error('Payment was not completed successfully')
     }
 
-    const { data: booking, error: fetchError } = await supabase
-        .from('bookings')
-        .select('*, services(price, user_id, title)')
-        .eq('id', bookingId)
-        .single()
-
-    if (fetchError || !booking) {
-        throw new Error('Booking verification failed: Booking not found')
-    }
-
-    if (booking.status === 'paid') {
-        return { success: true, message: 'Already processed' }
-    }
-
     const price = booking.services.price
     const commission = price * commissionRate
     const earnings = price - commission
 
-    const { error: updateError } = await supabase
-        .from('bookings')
-        .update({
-            status: 'paid',
-            commission_amount: commission,
-            provider_earnings: earnings,
-        })
-        .eq('id', bookingId)
-        .eq('user_id', booking.user_id)
+    const result = await confirmBookingPaymentAtomic({
+        txRef: tx_ref,
+        bookingId,
+        provider,
+        commission,
+        providerEarnings: earnings,
+    })
 
-    if (updateError) {
-        console.error('Error updating payment status:', updateError)
+    if (result.status === 'error') {
         throw new Error('Failed to update booking status')
     }
 
