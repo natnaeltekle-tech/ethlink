@@ -18,7 +18,7 @@ const eslintConfig = [
       "**/public/sw.js",
       "**/public/workbox-*.js",
       "**/public/swe-worker-*.js",
-      "**/android/**",
+      "**/scratch/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
