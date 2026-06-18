@@ -10,8 +10,6 @@ import {
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { Booking, Service } from '@/lib/types/database'
-
-// ─── Dynamic Commission Configuration ──────────────────────────────────────
 export async function getCommissionRate(): Promise<number> {
     'use cache';
     const supabase = createAdminClient()
