@@ -1,5 +1,3 @@
-
-
 export {
     searchServices,
     searchServicesAdvanced,
@@ -22,7 +20,7 @@ export {
     deleteService,
     resetServiceImage,
     createServiceWithProfile
-} from './actions/services'
+} from './actions/listings'
 
 export {
     createBooking,
@@ -33,17 +31,16 @@ export {
     updateBookingStatus,
     completeJob,
     checkServiceAvailability,
-    getAvailableServices
-} from './actions/bookings'
-
-export {
+    getAvailableServices,
     initiatePayment,
     verifyPayment,
+    getCommissionRate
 } from './actions/payments'
 
 export {
     updateProfile,
     getProfile,
     updateProviderProfile,
+    updateAvatarUrl,
     safeSignOut
-} from './actions/auth'
+} from './actions/users'

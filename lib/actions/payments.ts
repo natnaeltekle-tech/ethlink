@@ -1,65 +1,471 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { bookingSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
-import { CONFIG } from '@/lib/constants'
+import { redirect } from 'next/navigation'
+import { Booking, Service } from '@/lib/types/database'
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Chapa Payment Integration for Eth-Links
-// ──────────────────────────────────────────────────────────────────────────────
-//
-// Flow:
-//   1. Frontend calls `initiatePayment(bookingId)`.
-//   2. This server action POSTs to Chapa's /transaction/initialize endpoint.
-//   3. Chapa returns a `checkout_url` — the frontend redirects the user there.
-//   4. After payment, Chapa redirects the user to `return_url` (success page).
-//   5. Chapa also POSTs to `callback_url` (our webhook at /api/payment/callback).
-//   6. The webhook re-verifies the transaction via Chapa's /transaction/verify
-//      endpoint and updates the booking in the database.
-//
-// Environment variables required:
-//   - CHAPA_SECRET_KEY: Bearer token for Chapa API (test or live key)
-//   - NEXT_PUBLIC_BASE_URL: Base URL of the app (e.g. https://eth-links.com)
-//   - CHAPA_WEBHOOK_SECRET (optional): For webhook HMAC signature verification
-// ──────────────────────────────────────────────────────────────────────────────
+// ─── Dynamic Commission Configuration ──────────────────────────────────────
+export async function getCommissionRate(): Promise<number> {
+    'use cache';
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'commission_rate')
+        .single()
 
-/** Shape of the Chapa /transaction/initialize response */
-interface ChapaInitResponse {
-    status: string
-    message: string
-    data: {
-        checkout_url: string
+    if (error || !data) {
+        return 0.10; // default to 10% commission
+    }
+    return parseFloat(data.value)
+}
+
+export async function checkServiceAvailability(serviceId: string, date: string): Promise<boolean> {
+    const supabase = await createClient()
+
+    // normalize date to UTC ISO string if not already
+    const checkDate = new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`
+
+    const { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('service_id', serviceId)
+        .eq('date', checkDate)
+        .in('status', ['confirmed', 'pending', 'paid'])
+        .single()
+
+    return !existingBooking
+}
+
+export async function getAvailableServices(date: string, category?: string): Promise<any[]> {
+    const supabase = await createClient()
+
+    // normalize date
+    const checkDate = new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`
+
+    // 1. Get all active services
+    let query = supabase
+        .from('services')
+        .select('*, bookings(date, status)')
+        .eq('is_active', true)
+
+    if (category) {
+        query = query.eq('category', category)
+    }
+
+    const { data: services, error } = await query
+
+    if (error || !services) {
+        console.error('Error fetching available services:', error)
+        return []
+    }
+
+    // 2. Filter out services that have a booking collision at the requested time
+    const availableServices = services.filter(service => {
+        if (!service.bookings || service.bookings.length === 0) return true
+
+        const hasCollision = service.bookings.some((booking: any) =>
+            booking.date === checkDate &&
+            ['confirmed', 'pending', 'paid'].includes(booking.status)
+        )
+
+        return !hasCollision
+    })
+
+    return availableServices
+}
+
+export async function createBooking(formData: FormData): Promise<void> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) {
+        redirect('/auth/login')
+    }
+
+    const rawData = {
+        serviceId: formData.get('serviceId'),
+        date: formData.get('date'),
+    };
+
+    try {
+        const { serviceId, date } = bookingSchema.omit({ guests: true }).parse(rawData);
+
+        const isAvailable = await checkServiceAvailability(serviceId, date)
+
+        if (!isAvailable) {
+            throw new Error('This service is already booked. Please explore our other available services.')
+        }
+
+        let data;
+
+        const result = await supabase
+            .from('bookings')
+            .insert({
+                service_id: serviceId,
+                user_id: user.id,
+                date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
+                status: 'pending'
+            })
+            .select()
+            .single()
+
+        if (result.error) {
+            if (result.error.code === '23505') {
+                throw new Error('This service is already booked. Please explore our other available services.')
+            }
+            throw result.error
+        }
+        data = result.data
+
+        const { data: service } = await supabase
+            .from('services')
+            .select('user_id, title')
+            .eq('id', serviceId)
+            .single()
+
+        if (service && service.user_id) {
+            const adminSupabase = createAdminClient()
+            await adminSupabase
+                .from('notifications')
+                .insert({
+                    user_id: service.user_id,
+                    content: `New booking request for ${service.title}`,
+                    type: 'booking',
+                    link: '/dashboard'
+                })
+        }
+
+        revalidatePath('/dashboard');
+        redirect(`/payment/${data.id}`)
+
+    } catch (error: any) {
+        console.error('Error creating booking:', error)
+        throw new Error(error.message || 'Failed to create booking');
     }
 }
 
-/** Shape of the Chapa /transaction/verify response */
-interface ChapaVerifyResponse {
-    status: string
-    message: string
-    data: {
-        first_name: string
-        last_name: string
-        email: string
-        currency: string
-        amount: number
-        charge: number
-        mode: string
-        method: string
-        type: string
-        status: string
-        reference: string
-        tx_ref: string
-        created_at: string
-        updated_at: string
+export async function createBookingJson(formData: FormData): Promise<{ error?: string; success?: boolean; bookingId?: string }> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) {
+        return { error: 'Not authenticated' }
+    }
+
+    const rawData = {
+        serviceId: formData.get('serviceId'),
+        date: formData.get('date'),
+        guests: formData.get('guests'),
+    };
+
+    const parsed = bookingSchema.safeParse(rawData);
+
+    if (!parsed.success) {
+        return { error: parsed.error.issues[0]?.message || 'Validation error' };
+    }
+
+    const { serviceId, date, guests } = parsed.data;
+
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) {
+        return { error: 'Invalid date format' }
+    }
+
+    const isAvailable = await checkServiceAvailability(serviceId, date)
+
+    if (!isAvailable) {
+        return { error: 'This service is already booked. Please explore our other available services.' }
+    }
+
+    const { data, error } = await supabase
+        .from('bookings')
+        .insert({
+            service_id: serviceId,
+            user_id: user.id,
+            date: parsedDate.toISOString(),
+            guests,
+            status: 'pending'
+        })
+        .select()
+        .single()
+
+    if (error) {
+        if (error.code === '23505') {
+            return { error: 'This service is already booked. Please explore our other available services.' }
+        }
+        console.error('Error creating booking:', error)
+        return { error: 'Failed to create booking' }
+    }
+
+    const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
+
+    if (service && service.user_id !== user.id) {
+        const adminSupabase = createAdminClient()
+        await adminSupabase
+            .from('notifications')
+            .insert({
+                user_id: service.user_id,
+                content: `New booking request for ${service.title}`,
+                link: '/dashboard',
+                type: 'booking'
+            })
+    }
+
+    revalidatePath('/dashboard');
+    return { success: true, bookingId: data.id }
+}
+
+export async function getBookingDetails(id: string): Promise<any> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return null
+
+    const { data: booking, error } = await supabase
+        .from('bookings')
+        .select('*, services(*)')
+        .eq('id', id)
+        .single()
+
+    if (error || !booking) {
+        console.error('Error fetching booking:', error)
+        return null
+    }
+
+    if (booking.user_id !== user.id) {
+        return null
+    }
+
+    return booking
+}
+
+export async function getUserBookings(): Promise<any[]> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return []
+
+    const { data: bookings, error } = await supabase
+        .from('bookings')
+        .select('*, services(title, price)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching user bookings:', error)
+        return []
+    }
+
+    return bookings || []
+}
+
+export async function getProviderStats(): Promise<any> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return null
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('id')
+        .eq('user_id', user.id)
+
+    if (!services || services.length === 0) return null
+
+    const serviceIds = services.map(s => s.id)
+
+    const { data: bookings } = await supabase
+        .from('bookings')
+        .select('*, services(title, price)')
+        .in('service_id', serviceIds)
+        .order('created_at', { ascending: false })
+
+    if (!bookings) return {
+        escrow_balance: 0,
+        available_balance: 0,
+        pendingBookings: [],
+        services: []
+    }
+
+    const commissionRate = await getCommissionRate()
+    const earningsMultiplier = 1 - commissionRate
+
+    // Calculate escrow balance (paid but not completed)
+    const escrow_balance = bookings
+        .filter(b => b.status === 'paid')
+        .reduce((sum, b) => {
+            if (b.provider_earnings !== null) {
+                return sum + b.provider_earnings;
+            }
+            const price = b.services?.price || 0;
+            return sum + (price * earningsMultiplier);
+        }, 0)
+
+    // Calculate available balance (completed jobs ready for payout)
+    const available_balance = bookings
+        .filter(b => b.status === 'completed')
+        .reduce((sum, b) => {
+            if (b.provider_earnings !== null) {
+                return sum + b.provider_earnings;
+            }
+            const price = b.services?.price || 0;
+            return sum + (price * earningsMultiplier);
+        }, 0)
+
+    const earnings = escrow_balance + available_balance
+    const pendingBookings = bookings.filter(b => b.status === 'pending')
+
+    const completedJobs = bookings
+        .filter(b => b.status === 'completed')
+        .map(b => ({
+            id: b.id,
+            service_title: b.services?.title,
+            booking_date: b.date,
+            amount: b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0) * earningsMultiplier
+        }))
+
+    return {
+        earnings,
+        escrow_balance,
+        available_balance,
+        pendingBookings,
+        allBookings: bookings,
+        completedJobs
     }
 }
 
-/**
- * Initiate a Chapa payment for a booking.
- *
- * Generates a unique `tx_ref` that embeds the bookingId so the webhook can
- * look up the booking later. Returns the Chapa `checkout_url` for redirect.
- */
+export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled'): Promise<void> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) throw new Error('Not authenticated')
+
+    const { data: booking } = await supabase
+        .from('bookings')
+        .select('*, services(user_id)')
+        .eq('id', bookingId)
+        .single()
+
+    if (!booking || booking.services.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    if (status === 'cancelled' && booking.status === 'paid') {
+        throw new Error('Cannot cancel a paid booking. Please contact support for a refund.')
+    }
+
+    const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', bookingId)
+
+    if (error) {
+        console.error('Failed to update booking status:', error)
+        throw new Error('Failed to update booking')
+    }
+
+    if (status === 'confirmed') {
+        const { error: msgError } = await supabase
+            .from('messages')
+            .insert({
+                service_id: booking.service_id,
+                sender_id: user.id,
+                receiver_id: booking.user_id,
+                content: '✅ I have accepted your booking! Please proceed to payment.'
+            })
+
+        if (msgError) {
+            console.error('Failed to send auto-accept message:', msgError);
+        }
+    }
+
+    revalidatePath('/dashboard')
+}
+
+export async function completeJob(bookingId: string): Promise<void> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) {
+        throw new Error('Not authenticated')
+    }
+
+    const { data: booking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('user_id, status')
+        .eq('id', bookingId)
+        .single()
+
+    if (fetchError || !booking) {
+        throw new Error('Failed to fetch booking')
+    }
+
+    if (booking.user_id !== user.id) {
+        throw new Error('Unauthorized')
+    }
+
+    if (booking.status !== 'paid') {
+        throw new Error('Only paid bookings can be marked as completed')
+    }
+
+    const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'completed' })
+        .eq('id', bookingId)
+
+    if (error) {
+        throw new Error(`Failed to complete job: ${error.message}`)
+    }
+
+    revalidatePath('/dashboard')
+}
+
 export async function initiatePayment(bookingId: string) {
     const supabase = await createClient()
     let user = null
@@ -72,7 +478,6 @@ export async function initiatePayment(bookingId: string) {
 
     if (!user) throw new Error('Not authenticated')
 
-    // 1. Fetch the booking to get the REAL price
     const { data: booking, error } = await supabase
         .from('bookings')
         .select('*, services(price)')
@@ -83,7 +488,6 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('Booking not found')
     }
 
-    // Security: ensure the logged-in user owns this booking
     if (booking.user_id !== user.id) {
         throw new Error('Unauthorized')
     }
@@ -91,14 +495,8 @@ export async function initiatePayment(bookingId: string) {
     const price = booking.services.price
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-
-    // Generate a unique transaction reference that embeds the bookingId
-    // Format: tx-ethlink-<bookingId>-<timestamp>-<random>
     const tx_ref = `tx-ethlink-${bookingId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 
-    // ── Test-mode fallback ──────────────────────────────────────────────
-    // If no CHAPA_SECRET_KEY is configured, return a simulated response
-    // so development/testing can proceed without a real Chapa account.
     if (!chapaSecretKey) {
         console.warn('[Chapa] No CHAPA_SECRET_KEY set — running in test/simulation mode.')
         return {
@@ -109,7 +507,6 @@ export async function initiatePayment(bookingId: string) {
         }
     }
 
-    // ── Production Chapa API call ───────────────────────────────────────
     const payload = {
         amount: String(price),
         currency: 'ETB',
@@ -144,7 +541,7 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('Payment initialization failed. Please try again.')
     }
 
-    const result: ChapaInitResponse = await response.json()
+    const result = await response.json()
 
     if (result.status !== 'success' || !result.data?.checkout_url) {
         console.error('[Chapa] Unexpected response:', result)
@@ -159,13 +556,6 @@ export async function initiatePayment(bookingId: string) {
     }
 }
 
-/**
- * Verify a Chapa transaction by its `tx_ref`.
- *
- * This calls Chapa's /transaction/verify endpoint to confirm the payment
- * was actually completed. Used by the webhook handler and can also be
- * called manually for debugging.
- */
 export async function verifyPayment(bookingId: string, tx_ref: string) {
     const supabase = await createClient()
     let user = null
@@ -179,9 +569,9 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     if (!user) throw new Error('Not authenticated')
 
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
+    const commissionRate = await getCommissionRate()
 
     if (!chapaSecretKey) {
-        // Test mode: simulate success
         console.warn('[Chapa] No CHAPA_SECRET_KEY — simulating verification success.')
 
         const { data: booking, error: fetchError } = await supabase
@@ -199,7 +589,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         }
 
         const price = booking.services.price
-        const commission = price * CONFIG.COMMISSION_RATE
+        const commission = price * commissionRate
         const earnings = price - commission
 
         const { error: updateError } = await supabase
@@ -221,7 +611,6 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         return { success: true }
     }
 
-    // ── Production: verify with Chapa API ───────────────────────────────
     const verifyResponse = await fetch(
         `https://api.chapa.co/v1/transaction/verify/${tx_ref}`,
         {
@@ -237,14 +626,13 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         throw new Error('Payment verification failed')
     }
 
-    const verifyResult: ChapaVerifyResponse = await verifyResponse.json()
+    const verifyResult = await verifyResponse.json()
 
     if (verifyResult.data?.status !== 'success') {
         console.error('[Chapa] Payment not successful:', verifyResult)
         throw new Error('Payment was not completed successfully')
     }
 
-    // Verification passed — update the booking
     const { data: booking, error: fetchError } = await supabase
         .from('bookings')
         .select('*, services(price, user_id, title)')
@@ -260,7 +648,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     }
 
     const price = booking.services.price
-    const commission = price * CONFIG.COMMISSION_RATE
+    const commission = price * commissionRate
     const earnings = price - commission
 
     const { error: updateError } = await supabase
