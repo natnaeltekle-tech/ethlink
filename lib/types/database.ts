@@ -432,6 +432,43 @@ export type Database = {
                     }
                 ]
             }
+            processed_payments: {
+                Row: {
+                    id: string
+                    tx_ref: string
+                    booking_id: string
+                    provider: string
+                    processed_at: string
+                    commission_amount: number | null
+                    provider_earnings: number | null
+                }
+                Insert: {
+                    id?: string
+                    tx_ref: string
+                    booking_id: string
+                    provider: string
+                    processed_at?: string
+                    commission_amount?: number | null
+                    provider_earnings?: number | null
+                }
+                Update: {
+                    id?: string
+                    tx_ref?: string
+                    booking_id?: string
+                    provider?: string
+                    processed_at?: string
+                    commission_amount?: number | null
+                    provider_earnings?: number | null
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "processed_payments_booking_id_fkey"
+                        columns: ["booking_id"]
+                        referencedRelation: "bookings"
+                        referencedColumns: ["id"]
+                    }
+                ]
+            }
             system_settings: {
                 Row: {
                     key: string
@@ -503,7 +540,16 @@ export type Database = {
             }
         }
         Functions: {
-            [_ in never]: never
+            process_payment_confirmation: {
+                Args: {
+                    p_tx_ref: string
+                    p_booking_id: string
+                    p_provider: string
+                    p_commission: number
+                    p_provider_earnings: number
+                }
+                Returns: Json
+            }
         }
         Enums: {
             [_ in never]: never
@@ -526,6 +572,7 @@ export type Note = Database["public"]["Tables"]["notes"]["Row"]
 export type Listing = Database["public"]["Tables"]["listings"]["Row"]
 export type Payment = Database["public"]["Tables"]["payments"]["Row"]
 export type SystemSetting = Database["public"]["Tables"]["system_settings"]["Row"]
+export type ProcessedPayment = Database["public"]["Tables"]["processed_payments"]["Row"]
 export type ServiceView = Database["public"]["Views"]["services_view"]["Row"]
 export type PublicProfile = Database["public"]["Views"]["public_profiles"]["Row"]
 

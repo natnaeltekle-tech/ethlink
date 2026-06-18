@@ -54,7 +54,18 @@ export const urlSchema = safeUrl;
 // ─── Payment Webhook ────────────────────────────────────────────────────────
 export const txRefSchema = z.string()
     .max(200)
-    .regex(/^tx-ethlink-[a-f0-9-]+-\d+-[a-z0-9]+$/i, 'Invalid tx_ref format');
+    .regex(/^tx-(ethlink|telebirr|cbe)-[a-f0-9-]+-\d+-[a-z0-9]+$/i, 'Invalid tx_ref format');
+
+export const paymentWebhookSchema = z.object({
+    tx_ref: txRefSchema,
+    status: z.string().max(50),
+    meta: z
+        .object({
+            booking_id: z.string().uuid().optional(),
+        })
+        .passthrough()
+        .optional(),
+}).passthrough();
 
 // ─── Booking Status ─────────────────────────────────────────────────────────
 export const bookingStatusSchema = z.enum(['confirmed', 'cancelled']);
