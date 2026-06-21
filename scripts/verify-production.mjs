@@ -5,7 +5,7 @@
  */
 import { execSync } from 'node:child_process'
 
-const steps: Array<{ name: string; command: string }> = [
+const steps = [
     { name: 'TypeScript', command: 'npx tsc --noEmit' },
     { name: 'ESLint', command: 'npm run lint' },
     { name: 'Production build', command: 'npm run build' },

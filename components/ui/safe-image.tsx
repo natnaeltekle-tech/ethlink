@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +11,8 @@ interface SafeImageProps {
   className?: string
   containerClassName?: string
   fallbackClassName?: string
+  sizes?: string
+  priority?: boolean
   onLoad?: () => void
   onError?: () => void
 }
@@ -20,6 +23,8 @@ export function SafeImage({
   className,
   containerClassName,
   fallbackClassName,
+  sizes = '(max-width: 768px) 100vw, 50vw',
+  priority = false,
   onLoad,
   onError,
 }: SafeImageProps) {
@@ -71,10 +76,13 @@ export function SafeImage({
 
       {/* Actual image - only render if src exists and no error */}
       {src && !hasError && (
-        <img
+        <Image
           src={src}
           alt={alt}
-          className={cn('w-full h-full object-cover', className)}
+          fill
+          sizes={sizes}
+          priority={priority}
+          className={cn('object-cover', className)}
           onLoad={handleLoad}
           onError={handleError}
         />

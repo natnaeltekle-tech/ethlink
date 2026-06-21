@@ -31,7 +31,10 @@ export {
     updateBookingStatus,
     completeJob,
     checkServiceAvailability,
-    getAvailableServices,
+    getAvailableServices
+} from './actions/bookings'
+
+export {
     initiatePayment,
     verifyPayment,
     getCommissionRate

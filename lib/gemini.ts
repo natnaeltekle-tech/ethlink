@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { CONFIG } from '@/lib/constants';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
@@ -32,8 +33,22 @@ export const getModel = () => {
 // Legacy export for backward compatibility
 export const model = getModel();
 
+interface AIRequestLogOptions {
+    inputTokens?: number | null;
+    outputTokens?: number | null;
+    totalTokens?: number | null;
+    fallbackUsed?: boolean;
+    metadata?: Record<string, unknown>;
+}
+
 // Logging utility for AI operations
-export function logAIRequest(prompt: string, modelVersion: string, success: boolean, error?: Error) {
+export async function logAIRequest(
+    prompt: string,
+    modelVersion: string,
+    success: boolean,
+    error?: Error,
+    options: AIRequestLogOptions = {}
+) {
     const timestamp = new Date().toISOString();
     const logEntry = {
         timestamp,
@@ -41,12 +56,37 @@ export function logAIRequest(prompt: string, modelVersion: string, success: bool
         promptLength: prompt.length,
         success,
         error: error ? error.message : null,
+        inputTokens: options.inputTokens ?? null,
+        outputTokens: options.outputTokens ?? null,
+        totalTokens: options.totalTokens ?? null,
+        fallbackUsed: options.fallbackUsed ?? false,
     };
 
     if (success) {
         console.log(`[${timestamp}] AI Request - Model: ${modelVersion}, Prompt Length: ${prompt.length}, Status: SUCCESS`);
     } else {
         console.error(`[${timestamp}] AI Request - Model: ${modelVersion}, Prompt Length: ${prompt.length}, Status: FAILED - ${error?.message}`);
+    }
+
+    try {
+        const supabase = createAdminClient() as any;
+        const { error: insertError } = await supabase.from('ai_logs').insert({
+            model_version: modelVersion,
+            prompt_length: prompt.length,
+            success,
+            input_tokens: options.inputTokens ?? null,
+            output_tokens: options.outputTokens ?? null,
+            total_tokens: options.totalTokens ?? null,
+            fallback_used: options.fallbackUsed ?? false,
+            error_message: error?.message ?? null,
+            metadata: options.metadata ?? null,
+        });
+
+        if (insertError) {
+            console.error('[AI] Failed to persist AI log:', insertError);
+        }
+    } catch (logError) {
+        console.error('[AI] Failed to write AI log:', logError);
     }
 
     return logEntry;

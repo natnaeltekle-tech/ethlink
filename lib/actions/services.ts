@@ -5,6 +5,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { serviceSchema, messageSchema, reviewSchema } from '@/lib/validations'
+import { sanitizeMessage, sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
@@ -158,7 +159,7 @@ export async function getReviews(serviceId: string) {
     // 2. Fetch user profiles manually
     const userIds = [...new Set(reviews.map(r => r.user_id))]
 
-    let profilesMap: Record<string, any> = {}
+    const profilesMap: Record<string, any> = {}
 
     if (userIds.length > 0) {
         try {
@@ -264,7 +265,7 @@ export async function sendMessage(serviceId: string, receiverId: string, content
             service_id: serviceId,
             sender_id: user.id,
             receiver_id: receiverId,
-            content,
+            content: sanitizeMessage(content),
         })
 
     if (error) {
@@ -308,11 +309,15 @@ export async function createService(formData: FormData) {
 
     try {
         const validatedData = serviceSchema.parse(rawData);
+        const sanitizedData = {
+            ...validatedData,
+            description: sanitizeDescription(validatedData.description),
+        };
 
         const { data, error } = await supabase
             .from('services')
             .insert({
-                ...validatedData,
+                ...sanitizedData,
                 user_id: user.id,
                 amenities: amenities.length > 0 ? amenities : null
             })
@@ -355,7 +360,7 @@ export async function submitReview(serviceId: string, rating: number, comment: s
             service_id: serviceId,
             user_id: user.id,
             rating,
-            comment,
+            comment: sanitizeReviewComment(comment),
         })
 
     if (error) {

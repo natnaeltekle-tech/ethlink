@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { urlSchema } from '@/lib/validations'
+import { urlSchema, profileUpdateSchema, providerProfileSchema } from '@/lib/validations'
 import { Profile } from '@/lib/types/database'
 
 export async function updateProfile(formData: FormData): Promise<{ success: boolean; error?: string }> {
@@ -17,13 +17,17 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
 
     if (!user) return { success: false, error: 'Not authenticated' }
 
-    const firstName = formData.get('firstName') as string
-    const lastName = formData.get('lastName') as string
-    const phoneNumber = formData.get('phoneNumber') as string
+    const parsed = profileUpdateSchema.safeParse({
+        firstName: formData.get('firstName') ?? undefined,
+        lastName: formData.get('lastName') ?? undefined,
+        phoneNumber: formData.get('phoneNumber') ?? undefined,
+    })
 
-    if (!firstName && !lastName && !phoneNumber) {
-        return { success: false, error: 'No changes provided' }
+    if (!parsed.success) {
+        return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation error' }
     }
+
+    const { firstName, lastName, phoneNumber } = parsed.data
 
     try {
         const { error } = await supabase
@@ -43,9 +47,10 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
         revalidatePath('/dashboard')
         revalidatePath('/services/[id]')
         return { success: true }
-    } catch (err: any) {
-        console.error('[updateProfile] Unexpected error:', err)
-        return { success: false, error: err?.message || 'Failed to update profile' }
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to update profile'
+        console.error('[updateProfile] Unexpected error:', message)
+        return { success: false, error: message }
     }
 }
 
@@ -86,14 +91,18 @@ export async function updateProviderProfile(formData: FormData): Promise<void> {
 
     if (!user) throw new Error('Not authenticated')
 
-    const firstName = formData.get('firstName') as string
-    const lastName = formData.get('lastName') as string
-    const phoneNumber = formData.get('phoneNumber') as string
-    const idCardLink = formData.get('idCardLink') as string
+    const parsed = providerProfileSchema.safeParse({
+        firstName: formData.get('firstName'),
+        lastName: formData.get('lastName'),
+        phoneNumber: formData.get('phoneNumber'),
+        idCardLink: formData.get('idCardLink'),
+    })
 
-    if (!firstName || !lastName || !phoneNumber || !idCardLink) {
-        throw new Error('All fields are required')
+    if (!parsed.success) {
+        throw new Error(parsed.error.issues[0]?.message ?? 'Invalid profile data')
     }
+
+    const { firstName, lastName, phoneNumber, idCardLink } = parsed.data
 
     const { error } = await supabase
         .from('profiles')
@@ -152,9 +161,10 @@ export async function safeSignOut(): Promise<{ success: boolean; error?: string 
             console.warn('[safeSignOut] Supabase signOut error:', error.message)
             return { success: false, error: error.message }
         }
-    } catch (err: any) {
-        console.warn('[safeSignOut] Exception during signOut:', err?.message)
-        return { success: false, error: err?.message || 'Unknown error' }
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        console.warn('[safeSignOut] Exception during signOut:', message)
+        return { success: false, error: message }
     } finally {
         // Always revalidate to clear cached user data from server components
         revalidatePath('/', 'layout')

@@ -19,9 +19,24 @@ const eslintConfig = [
       "**/public/workbox-*.js",
       "**/public/swe-worker-*.js",
       "**/scratch/**",
+      "**/android/**",
+      "**/extracted_ui_codes/**",
+      "sentry.client.config.ts",
+      "sentry.server.config.ts",
+      "sentry.edge.config.ts",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "react/no-unescaped-entities": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

@@ -1,4 +1,5 @@
 import { Star, User } from 'lucide-react'
+import { memo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface Review {
@@ -19,7 +20,7 @@ interface ReviewsListProps {
     reviews: Review[]
 }
 
-export function ReviewsList({ reviews }: ReviewsListProps) {
+export const ReviewsList = memo(function ReviewsList({ reviews }: ReviewsListProps) {
     if (!reviews || reviews.length === 0) {
         return (
             <div className="text-center py-8 text-muted-foreground">
@@ -87,4 +88,4 @@ export function ReviewsList({ reviews }: ReviewsListProps) {
             </div>
         </div>
     )
-}
+})

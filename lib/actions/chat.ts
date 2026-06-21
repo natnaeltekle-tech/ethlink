@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
+import { chatInputSchema } from '@/lib/validations';
 
 // Levenshtein distance calculation for fuzzy matching
 function levenshteinDistance(a: string, b: string): number {
@@ -110,10 +111,12 @@ function findCategoryWithFuzzyMatching(message: string): string | null {
 
 export async function getChatResponse(userMessage: string) {
     try {
-        // Cap input length to prevent abuse
-        if (!userMessage || userMessage.length > 500) {
-            return "Please keep your message under 500 characters.";
+        const parsed = chatInputSchema.safeParse({ message: userMessage });
+        if (!parsed.success) {
+            return parsed.error.issues[0]?.message ?? "Please keep your message under 500 characters.";
         }
+
+        userMessage = parsed.data.message;
 
         const supabase = await createClient();
 

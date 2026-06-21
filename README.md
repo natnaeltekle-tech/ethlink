@@ -1,93 +1,82 @@
-# Eth-Links: The AI-Powered Service Marketplace of Ethiopia 🇪🇹
+# Eth-Links
 
-![Next.js 16](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
-![Supabase](https://img.shields.io/badge/Supabase-Database-blueviolet?style=for-the-badge&logo=supabase)
-![PWA](https://img.shields.io/badge/PWA-Ready-green?style=for-the-badge&logo=pwa)
-![Fintech Ready](https://img.shields.io/badge/Fintech-Ready-gold?style=for-the-badge)
+Ethiopian AI service marketplace built with Next.js App Router, Supabase, Capacitor PWA, Gemini, Chapa escrow payments, realtime chat, Tailwind, and Shadcn-style UI primitives.
 
-**A decentralized service economy connecting 120M+ Ethiopians with verified providers via AI and Escrow payments.**
+## Architecture
 
----
+- **App**: Next.js App Router with server actions for bookings, listings, payments, chat, and admin workflows.
+- **Data**: Supabase Postgres with RLS, storage, realtime messages, and SQL migrations in `supabase/migrations`.
+- **Payments**: Chapa checkout and webhook confirmation. Booking payment confirmation is idempotent through `processed_payments.tx_ref` and the atomic `process_payment_confirmation` RPC.
+- **Escrow**: Paid bookings hold provider earnings until the customer completes the job or an admin resolves a dispute.
+- **AI**: Gemini-powered search extraction with rule-based fallback and durable `ai_logs` observability.
+- **PWA**: Capacitor-ready installable web app with runtime caching and an offline banner.
 
-## 🚀 Core Modules (The 'Big 4')
+## Environment
 
-### 🧠 AI Concierge - Hybrid Search Architecture
-Powered by a production-ready **Hybrid Search** system that combines Gemini AI with intelligent rule-based fallback:
+Copy `.env.example` to `.env.local` and set real values.
 
-- **AI-First Strategy**: Primary queries are processed by Gemini AI for natural language understanding
-- **Intelligent Fallback**: Rule-based system with fuzzy logic activates when AI is unavailable
-- **Fuzzy Matching**: Levenshtein distance algorithm handles typos and approximate keyword matching
-- **Error Resilience**: Graceful degradation ensures 24/7 service availability
-- **Observability**: Structured logging of all AI requests with model version, prompt length, and success metrics
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
-### 🏦 Fintech Engine
-Fully integrated **Chapa** payment gateway supporting TeleBirr, CBE Birr, bank cards, and more — all through a single redirect checkout. Money is held securely in the platform via an internal Escrow Ledger until the job is marked as complete, ensuring trust for both parties.
+ADMIN_EMAIL=
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-### 📱 Native PWA
-A premium mobile-first experience. Installable on iOS and Android with Haptic Feedback, smooth Bottom Navigation, and Offline-first capabilities for low-connectivity areas.
+GOOGLE_API_KEY=
+GEMINI_MODEL_VERSION=gemini-pro
+AI_TEMPERATURE=0.7
+AI_MAX_TOKENS=2048
+AI_TOP_P=0.9
+AI_TOP_K=40
 
-### 🤝 Realtime Negotiation
-Direct peer-to-peer chat system with presence indicators ('Online/Offline'), realtime message delivery via Supabase, and integrated image sharing for project requirements.
+CHAPA_SECRET_KEY=
+CHAPA_WEBHOOK_SECRET=
+TELEBIRR_PUBLIC_KEY=
+CBE_BIRR_SECRET=
 
----
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 
-## 🏗️ Technical Architecture
+SENTRY_DSN=
+SENTRY_ORG=
+SENTRY_PROJECT=
+```
 
-*   **Frontend**: Next.js 16 (App Router), Tailwind CSS, Shadcn UI (Premium Dark/Luxury Theme).
-*   **Backend**: Supabase (PostgreSQL, Row Level Security, Realtime, Storage).
-*   **Security**: Admin-only Actions, Automated Profile Creation Triggers, and Strict RLS policies.
+## Local Setup
 
----
-
-## ✨ Features List
-
-*   **Provider Dashboard**: Comprehensive earnings tracking, Escrow balance management, and booking scheduling.
-*   **Smart Listing**: Interactive Map Pins (Leaflet), High-res Photo Galleries, and Detailed Service Specs.
-*   **Review System**: Verified-only feedback loop to maintain high service standards.
-*   **Admin Control Center**: 'God Mode' for platform moderation, user verification, and dispute resolution.
-
----
-
-## 🛠️ Setup & Local Development
-
-### Prerequisites
-- Node.js 18+ 
-- Supabase Account
-
-### Installation
 ```bash
-# Clone the repository
-git clone https://github.com/your-repo/eth-links-v2.git
-
-# Install dependencies
 npm install
-
-# Run the development server
 npm run dev
 ```
 
-### Environment Variables
-Create a `.env.local` file in the root directory and add the following:
+Run Supabase migrations before testing payment or AI observability flows:
 
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# Payments & AI
-CHAPA_SECRET_KEY=your_chapa_secret_key
-CHAPA_WEBHOOK_SECRET=your_chapa_webhook_secret  # Optional
-GOOGLE_API_KEY=your_gemini_api_key
-
-# AI Configuration (Optional - defaults provided)
-GEMINI_MODEL_VERSION=gemini-pro        # Model version to use
-AI_TEMPERATURE=0.7                     # Response creativity (0.0 - 1.0)
-AI_MAX_TOKENS=2048                     # Maximum response length
-AI_TOP_P=0.9                          # Nucleus sampling parameter
-AI_TOP_K=40                           # Top-k sampling parameter
+```bash
+supabase db push
 ```
 
----
+## Quality Checks
 
-*Built with ❤️ for the Ethiopian Digital Economy.*
+```bash
+npx tsc --noEmit
+npm run lint
+npm test
+npm run build
+```
+
+## Deployment
+
+1. Set all production env vars in the hosting platform.
+2. Apply Supabase migrations, especially `processed_payments`, `payment_webhook_events`, `ai_logs`, and escrow dispute statuses.
+3. Configure Chapa callback/webhook URL to `${NEXT_PUBLIC_BASE_URL}/api/payment/callback`.
+4. Verify webhook signing secrets are present; unsigned callbacks are rejected.
+5. Run `npm run verify:prod`, `npm test`, and a production build before release.
+
+## Money-Flow Notes
+
+- Payment confirmation is safe to retry. Duplicate `tx_ref` values return `already_processed`.
+- Webhook events are logged to `payment_webhook_events` for auditability.
+- Admin escrow resolution uses `resolveEscrowDispute` to either release funds to the provider (`completed`) or mark a refund (`refunded`).
+- API/payment routes are network-only in the service worker to avoid stale payment state.

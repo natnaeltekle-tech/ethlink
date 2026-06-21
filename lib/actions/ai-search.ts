@@ -3,6 +3,17 @@
 import { getModel, GEMINI_MODEL_VERSION, logAIRequest } from "@/lib/gemini";
 import { searchServicesAdvanced } from "@/lib/actions";
 
+type GeminiUsageMetadata = {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    totalTokenCount?: number;
+};
+
+function extractUsageMetadata(result: unknown): GeminiUsageMetadata {
+    const usage = (result as { response?: { usageMetadata?: GeminiUsageMetadata } })?.response?.usageMetadata;
+    return usage ?? {};
+}
+
 export async function processUserMessage(userMessage: string): Promise<string> {
     // Validate input
     if (!userMessage || userMessage.length > 500) {
@@ -34,9 +45,18 @@ export async function processUserMessage(userMessage: string): Promise<string> {
         let extractionResult;
         try {
             extractionResult = await model.generateContent(extractionPrompt);
-            logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, true);
+            const usage = extractUsageMetadata(extractionResult);
+            await logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, true, undefined, {
+                inputTokens: usage.promptTokenCount,
+                outputTokens: usage.candidatesTokenCount,
+                totalTokens: usage.totalTokenCount,
+                metadata: { stage: 'criteria_extraction' },
+            });
         } catch (error) {
-            logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+            await logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, false, error as Error, {
+                fallbackUsed: true,
+                metadata: { stage: 'criteria_extraction' },
+            });
             throw new Error(`AI extraction failed: ${(error as Error).message}`);
         }
         
@@ -70,9 +90,18 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             let introResult;
             try {
                 introResult = await model.generateContent(introPrompt);
-                logAIRequest(introPrompt, GEMINI_MODEL_VERSION, true);
+                const usage = extractUsageMetadata(introResult);
+                await logAIRequest(introPrompt, GEMINI_MODEL_VERSION, true, undefined, {
+                    inputTokens: usage.promptTokenCount,
+                    outputTokens: usage.candidatesTokenCount,
+                    totalTokens: usage.totalTokenCount,
+                    metadata: { stage: 'results_intro', resultCount: services.length },
+                });
             } catch (error) {
-                logAIRequest(introPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+                await logAIRequest(introPrompt, GEMINI_MODEL_VERSION, false, error as Error, {
+                    fallbackUsed: true,
+                    metadata: { stage: 'results_intro', resultCount: services.length },
+                });
                 // Use a generic intro if AI fails
                 introResult = { response: { text: () => `I found ${services.length} services for you:` } };
             }
@@ -94,9 +123,18 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             let result;
             try {
                 result = await model.generateContent(noResultsPrompt);
-                logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, true);
+                const usage = extractUsageMetadata(result);
+                await logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, true, undefined, {
+                    inputTokens: usage.promptTokenCount,
+                    outputTokens: usage.candidatesTokenCount,
+                    totalTokens: usage.totalTokenCount,
+                    metadata: { stage: 'no_results' },
+                });
             } catch (error) {
-                logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, false, error as Error);
+                await logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, false, error as Error, {
+                    fallbackUsed: true,
+                    metadata: { stage: 'no_results' },
+                });
                 return `I couldn't find any services matching "${criteria.query || userMessage}"${criteria.location ? ` in ${criteria.location}` : ''}. Try searching with different keywords or browse all services.`;
             }
             

@@ -12,6 +12,7 @@ import { AppInitializer } from "@/components/app-initializer";
 import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
+import { OfflineBanner } from "@/components/offline-banner";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -74,6 +75,7 @@ export default function RootLayout({
                 <ErrorBoundary name="Global Banner">
                   <GlobalBanner />
                 </ErrorBoundary>
+                <OfflineBanner />
                 <div className="flex flex-col min-h-screen">
                   {children}
                 </div>

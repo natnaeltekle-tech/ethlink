@@ -4,10 +4,13 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getCommissionRate } from '@/lib/actions/payments'
 import { paymentWebhookSchema } from '@/lib/validations'
 import { z } from 'zod'
+import { logApiError } from '@/lib/api-error'
 import {
     confirmBookingPaymentAtomic,
     detectPaymentProvider,
     extractBookingIdFromTxRef,
+    logPaymentEvent,
+    withRetry,
     type PaymentProvider,
 } from '@/lib/services/payments'
 import { Booking } from '@/lib/types/database'
@@ -87,12 +90,20 @@ async function confirmChapaPayment(
         return { confirmed: false, ackMessage: 'acknowledged (chapa not configured)' }
     }
 
-    const verifyResponse = await fetch(
-        `https://api.chapa.co/v1/transaction/verify/${txRef}`,
-        {
-            headers: { Authorization: `Bearer ${chapaSecretKey}` },
+    const verifyResponse = await withRetry(async () => {
+        const response = await fetch(
+            `https://api.chapa.co/v1/transaction/verify/${txRef}`,
+            {
+                headers: { Authorization: `Bearer ${chapaSecretKey}` },
+            }
+        )
+
+        if (response.status >= 500) {
+            throw new Error(`Chapa verify transient failure: ${response.status}`)
         }
-    )
+
+        return response
+    }, { attempts: 3, delayMs: 500 })
 
     if (!verifyResponse.ok) {
         const errorText = await verifyResponse.text()
@@ -179,6 +190,13 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        await logPaymentEvent({
+            txRef,
+            provider,
+            status: 'received',
+            payload: { status: body.status, hasMeta: Boolean(body.meta) },
+        })
+
         const webhookSecret = getProviderWebhookSecret(provider)
         if (!webhookSecret) {
             console.error(`[Payment Webhook] ${provider} webhook secret not configured`)
@@ -201,12 +219,27 @@ export async function POST(request: NextRequest) {
 
         const { confirmed, ackMessage } = await confirmPaymentWithProvider(provider, txRef, body)
         if (!confirmed) {
+            await logPaymentEvent({
+                txRef,
+                provider,
+                status: 'ignored',
+                message: ackMessage,
+                payload: { status: body.status },
+            })
             return NextResponse.json({ code: 0, msg: ackMessage })
         }
+
+        await logPaymentEvent({ txRef, provider, status: 'verified' })
 
         const bookingId = extractBookingIdFromTxRef(txRef) || body.meta?.booking_id
         if (!bookingId) {
             console.error('[Payment Webhook] Could not extract bookingId from tx_ref:', txRef)
+            await logPaymentEvent({
+                txRef,
+                provider,
+                status: 'ignored',
+                message: 'no_booking_id',
+            })
             return NextResponse.json({ code: 0, msg: 'acknowledged (no booking ID)' })
         }
 
@@ -219,6 +252,13 @@ export async function POST(request: NextRequest) {
 
         if (fetchError || !data) {
             console.error('[Payment Webhook] Booking not found:', bookingId)
+            await logPaymentEvent({
+                txRef,
+                bookingId,
+                provider,
+                status: 'ignored',
+                message: 'booking_not_found',
+            })
             return NextResponse.json({ code: 0, msg: 'acknowledged (booking not found)' })
         }
 
@@ -242,6 +282,13 @@ export async function POST(request: NextRequest) {
             }
 
             console.error('[Payment Webhook] Atomic payment confirmation failed:', result.message)
+            await logPaymentEvent({
+                txRef,
+                bookingId,
+                provider,
+                status: 'failed',
+                message: result.message,
+            })
             return NextResponse.json(
                 { code: 1, msg: 'Failed to update booking' },
                 { status: 500 }
@@ -250,13 +297,15 @@ export async function POST(request: NextRequest) {
 
         if (result.status === 'already_processed') {
             console.log('[Payment Webhook] Payment already processed:', txRef)
+            await logPaymentEvent({ txRef, bookingId, provider, status: 'already_processed' })
             return NextResponse.json({ code: 0, msg: 'already processed' })
         }
 
         console.log('[Payment Webhook] Booking updated to paid:', bookingId)
+        await logPaymentEvent({ txRef, bookingId, provider, status: 'processed' })
         return NextResponse.json({ code: 0, msg: 'success' })
     } catch (error) {
-        console.error('[Payment Webhook] Unhandled error:', error)
+        logApiError('payment/callback', error, { txRef: rawBody ? 'present' : 'empty' })
         return NextResponse.json({ code: 0, msg: 'acknowledged (internal error)' })
     }
 }

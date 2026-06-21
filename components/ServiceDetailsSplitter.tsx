@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import MobileServiceDetails from '@/components/mobile/MobileServiceDetails';
+import dynamic from 'next/dynamic';
+
+const MobileServiceDetails = dynamic(() => import('@/components/mobile/MobileServiceDetails'), {
+    ssr: false,
+    loading: () => null,
+});
 
 interface ServiceDetailsSplitterProps {
     service: any;

@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import MobileBooking from '@/components/mobile/MobileBooking';
+import dynamic from 'next/dynamic';
+
+const MobileBooking = dynamic(() => import('@/components/mobile/MobileBooking'), {
+    ssr: false,
+    loading: () => null,
+});
 
 interface BookingSplitterProps {
     service: any;

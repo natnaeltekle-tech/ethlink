@@ -1,7 +1,12 @@
 "use client"
 
 import { Capacitor } from '@capacitor/core'
-import MobileHome from '@/components/mobile/MobileHome'
+import dynamic from 'next/dynamic'
+
+const MobileHome = dynamic(() => import('@/components/mobile/MobileHome'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function HomeSplitter({ 
   services = [], 

@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.vitest
 
 # next.js
 /.next/
@@ -22,14 +23,31 @@
 
 # misc
 .DS_Store
+*.log
+*.tmp
+*.bak
+*.exe
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
 
-# debug
+# debug and generated reports
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+build_log.txt
+build_output*.txt
+full_errors.txt
+lint-output.txt
+lint_output*.txt
+tsc_errors.txt
+audit_report.md
+component_analysis.md
 
-# ─── Security: Environment & Secrets ───
+# Security: Environment & Secrets
 .env
 .env.*
 !.env.example
@@ -50,3 +68,7 @@ next-env.d.ts
 # IDE
 .idea/
 .cursor/
+
+# local scratch and extracted design references
+/scratch/
+/extracted_ui_codes/

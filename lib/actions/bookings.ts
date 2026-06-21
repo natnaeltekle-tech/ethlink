@@ -2,9 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { bookingSchema } from '@/lib/validations'
+import { bookingSchema, bookingStatusSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { getCommissionRate } from './payments'
 
 export async function checkServiceAvailability(serviceId: string, date: string): Promise<boolean> {
     const supabase = await createClient()
@@ -90,8 +91,6 @@ export async function createBooking(formData: FormData) {
             throw new Error('This service is already booked. Please explore our other available services.')
         }
 
-        let data;
-
         const result = await supabase
             .from('bookings')
             .insert({
@@ -111,7 +110,7 @@ export async function createBooking(formData: FormData) {
             }
             throw result.error
         }
-        data = result.data
+        const data = result.data
 
         // Fetch Service Owner's ID for notification
         const { data: service } = await supabase
@@ -308,6 +307,9 @@ export async function getProviderStats() {
         services: []
     }
 
+    const commissionRate = await getCommissionRate()
+    const earningsMultiplier = 1 - commissionRate
+
     // Calculate escrow balance (paid but not completed)
     const escrow_balance = bookings
         .filter(b => b.status === 'paid')
@@ -316,7 +318,7 @@ export async function getProviderStats() {
                 return sum + b.provider_earnings;
             }
             const price = b.services?.price || 0;
-            return sum + (price * 0.9);
+            return sum + (price * earningsMultiplier);
         }, 0)
 
     // Calculate available balance (completed jobs ready for payout)
@@ -327,7 +329,7 @@ export async function getProviderStats() {
                 return sum + b.provider_earnings;
             }
             const price = b.services?.price || 0;
-            return sum + (price * 0.9);
+            return sum + (price * earningsMultiplier);
         }, 0)
 
     // Legacy earnings calculation (for backwards compatibility)
@@ -341,7 +343,7 @@ export async function getProviderStats() {
             id: b.id,
             service_title: b.services?.title,
             booking_date: b.date,
-            amount: b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0) * 0.9
+            amount: b.provider_earnings !== null ? b.provider_earnings : (b.services?.price || 0) * earningsMultiplier
         }))
 
     return {
@@ -355,6 +357,11 @@ export async function getProviderStats() {
 }
 
 export async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'cancelled') {
+    const parsedStatus = bookingStatusSchema.safeParse(status)
+    if (!parsedStatus.success) {
+        throw new Error('Invalid booking status')
+    }
+
     const supabase = await createClient()
     let user = null
     try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }

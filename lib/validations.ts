@@ -69,3 +69,31 @@ export const paymentWebhookSchema = z.object({
 
 // ─── Booking Status ─────────────────────────────────────────────────────────
 export const bookingStatusSchema = z.enum(['confirmed', 'cancelled']);
+export const escrowResolutionSchema = z.object({
+    bookingId: z.string().uuid(),
+    resolution: z.enum(['release_to_provider', 'refund_customer']),
+    reason: safeString(1000).min(10, 'Please provide a dispute note with at least 10 characters'),
+});
+
+// ─── Profile ────────────────────────────────────────────────────────────────
+export const profileUpdateSchema = z.object({
+    firstName: safeString(100).optional(),
+    lastName: safeString(100).optional(),
+    phoneNumber: safeString(20).optional(),
+}).refine(
+    (data) => data.firstName || data.lastName || data.phoneNumber,
+    { message: 'No changes provided' }
+);
+
+export const providerProfileSchema = z.object({
+    firstName: safeString(100).min(1, 'First name is required'),
+    lastName: safeString(100).min(1, 'Last name is required'),
+    phoneNumber: safeString(20).min(1, 'Phone number is required'),
+    idCardLink: safeUrl,
+});
+
+export const uuidSchema = z.string().uuid();
+
+export const chatInputSchema = z.object({
+    message: safeString(500).min(1, 'Message cannot be empty'),
+});

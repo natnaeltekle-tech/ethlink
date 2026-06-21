@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import MobileProfile from '@/components/mobile/MobileProfile';
+import dynamic from 'next/dynamic';
+
+const MobileProfile = dynamic(() => import('@/components/mobile/MobileProfile'), {
+    ssr: false,
+    loading: () => null,
+});
 
 interface DashboardSplitterProps {
     user: any;

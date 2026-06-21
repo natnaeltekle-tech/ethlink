@@ -36,7 +36,7 @@ export async function addImageToGallery(serviceId: string, imageUrl: string) {
     const currentGallery = service.gallery || []
 
     // Check if we should also add to 'image_url' if it's empty (first image)
-    let updates: ServiceUpdate = {
+    const updates: ServiceUpdate = {
         gallery: [...currentGallery, imageUrl]
     }
 
@@ -81,7 +81,7 @@ export async function removeImageFromGallery(serviceId: string, imageUrlToRemove
     const currentGallery = service.gallery || []
     const newGallery = currentGallery.filter((img: string) => img !== imageUrlToRemove)
 
-    let updates: ServiceUpdate = {
+    const updates: ServiceUpdate = {
         gallery: newGallery
     }
 
