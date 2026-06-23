@@ -1,4 +1,4 @@
-⁹# Eth-Links
+# Eth-Links
 
 Ethiopian AI service marketplace built with Next.js App Router, Supabase, Capacitor PWA, Gemini, Chapa escrow payments, realtime chat, Tailwind, and Shadcn-style UI primitives.
 
