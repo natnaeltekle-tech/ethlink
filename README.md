@@ -1,4 +1,4 @@
-# Eth-Links
+⁹# Eth-Links
 
 Ethiopian AI service marketplace built with Next.js App Router, Supabase, Capacitor PWA, Gemini, Chapa escrow payments, realtime chat, Tailwind, and Shadcn-style UI primitives.
 
@@ -80,5 +80,4 @@ npm run build
 - Webhook events are logged to `payment_webhook_events` for auditability.
 - Admin escrow resolution uses `resolveEscrowDispute` to either release funds to the provider (`completed`) or mark a refund (`refunded`).
 - API/payment routes are network-only in the service worker to avoid stale payment state.
-
 // GitHub status refresh - 2025
