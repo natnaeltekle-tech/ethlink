@@ -81,3 +81,5 @@ npm run build
 - Admin escrow resolution uses `resolveEscrowDispute` to either release funds to the provider (`completed`) or mark a refund (`refunded`).
 - API/payment routes are network-only in the service worker to avoid stale payment state.
 # Eth-Links - Ethiopian AI Service Marketplace
+
+## Money-Flow Notes
