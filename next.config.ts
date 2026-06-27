@@ -1,93 +1,62 @@
-import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false,
-  reloadOnOnline: true,
-  disable: process.env.NODE_ENV === "development",
-  workboxOptions: {
-    disableDevLogs: true,
-    runtimeCaching: [
-      {
-        urlPattern: ({ request }) => request.destination === "image",
-        handler: "CacheFirst",
-        options: {
-          cacheName: "ethlink-images",
-          expiration: {
-            maxEntries: 120,
-            maxAgeSeconds: 60 * 60 * 24 * 14, // 2 weeks
-          },
-        },
-      },
-      {
-        urlPattern: ({ url }) => url.pathname.startsWith("/_next/static/"),
-        handler: "CacheFirst",
-        options: {
-          cacheName: "ethlink-static",
-          expiration: {
-            maxEntries: 80,
-            maxAgeSeconds: 60 * 60 * 24 * 30, // 1 month
-          },
-        },
-      },
-      {
-        urlPattern: ({ url }) =>
-          url.pathname.startsWith("/api/") ||
-          url.pathname.startsWith("/payment/") ||
-          url.pathname.startsWith("/book/success"),
-        handler: "NetworkOnly",
-        options: {
-          cacheName: "ethlink-network-only",
-        },
-      },
-      {
-        urlPattern: ({ request }) => request.mode === "navigate",
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "ethlink-pages",
-          networkTimeoutSeconds: 3,
-          expiration: {
-            maxEntries: 50,
-            maxAgeSeconds: 60 * 60 * 24, // 1 day
-          },
-        },
-      },
-    ],
-  },
-});
-
-const nextConfig: NextConfig = {
-  // Silence noisy warnings temporarily while we clean up the codebase
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+  compress: true,
+  
+  // Image optimization for low-data networks
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "plus.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
+        protocol: 'https',
+        hostname: '**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24, // 1 day
   },
 
-  // Recommended for Next.js 15 + React 19
+  // Experimental optimizations
   experimental: {
-    // You can add more experimental flags later if needed
+    optimizePackageImports: [
+      '@supabase/supabase-js',
+      'lucide-react',
+      'date-fns',
+      'react-hot-toast',
+    ],
+    scrollRestoration: true,
+  },
+
+  // Security
+  poweredByHeader: false,
+
+  // Headers for security & caching
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+
+  // PWA / Service Worker friendly
+  async rewrites() {
+    return [];
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
