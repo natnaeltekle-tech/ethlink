@@ -8,31 +8,53 @@ import { User, Building2, Settings } from 'lucide-react'
 import { Haptics } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
+interface UserProfile {
+  email?: string
+  [key: string]: any // Temporary for Supabase user
+}
+
+interface ProfileData {
+  full_name?: string
+  [key: string]: any
+}
+
+interface Booking {
+  id: string
+  [key: string]: any
+}
+
+interface ProviderStat {
+  [key: string]: any
+}
+
+interface Service {
+  id: string
+  [key: string]: any
+}
+
 interface ProfileContentProps {
-  user: any
-  bookings: any[]
-  providerStats: any
-  providerServices: any[]
-  profile: any
+  user: UserProfile | null
+  bookings: Booking[]
+  providerStats?: ProviderStat | null
+  providerServices: Service[]
+  profile?: ProfileData | null
 }
 
 export function ProfileContent({
   user,
-  bookings,
+  bookings = [],
   providerStats,
-  providerServices,
+  providerServices = [],
   profile,
 }: ProfileContentProps) {
   const { theme, setTheme } = useTheme()
   const [isVendorMode, setIsVendorMode] = useState(false)
 
   useEffect(() => {
-    // Check if vendor mode is enabled (you can store this in localStorage or user profile)
-    const vendorMode = localStorage.getItem('vendorMode') === 'true'
-    setIsVendorMode(vendorMode)
+    const savedMode = localStorage.getItem('vendorMode') === 'true'
+    setIsVendorMode(savedMode)
     
-    // Apply theme based on vendor mode
-    if (vendorMode) {
+    if (savedMode) {
       document.documentElement.setAttribute('data-theme', 'purple')
     } else {
       document.documentElement.removeAttribute('data-theme')
@@ -44,7 +66,6 @@ export function ProfileContent({
     setIsVendorMode(checked)
     localStorage.setItem('vendorMode', checked.toString())
     
-    // Apply theme change
     if (checked) {
       document.documentElement.setAttribute('data-theme', 'purple')
     } else {
@@ -53,15 +74,14 @@ export function ProfileContent({
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="px-4 py-4">
-          <h1 className="text-2xl font-bold mb-4">Profile</h1>
+          <h1 className="text-2xl font-bold">Profile</h1>
         </div>
       </div>
 
-      {/* Profile Info */}
       <div className="p-4 space-y-6">
         {/* User Info Card */}
         <div className="p-6 bg-card border border-border rounded-xl">
@@ -69,10 +89,12 @@ export function ProfileContent({
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
               <User className="w-8 h-8 text-primary" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold">{user?.email || 'User'}</h2>
-              <p className="text-sm text-muted-foreground">
-                {profile?.full_name || 'User'}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold truncate">
+                {user?.email || 'User'}
+              </h2>
+              <p className="text-sm text-muted-foreground truncate">
+                {profile?.full_name || 'Profile'}
               </p>
             </div>
           </div>
@@ -103,9 +125,7 @@ export function ProfileContent({
                 <Label htmlFor="vendor-mode" className="text-base font-semibold cursor-pointer">
                   Vendor Mode
                 </Label>
-                <p className="text-sm text-muted-foreground">
-                  Switch to business theme
-                </p>
+                <p className="text-sm text-muted-foreground">Switch to business theme</p>
               </div>
             </div>
             <Switch
@@ -117,7 +137,7 @@ export function ProfileContent({
           </div>
         </div>
 
-        {/* Settings Section */}
+        {/* Settings */}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold px-2">Settings</h3>
           <div className="space-y-2">
