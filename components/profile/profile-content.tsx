@@ -14,7 +14,7 @@ interface UserProfile {
 }
 
 interface ProfileData {
-  full_name?: string
+  full_name?: string | null
   [key: string]: any
 }
 
