@@ -215,7 +215,8 @@ export async function getChatResponse(userMessage: string) {
         }
 
         if (location_filter) {
-            query = query.ilike('location', `%${location_filter}%`);
+            const safeLocation = location_filter.replace(/[%_\\]/g, '')
+            query = query.ilike('location', `%${safeLocation}%`);
         }
 
         // Apply Text Search if we have keywords left
@@ -244,12 +245,12 @@ export async function getChatResponse(userMessage: string) {
             let response = `Based on your request, my top recommendation is **${topService.title}**. It is a great choice for ${category_filter || topService.category || 'what you need'}.\n\n`;
 
             // Add top service details
-            response += `🔹 [${topService.title}](/services/${topService.id}) ($${topService.price}) ${topService.avg_rating ? `⭐ ${Number(topService.avg_rating).toFixed(1)}` : ''}\n📍 ${topService.location || 'Location not specified'}\n\n`;
+            response += `🔹 [${topService.title}](/services/${topService.id}) (ETB ${topService.price}) ${topService.avg_rating ? `⭐ ${Number(topService.avg_rating).toFixed(1)}` : ''}\n📍 ${topService.location || 'Location not specified'}\n\n`;
 
             if (otherServices.length > 0) {
                 response += `Here are other highly-rated options:\n\n`;
                 const otherFormatted = otherServices.map((s: any) => {
-                    return `🔹 [${s.title}](/services/${s.id}) ($${s.price}) ${s.avg_rating ? `⭐ ${Number(s.avg_rating).toFixed(1)}` : ''}\n📍 ${s.location || 'Location not specified'}`;
+                    return `🔹 [${s.title}](/services/${s.id}) (ETB ${s.price}) ${s.avg_rating ? `⭐ ${Number(s.avg_rating).toFixed(1)}` : ''}\n📍 ${s.location || 'Location not specified'}`;
                 }).join('\n\n');
                 response += otherFormatted;
             }
@@ -260,7 +261,7 @@ export async function getChatResponse(userMessage: string) {
             if (category_filter) msg += ` in ${category_filter}`;
             if (finalQuery) msg += ` matching "${finalQuery}"`;
             if (location_filter) msg += ` in ${location_filter}`;
-            if (max_price) msg += ` under $${max_price}`;
+            if (max_price) msg += ` under ETB ${max_price}`;
             msg += `. Try broadening your search.`;
             return msg;
         }

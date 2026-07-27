@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
+import dynamic from "next/dynamic";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { FloatingChat } from "@/components/floating-chat";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "@/components/mobile-nav";
 import { GlobalBanner } from "@/components/global-banner";
@@ -13,6 +13,12 @@ import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
 import { OfflineBanner } from "@/components/offline-banner";
+
+// P3: Lazy-load the AI chat widget — saves ~65KB on initial page load
+const FloatingChat = dynamic(() => import("@/components/floating-chat").then(m => ({ default: m.FloatingChat })), {
+  loading: () => null,
+});
+
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -35,12 +41,13 @@ export const viewport: Viewport = {
   themeColor: "#F5C518",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false, // Disables zoom for App feel
+  maximumScale: 5,
+  userScalable: true, // Allow zoom for accessibility on small Ethiopian screens
 };
 
-// Prevent Next.js from caching server fetches — avoids stale HTML on PWA resume
-export const fetchCache = 'force-no-store';
+// A3: Removed 'force-no-store' — it was disabling ALL server-side caching,
+// causing every page view to re-fetch from Supabase. Use revalidatePath() for
+// targeted invalidation instead.
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,11 +62,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="dark" style={{ backgroundColor: '#0B0C15' }}>
-      <head>
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
-      </head>
+      <head />
       <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`} style={{ backgroundColor: '#0B0C15', minHeight: '100vh' }}>
         <ClientErrorBoundary>
           <ThemeProvider

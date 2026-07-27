@@ -28,7 +28,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
         // 1. Extract Search Criteria
         const extractionPrompt = `
             You are a smart search assistant for a service marketplace called EthLink. 
-            Extract search criteria from the user's message: "${userMessage}".
+            Extract search criteria from the user's message: "${sanitizedMessage}".
             
             Return a JSON object with:
             - "query": (string) main keywords (service type, category, etc.). Fix typos (e.g., "phototgraphy" -> "photography"). Remove filler words.
@@ -109,7 +109,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             const intro = introResult.response.text();
 
             const formattedServices = services.slice(0, 3).map((s: any) => {
-                return `🔹 ${s.title} ($${s.price})\n📍 ${s.location || 'Location not specified'}\n📅 [Book Now](/book/${s.id})`;
+                return `🔹 ${s.title} (ETB ${s.price})\n📍 ${s.location || 'Location not specified'}\n📅 [Book Now](/book/${s.id})`;
             }).join('\n\n');
 
             return `${intro}\n\n${formattedServices}`;

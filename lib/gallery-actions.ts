@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { Database } from '@/lib/database.types'
+import { Database } from '@/lib/types/database'
 import { urlSchema } from '@/lib/validations'
 
 type ServiceUpdate = Database['public']['Tables']['services']['Update']

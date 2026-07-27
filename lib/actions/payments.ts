@@ -203,6 +203,14 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         throw new Error('Payment was not completed successfully')
     }
 
+    // S2: Verify paid amount matches booking price (±1 ETB tolerance for rounding)
+    const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
+    const expectedPrice = booking.services.price
+    if (Math.abs(paidAmount - expectedPrice) > 1) {
+        console.error('[Chapa] Amount mismatch! Paid:', paidAmount, 'Expected:', expectedPrice)
+        throw new Error('Payment amount does not match booking price')
+    }
+
     const price = booking.services.price
     const commission = price * commissionRate
     const earnings = price - commission

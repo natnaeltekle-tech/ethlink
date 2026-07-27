@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-import { Database } from '@/lib/database.types'
+import { Database } from '@/lib/types/database'
 
 type Notification = Database['public']['Tables']['notifications']['Row']
 

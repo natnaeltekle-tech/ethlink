@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { serviceSchema, messageSchema, reviewSchema } from '@/lib/validations'
+import { sanitizeMessage, sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { Service, ServiceView, Message, ReviewWithProfile } from '@/lib/types/database'
@@ -18,13 +19,14 @@ export async function searchServices(query: string): Promise<ServiceView[]> {
     if (query.length > 500) query = query.slice(0, 500)
 
     // Sanitize query to prevent injection in .or()
-    const safeQuery = query.replace(/[.(),]/g, ' ')
+    const safeQuery = query.replace(/[.(),%_\\]/g, ' ')
 
     const { data, error } = await supabase
         .from('services_view')
         .select('*')
         .eq('is_active', true)
         .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%`)
+        .limit(50)
         .returns<ServiceView[]>()
 
     if (error) {
@@ -46,7 +48,7 @@ export async function searchServicesAdvanced(
     let queryBuilder = supabase.from('services_view').select('*').eq('is_active', true);
 
     if (query) {
-        const safeQuery = query.replace(/[.(),]/g, ' ')
+        const safeQuery = query.replace(/[.(),%_\\]/g, ' ')
         queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`);
     }
 
@@ -62,7 +64,7 @@ export async function searchServicesAdvanced(
         queryBuilder = queryBuilder.lte('price', maxPrice);
     }
 
-    const { data, error } = await queryBuilder.returns<ServiceView[]>();
+    const { data, error } = await queryBuilder.limit(50).returns<ServiceView[]>();
 
     if (error) {
         console.error('Error searching services (advanced):', error);
@@ -82,11 +84,11 @@ export async function getFilteredServices(category?: string, query?: string): Pr
     }
 
     if (query) {
-        const safeQuery = query.replace(/[.(),]/g, ' ')
+        const safeQuery = query.replace(/[.(),%_\\]/g, ' ')
         dbQuery = dbQuery.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`);
     }
 
-    const { data, error } = await dbQuery.returns<ServiceView[]>();
+    const { data, error } = await dbQuery.limit(50).returns<ServiceView[]>();
 
     if (error) {
         console.error('Error fetching filtered services:', error);
@@ -106,11 +108,11 @@ export async function searchServicesGreedy(keyword: string, maxPrice?: number): 
     }
 
     if (keyword) {
-        const safeQuery = keyword.replace(/[.(),]/g, ' ')
+        const safeQuery = keyword.replace(/[.(),%_\\]/g, ' ')
         queryBuilder = queryBuilder.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,category.ilike.%${safeQuery}%,location.ilike.%${safeQuery}%`);
     }
 
-    const { data, error } = await queryBuilder.returns<ServiceView[]>();
+    const { data, error } = await queryBuilder.limit(50).returns<ServiceView[]>();
 
     if (error) {
         console.error('Error searching services (greedy):', error);
@@ -276,7 +278,7 @@ export async function sendMessage(serviceId: string, receiverId: string, content
             service_id: serviceId,
             sender_id: user.id,
             receiver_id: receiverId,
-            content,
+            content: sanitizeMessage(content),
         })
 
     if (error) {
@@ -325,11 +327,15 @@ export async function createService(formData: FormData): Promise<void> {
 
     try {
         const validatedData = serviceSchema.parse(rawData);
+        const sanitizedData = {
+            ...validatedData,
+            description: sanitizeDescription(validatedData.description),
+        };
 
         const { data, error } = await supabase
             .from('services')
             .insert({
-                ...validatedData,
+                ...sanitizedData,
                 user_id: user.id,
                 amenities: amenities.length > 0 ? amenities : null
             })
@@ -377,7 +383,7 @@ export async function submitReview(serviceId: string, rating: number, comment: s
             service_id: serviceId,
             user_id: user.id,
             rating,
-            comment,
+            comment: sanitizeReviewComment(comment),
         })
 
     if (error) {
