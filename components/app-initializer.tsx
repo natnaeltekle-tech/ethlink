@@ -29,11 +29,11 @@ export function AppInitializer({ children }: AppInitializerProps) {
     try {
       if (Capacitor.isNativePlatform()) {
         const platform = Capacitor.getPlatform();
-        if (platform === 'android') {
+        if (platform === "android") {
           // Allow extra time for Android WebView to paint first frame
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        
+
         console.log("🚀 SPLASH HIDDEN - smooth transition to UI");
         await SplashScreen.hide({
           fadeOutDuration: 500, // Premium smooth fade transition
@@ -80,19 +80,19 @@ export function AppInitializer({ children }: AppInitializerProps) {
   // Service Worker purge: if app fails to hydrate within 3s, nuke dead SWs and reload
   useEffect(() => {
     const swTimeout = setTimeout(async () => {
-      if (!state.isReady && 'serviceWorker' in navigator) {
-        console.warn('⚠️ PWA hydration stalled — purging service workers');
+      if (!state.isReady && "serviceWorker" in navigator) {
+        console.warn("⚠️ PWA hydration stalled — purging service workers");
         try {
           const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map(r => r.unregister()));
+          await Promise.all(registrations.map((r) => r.unregister()));
           // Clear all caches
-          if ('caches' in window) {
+          if ("caches" in window) {
             const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            await Promise.all(cacheNames.map((name) => caches.delete(name)));
           }
           window.location.reload();
         } catch (e) {
-          console.error('SW purge failed:', e);
+          console.error("SW purge failed:", e);
         }
       }
     }, 3000);
@@ -109,12 +109,17 @@ export function AppInitializer({ children }: AppInitializerProps) {
 
   // Show loading state with dark background to prevent white flash
   if (!state.isReady) {
-    return null; // Return null so the native splash stays visible
+    return <AppLoadingScreen />;
   }
 
   // Show error state if initialization failed
   if (state.error) {
-    return <AppErrorScreen error={state.error} onRetry={() => setState({ isReady: false, error: null })} />;
+    return (
+      <AppErrorScreen
+        error={state.error}
+        onRetry={() => setState({ isReady: false, error: null })}
+      />
+    );
   }
 
   return <>{children}</>;
@@ -126,7 +131,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
  */
 function AppLoadingScreen() {
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center"
       style={{ backgroundColor: "#0B0C15" }}
     >
@@ -164,9 +169,15 @@ function AppLoadingScreen() {
  * Error screen shown when initialization fails.
  * Provides a retry button to attempt reinitialization.
  */
-function AppErrorScreen({ error, onRetry }: { error: Error; onRetry: () => void }) {
+function AppErrorScreen({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry: () => void;
+}) {
   return (
-    <div 
+    <div
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{ backgroundColor: "#0B0C15" }}
     >
