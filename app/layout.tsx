@@ -13,11 +13,18 @@ import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
 import { OfflineBanner } from "@/components/offline-banner";
+import { SWCleaner } from "@/components/sw-cleaner";
 
 // P3: Lazy-load the AI chat widget — saves ~65KB on initial page load
-const FloatingChat = dynamic(() => import("@/components/floating-chat").then(m => ({ default: m.FloatingChat })), {
-  loading: () => null,
-});
+const FloatingChat = dynamic(
+  () =>
+    import("@/components/floating-chat").then((m) => ({
+      default: m.FloatingChat,
+    })),
+  {
+    loading: () => null,
+  }
+);
 
 import "./globals.css";
 
@@ -42,12 +49,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  userScalable: true, // Allow zoom for accessibility on small Ethiopian screens
+  userScalable: true,
 };
-
-// A3: Removed 'force-no-store' — it was disabling ALL server-side caching,
-// causing every page view to re-fetch from Supabase. Use revalidatePath() for
-// targeted invalidation instead.
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,9 +64,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark" style={{ backgroundColor: '#0B0C15' }}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="dark"
+      style={{ backgroundColor: "#0B0C15" }}
+    >
       <head />
-      <body className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`} style={{ backgroundColor: '#0B0C15', minHeight: '100vh' }}>
+      <body
+        className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`}
+        style={{ backgroundColor: "#0B0C15", minHeight: "100vh" }}
+      >
+        <SWCleaner />
         <ClientErrorBoundary>
           <ThemeProvider
             attribute="class"
@@ -79,9 +91,7 @@ export default function RootLayout({
                   <GlobalBanner />
                 </ErrorBoundary>
                 <OfflineBanner />
-                <div className="flex flex-col min-h-screen">
-                  {children}
-                </div>
+                <div className="flex flex-col min-h-screen">{children}</div>
                 <ErrorBoundary name="Mobile Navigation">
                   <Suspense fallback={null}>
                     <MobileNav />
