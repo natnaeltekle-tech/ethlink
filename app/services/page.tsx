@@ -1,14 +1,9 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { createClient } from '@/lib/supabase/server';
 import { getFilteredServices } from '@/lib/actions';
-
-import { ArrowRight } from 'lucide-react';
 import { ServiceListing } from '@/components/service/service-listing';
-
 import { searchParamsSchema } from '@/lib/validations';
-import { PrefetchAddRoute } from '@/components/prefetch-add-route';
 
 export default async function ServicesPage({
     searchParams,
@@ -25,8 +20,6 @@ export default async function ServicesPage({
 
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Prefetch /services/new route for instant Add button navigation */}
-            <PrefetchAddRoute />
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <h1 className="text-3xl font-bold">
                     {category ? `Browsing: ${category}` : 'All Services'}
