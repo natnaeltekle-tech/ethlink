@@ -4,13 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { completeJob, updateBookingStatus } from '@/lib/actions';
+import { completeJob, updateBookingStatus, updateProfile } from '@/lib/actions';
 import { toast } from 'sonner';
-import { ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2, Camera, User as UserIcon, Phone, Save } from 'lucide-react';
+import { ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, LifeBuoy, LogOut, CheckCircle, Clock, Briefcase, Check, X, Loader2, Camera, User as UserIcon, Phone, Save, ShieldCheck } from 'lucide-react';
 import MobileVerification from './MobileVerification';
 import MobileMyBookings from './MobileMyBookings';
 import MobileFavorites from './MobileFavorites';
-import { updateProfile } from '@/lib/actions';
 
 interface MobileProfileProps {
     user: any;
@@ -30,24 +29,21 @@ export default function MobileProfile({
     const router = useRouter();
     const supabase = createClient();
     
-    // UI Modal States
     const [showVerification, setShowVerification] = useState(false);
     const [showMyBookings, setShowMyBookings] = useState(false);
     const [showFavorites, setShowFavorites] = useState(false);
 
-    // State for Escrow / Customer Bookings
     const [completingJob, setCompletingJob] = useState<string | null>(null);
     const [myBookings, setMyBookings] = useState<any[]>(customerBookings || []);
 
-    // State for Provider Controls
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [pendingRequests, setPendingRequests] = useState<any[]>(stats?.pendingBookings || []);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     
-    // Task 2: Edit Profile State
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(profile?.avatar_url || null);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     
     const [editForm, setEditForm] = useState({
@@ -56,7 +52,6 @@ export default function MobileProfile({
         phone: profile?.phone_number || ''
     });
 
-    // 1. Escrow Release Logic (Customer confirming job is done)
     const handleCompleteJob = async (bookingId: string) => {
         if (!confirm('Are you sure the job is completed to your satisfaction?')) return;
 
@@ -64,40 +59,34 @@ export default function MobileProfile({
         try {
             await completeJob(bookingId);
             toast.success('Job marked as completed!');
-            // Optimistically update the UI
             setMyBookings((prev: any[]) => prev.map((b: any) => b.id === bookingId ? { ...b, status: 'completed' } : b));
             router.refresh();
-        } catch (error) {
+        } catch {
             toast.error('Failed to complete job');
         } finally {
             setCompletingJob(null);
         }
     };
 
-    // 2. Provider Controls (Accept/Reject bookings)
     const handleBookingAction = async (bookingId: string, action: 'confirmed' | 'cancelled') => {
         setIsUpdating(bookingId);
         try {
             await updateBookingStatus(bookingId, action);
-            
-            // Optimistic update
             setPendingRequests((prev: any[]) => prev.filter((b: any) => b.id !== bookingId));
-            
             toast.success(`Booking ${action === 'confirmed' ? 'accepted' : 'rejected'}`);
             router.refresh();
-        } catch (error) {
+        } catch {
             toast.error("Failed to update booking");
         } finally {
             setIsUpdating(null);
         }
     };
 
-    // 5. Safe Logout
     const handleLogout = async () => {
         setIsLoggingOut(true);
         try {
             await supabase.auth.signOut();
-            window.location.href = '/auth/login'; // Hard redirect to prevent WSoD
+            window.location.href = '/auth/login';
         } catch (error) {
             console.error("Logout failed", error);
             setIsLoggingOut(false);
@@ -110,6 +99,8 @@ export default function MobileProfile({
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        // reset so same file can be re-selected
+        e.target.value = '';
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
@@ -117,48 +108,54 @@ export default function MobileProfile({
             return;
         }
 
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image must be under 5MB");
+            return;
+        }
+
+        if (!user?.id) {
+            toast.error("You must be logged in to change photo");
+            return;
+        }
+
         setIsUploading(true);
-        let publicUrl = '';
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}_${Date.now()}.${fileExt}`;
-            
-            // Try avatars bucket first, fallback to service-images
-            let bucketName = 'avatars';
-            const { data: bucketData, error: bucketError } = await supabase.storage.getBucket(bucketName);
-            
-            if (bucketError || !bucketData) {
-                bucketName = 'service-images';
-            }
+            const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+            const fileName = `avatars/${user.id}_${Date.now()}.${fileExt}`;
+            // Production bucket from migrations
+            const bucketName = 'service-images';
 
             const { error: uploadError } = await supabase.storage
                 .from(bucketName)
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: true,
+                    contentType: file.type,
+                });
 
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage
                 .from(bucketName)
                 .getPublicUrl(fileName);
-            publicUrl = data.publicUrl;
-        } catch (error: any) {
-            toast.error("Upload failed: " + (error.message || "Unknown error"));
-            setIsUploading(false);
-            return;
-        }
+            const publicUrl = data.publicUrl;
 
-        try {
             const { error: updateError } = await supabase
                 .from('profiles')
-                .update({ avatar_url: publicUrl })
-                .eq('id', user.id);
+                .upsert({
+                    id: user.id,
+                    avatar_url: publicUrl,
+                    updated_at: new Date().toISOString(),
+                });
 
             if (updateError) throw updateError;
 
+            setLocalAvatarUrl(publicUrl);
             toast.success("Profile picture updated!");
             router.refresh();
         } catch (error: any) {
-            toast.error("Database update failed: " + (error.message || "Unknown error"));
+            console.error('[avatar upload]', error);
+            toast.error(error?.message || "Could not update photo. Check storage permissions.");
         } finally {
             setIsUploading(false);
         }
@@ -196,8 +193,20 @@ export default function MobileProfile({
         : new Date().getFullYear();
 
     const isProvider = services && services.length > 0;
+    const avatarSrc = localAvatarUrl || profile?.avatar_url;
 
-    // Render Modals Early
+    // Hidden file input always mounted so Edit Profile camera works
+    const fileInput = (
+        <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileChange}
+        />
+    );
+
     if (showVerification) {
         return <div className="fixed inset-0 z-[100] bg-black"><MobileVerification onClose={() => setShowVerification(false)} /></div>;
     }
@@ -224,7 +233,7 @@ export default function MobileProfile({
                     </button>
                     <h2 className="text-white font-bold text-lg">My Favorites</h2>
                 </div>
-                <MobileFavorites favorites={[]} /> {/* Empty for now until wired to backend favorites */}
+                <MobileFavorites favorites={[]} />
             </div>
         );
     }
@@ -232,6 +241,7 @@ export default function MobileProfile({
     if (showEditProfile) {
         return (
             <div className="fixed inset-0 z-[100] bg-[#0B0C15] flex flex-col font-sans">
+                {fileInput}
                 <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0B0C15]">
                     <button onClick={() => setShowEditProfile(false)} className="text-white/70">
                         <ChevronLeft className="w-6 h-6" />
@@ -242,13 +252,19 @@ export default function MobileProfile({
 
                 <main className="flex-1 overflow-y-auto p-6 space-y-8">
                     <div className="flex flex-col items-center">
-                        <div className="relative group" onClick={handleAvatarClick}>
+                        <button
+                            type="button"
+                            className="relative group"
+                            onClick={handleAvatarClick}
+                            disabled={isUploading}
+                            aria-label="Change profile photo"
+                        >
                             <div className="h-24 w-24 rounded-full p-1 border-2 border-[#f5c619] bg-[#0B0C15]">
                                 <div 
-                                    className="h-full w-full rounded-full bg-cover bg-center overflow-hidden bg-[#1A1C2E] flex items-center justify-center text-2xl font-bold text-[#f5c619]" 
-                                    style={profile?.avatar_url ? { backgroundImage: `url("${profile.avatar_url}")` } : {}}
+                                    className="h-full w-full rounded-full bg-cover bg-center overflow-hidden bg-[#1A1C2E] flex items-center justify-center text-2xl font-bold text-[#f5c619] relative" 
+                                    style={avatarSrc ? { backgroundImage: `url("${avatarSrc}")` } : {}}
                                 >
-                                    {!profile?.avatar_url && displayName[0]?.toUpperCase()}
+                                    {!avatarSrc && displayName[0]?.toUpperCase()}
                                     {isUploading && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
                                             <Loader2 className="w-6 h-6 animate-spin text-white" />
@@ -259,8 +275,15 @@ export default function MobileProfile({
                             <div className="absolute bottom-0 right-0 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15]">
                                 <Camera className="w-4 h-4 font-bold" />
                             </div>
-                        </div>
-                        <p className="text-[#f5c619] text-xs font-bold mt-2 uppercase tracking-widest">Change Photo</p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleAvatarClick}
+                            disabled={isUploading}
+                            className="text-[#f5c619] text-xs font-bold mt-2 uppercase tracking-widest"
+                        >
+                            {isUploading ? 'Uploading…' : 'Change Photo'}
+                        </button>
                     </div>
 
                     <div className="space-y-6">
@@ -303,7 +326,7 @@ export default function MobileProfile({
                                 <input 
                                     type="tel" 
                                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-[#f5c619] focus:outline-none transition-colors"
-                                    placeholder="+251 ..."
+                                    placeholder="09..."
                                     value={editForm.phone}
                                     onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
                                 />
@@ -328,49 +351,39 @@ export default function MobileProfile({
 
     return (
         <div className="bg-[#0B0C15] font-sans text-slate-400 min-h-screen selection:bg-[#f5c619] selection:text-[#0B0C15] overflow-x-hidden w-full h-full pb-24">
-            {/* Top App Bar */}
+            {fileInput}
             <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-[#0B0C15]/80 backdrop-blur-md border-b border-white/5">
                 <Link href="/" className="text-white/70 hover:text-white transition-colors p-2 -ml-2 rounded-full hover:bg-white/5">
                     <ChevronLeft className="w-6 h-6 ml-[-2px]" />
                 </Link>
                 <h2 className="text-white text-lg font-bold tracking-tight">Profile</h2>
-                <button className="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5" onClick={() => toast('Profile options opened')}>
-                    <MoreHorizontal className="w-6 h-6" />
+                <button className="text-white/70 hover:text-white transition-colors p-2 -mr-2 rounded-full hover:bg-white/5" onClick={() => setShowEditProfile(true)}>
+                    <Edit2 className="w-5 h-5" />
                 </button>
             </header>
 
             <main className="flex flex-col items-center px-5 pt-6 pb-12 w-full gap-8 max-w-[480px] mx-auto">
-                
-                {/* 1. Profile Header Section */}
                 <div className="flex flex-col items-center w-full relative">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#f5c619]/20 rounded-full blur-3xl -z-10"></div>
-                    <div className="relative group cursor-pointer">
+                    <div className="relative group cursor-pointer" onClick={() => setShowEditProfile(true)}>
                         <div className="h-32 w-32 rounded-full p-1 border-2 border-[#f5c619] shadow-[0_0_15px_-3px_rgba(245,198,25,0.3)] bg-[#0B0C15]">
                             <div 
                                 className="h-full w-full rounded-full bg-cover bg-center overflow-hidden bg-[#1A1C2E] flex items-center justify-center text-3xl font-bold text-[#f5c619]" 
-                                style={profile?.avatar_url ? { backgroundImage: `url("${profile.avatar_url}")` } : {}}
+                                style={avatarSrc ? { backgroundImage: `url("${avatarSrc}")` } : {}}
                             >
-                                {!profile?.avatar_url && displayName[0]?.toUpperCase()}
+                                {!avatarSrc && displayName[0]?.toUpperCase()}
                             </div>
                         </div>
-                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center cursor-pointer hover:bg-[#e0b415] transition-colors" onClick={() => setShowEditProfile(true)}>
+                        <div className="absolute bottom-1 right-1 bg-[#f5c619] text-[#0B0C15] rounded-full p-1.5 border-4 border-[#0B0C15] flex items-center justify-center">
                             <Edit2 className="w-4 h-4 font-bold" />
                         </div>
                     </div>
-                    <input 
-                        ref={fileInputRef}
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={handleFileChange} 
-                    />
                     <div className="mt-5 text-center">
                         <h1 className="text-white text-2xl font-bold leading-tight tracking-tight">{displayName}</h1>
                         <p className="text-slate-400 text-sm font-medium mt-1">Member since {joinYear}</p>
                     </div>
                 </div>
 
-                {/* 2. My Bookings / Activity Section */}
                 <div className="w-full space-y-4">
                     <div className="flex items-center justify-between px-1">
                         <h2 className="text-xl font-bold text-white tracking-tight">My Activity</h2>
@@ -409,7 +422,6 @@ export default function MobileProfile({
                                         </div>
                                     </div>
 
-                                    {/* Critical Action: Escrow Release for Paid Bookings */}
                                     {booking.status === 'paid' && (
                                         <>
                                             <div className="h-px w-full bg-white/5"></div>
@@ -435,7 +447,6 @@ export default function MobileProfile({
                     )}
                 </div>
 
-                {/* 3. Provider Dashboard Section (Conditional) */}
                 {isProvider && (
                     <div className="w-full space-y-4">
                         <div className="flex items-center gap-2 px-1">
@@ -443,26 +454,22 @@ export default function MobileProfile({
                             <h2 className="text-xl font-bold text-white tracking-tight">Provider Dashboard</h2>
                         </div>
 
-                        {/* Earnings Cards */}
                         <div className="flex gap-4 w-full">
-                            {/* Pending Clearance */}
                             <div className="flex-1 p-4 rounded-[1.5rem] bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 shadow-lg">
                                 <p className="text-xs font-semibold text-blue-400 mb-2 flex items-center gap-1">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div> Pending
+                                    <span className="w-2 h-2 rounded-full bg-blue-500" /> Pending
                                 </p>
                                 <p className="text-xl font-bold text-white">{(stats?.escrow_balance || 0).toLocaleString()} <span className="text-xs text-slate-400 font-normal">ETB</span></p>
                             </div>
 
-                            {/* Available Payout */}
                             <div className="flex-1 p-4 rounded-[1.5rem] bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 shadow-lg">
                                 <p className="text-xs font-semibold text-green-400 mb-2 flex items-center gap-1">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div> Available
+                                    <span className="w-2 h-2 rounded-full bg-green-500" /> Available
                                 </p>
                                 <p className="text-xl font-bold text-white">{(stats?.available_balance || 0).toLocaleString()} <span className="text-xs text-slate-400 font-normal">ETB</span></p>
                             </div>
                         </div>
 
-                        {/* Pending Requests */}
                         <h3 className="text-sm font-bold text-white px-1 mt-6">Pending Requests</h3>
                         {pendingRequests.length === 0 ? (
                             <div className="p-5 rounded-2xl bg-[#13151f] border border-white/5 text-center">
@@ -500,12 +507,20 @@ export default function MobileProfile({
                     </div>
                 )}
 
-                {/* 4. Settings Menu Section */}
                 <div className="w-full space-y-4 mt-4">
                     <h2 className="text-xl font-bold text-white tracking-tight px-1">Settings</h2>
                     <div className="w-full flex flex-col gap-px bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/[0.08] overflow-hidden">
-                        
-                        <div onClick={() => toast.info('This feature is coming soon in V2!')} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+                        <div onClick={() => setShowEditProfile(true)} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
+                                    <Edit2 className="w-5 h-5" />
+                                </div>
+                                <span className="text-white text-base font-medium">Edit Profile</span>
+                            </div>
+                            <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
+                        </div>
+
+                        <div onClick={() => toast.info('This feature is coming soon in V2!')} className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ClipboardList className="w-5 h-5" />
@@ -530,17 +545,9 @@ export default function MobileProfile({
                                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
                                     <ShieldCheck className="w-5 h-5" />
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-white text-base font-medium">Identity Verification</span>
-                                </div>
+                                <span className="text-white text-base font-medium">Identity Verification</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-                                    <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                                    <span className="text-green-400 text-[10px] font-semibold uppercase tracking-wide">Verified</span>
-                                </div>
-                                <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
-                            </div>
+                            <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
                         </div>
 
                         <div className="group flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/10 border-t border-white/[0.08]" onClick={() => toast.info('This feature is coming soon in V2!')}>
@@ -555,7 +562,6 @@ export default function MobileProfile({
                     </div>
                 </div>
 
-                {/* 5. Safe Logout Button */}
                 <div className="w-full mt-4 pt-4">
                     <button 
                         onClick={handleLogout}
