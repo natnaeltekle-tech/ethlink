@@ -43,6 +43,7 @@ export {
 export {
     updateProfile,
     getProfile,
+    getUserFavorites,
     getPublicProviderInfo,
     updateProviderProfile,
     updateAvatarUrl,
