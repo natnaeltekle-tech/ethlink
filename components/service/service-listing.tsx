@@ -44,6 +44,7 @@ export function ServiceListing({ services }: { services: any[] }) {
     const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
     const [showRecoveryModal, setShowRecoveryModal] = useState(false);
     const autoRequestedRef = useRef(false);
+    const recoveryShownRef = useRef(false);
     const deniedToastShownRef = useRef(false);
 
     const applyLocationSort = useCallback(
@@ -99,22 +100,26 @@ export function ServiceListing({ services }: { services: any[] }) {
                     setLocationStatus('granted');
                     applyLocationSort(userLat, userLng);
                     if (!opts?.silent) {
-                        toast.success('Location applied! Services sorted by distance.');
+                        toast.success('Location on — services sorted by nearest.');
                     }
                 },
                 (error) => {
-                    // PERMISSION_DENIED = 1 — browser will not show prompt again until user changes site settings
+                    // Once the browser has denied location, it will NOT show the
+                    // system prompt again until the user changes site settings.
                     if (error.code === error.PERMISSION_DENIED) {
                         setLocationStatus('denied');
+                        if (!recoveryShownRef.current) {
+                            recoveryShownRef.current = true;
+                            setShowRecoveryModal(true);
+                        }
                         if (!opts?.silent && !deniedToastShownRef.current) {
                             deniedToastShownRef.current = true;
-                            toast.error('Location access denied. Tap the banner to fix settings.');
+                            toast.message('Location is off. Follow the steps to enable it.');
                         }
                     } else {
-                        // timeout / unavailable — treat as still prompt so user can retry
                         setLocationStatus('prompt');
                         if (!opts?.silent) {
-                            toast.error('Could not get your location. Tap Enable location to try again.');
+                            toast.error('Could not get location. Tap Enable location to try again.');
                         }
                     }
                 },
@@ -147,11 +152,15 @@ export function ServiceListing({ services }: { services: any[] }) {
                 // Slight delay so the page paints first, then native prompt appears
                 setTimeout(() => {
                     if (!cancelled) requestLocation({ silent: true });
-                }, 400);
+                }, 500);
             }
             if (state === 'granted' && !autoRequestedRef.current) {
                 autoRequestedRef.current = true;
                 requestLocation({ silent: true });
+            }
+            if (state === 'denied' && !recoveryShownRef.current) {
+                recoveryShownRef.current = true;
+                setShowRecoveryModal(true);
             }
         };
 
@@ -180,7 +189,6 @@ export function ServiceListing({ services }: { services: any[] }) {
                     };
                 })
                 .catch(() => {
-                    // Permissions API unavailable — still try once
                     maybeAutoRequest('prompt');
                 });
         } else {
@@ -193,7 +201,6 @@ export function ServiceListing({ services }: { services: any[] }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Keep list in sync when services change
     useEffect(() => {
         if (userLocation) {
             applyLocationSort(userLocation.lat, userLocation.lng);
@@ -204,10 +211,36 @@ export function ServiceListing({ services }: { services: any[] }) {
 
     return (
         <div className="flex flex-col gap-6">
-            {/* Location status row */}
             <div className="flex flex-col gap-3">
                 {locationStatus === 'denied' && (
                     <LocationAlertBanner onActionClick={() => setShowRecoveryModal(true)} />
+                )}
+
+                {/* Friendly enable card when we can still ask (or user hasn't decided) */}
+                {(locationStatus === 'prompt' || locationStatus === 'idle') && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-[#f5c619]/30 bg-[#f5c619]/10">
+                        <div className="flex items-start gap-3 min-w-0">
+                            <div className="p-2 rounded-full bg-[#f5c619]/20 shrink-0">
+                                <MapPin className="h-5 w-5 text-[#f5c619]" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="font-semibold text-sm text-foreground">
+                                    Find services near you
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    Allow location so we can sort listings by distance.
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            size="sm"
+                            className="shrink-0 bg-[#f5c619] text-black hover:bg-[#f5c619]/90 font-bold"
+                            onClick={() => requestLocation()}
+                        >
+                            <MapPin className="h-4 w-4 mr-1.5" />
+                            Enable location
+                        </Button>
+                    </div>
                 )}
 
                 <div className="flex justify-between items-end border-b pb-4 gap-3 flex-wrap">
@@ -228,7 +261,6 @@ export function ServiceListing({ services }: { services: any[] }) {
                                 size="sm"
                                 className="flex items-center gap-2"
                                 onClick={() => {
-                                    // Try again in case user already fixed site settings
                                     deniedToastShownRef.current = false;
                                     requestLocation();
                                 }}
@@ -240,17 +272,7 @@ export function ServiceListing({ services }: { services: any[] }) {
                             <span className="text-muted-foreground text-sm">
                                 Location not supported on this device
                             </span>
-                        ) : (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-2"
-                                onClick={() => requestLocation()}
-                            >
-                                <MapPin className="h-4 w-4" />
-                                Enable location to sort by distance
-                            </Button>
-                        )}
+                        ) : null}
                     </div>
 
                     <div className="flex bg-secondary/50 p-1 rounded-lg border border-border/50">
