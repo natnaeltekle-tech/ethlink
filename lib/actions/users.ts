@@ -28,6 +28,7 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     }
 
     const { firstName, lastName, phoneNumber } = parsed.data
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim() || null
 
     try {
         const { error } = await supabase
@@ -36,7 +37,9 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
                 id: user.id,
                 first_name: firstName || null,
                 last_name: lastName || null,
+                full_name: fullName,
                 phone_number: phoneNumber || null,
+                updated_at: new Date().toISOString(),
             })
 
         if (error) {
@@ -45,6 +48,8 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
         }
 
         revalidatePath('/dashboard')
+        revalidatePath('/profile')
+        revalidatePath('/', 'layout')
         revalidatePath('/services/[id]')
         return { success: true }
     } catch (err: unknown) {
@@ -140,6 +145,8 @@ export async function updateProviderProfile(formData: FormData): Promise<void> {
         .from('profiles')
         .upsert({
             id: user.id,
+            first_name: firstName,
+            last_name: lastName,
             full_name: `${firstName} ${lastName}`,
             phone_number: phoneNumber,
             id_card_link: idCardLink,
@@ -152,10 +159,10 @@ export async function updateProviderProfile(formData: FormData): Promise<void> {
     }
 
     revalidatePath('/services/new')
+    revalidatePath('/profile')
 }
 
 export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
-    // Validate URL
     const parsed = urlSchema.safeParse(avatarUrl)
     if (!parsed.success) throw new Error('Invalid avatar URL format')
 
@@ -172,8 +179,11 @@ export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
 
     const { error } = await supabase
         .from('profiles')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', user.id)
+        .upsert({
+            id: user.id,
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString(),
+        })
 
     if (error) {
         console.error('Error updating avatar:', error)
@@ -181,6 +191,7 @@ export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/profile')
     revalidatePath('/services/[id]')
 }
 
@@ -198,7 +209,6 @@ export async function safeSignOut(): Promise<{ success: boolean; error?: string 
         console.warn('[safeSignOut] Exception during signOut:', message)
         return { success: false, error: message }
     } finally {
-        // Always revalidate to clear cached user data from server components
         revalidatePath('/', 'layout')
     }
 
