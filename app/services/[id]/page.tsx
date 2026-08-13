@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { getServiceDetails, getReviews, getFavoriteStatus } from '@/lib/actions'
-import { getProviderInfo } from '@/lib/admin-actions'
+import { getServiceDetails, getReviews, getFavoriteStatus, getPublicProviderInfo } from '@/lib/actions'
 import DesktopServiceDetails from '@/components/desktop/DesktopServiceDetails'
 import ServiceDetailsSplitter from '@/components/ServiceDetailsSplitter'
 
@@ -57,8 +56,8 @@ export default async function ServicePage({ params }: ServicePageProps) {
         getFavoriteStatus(id)
     ])
 
-    // Fetch provider info using our robust fallback logic
-    const provider = await getProviderInfo(service.user_id)
+    // Fetch public provider info
+    const provider = await getPublicProviderInfo(service.user_id)
 
     const reviewCount = reviews.length
     const averageRating = reviewCount > 0

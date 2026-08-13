@@ -43,6 +43,7 @@ export {
 export {
     updateProfile,
     getProfile,
+    getPublicProviderInfo,
     updateProviderProfile,
     updateAvatarUrl,
     safeSignOut

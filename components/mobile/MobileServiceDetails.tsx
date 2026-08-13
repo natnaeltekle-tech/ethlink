@@ -49,8 +49,22 @@ export default function MobileServiceDetails({
         }
     };
 
-    if (showChat && provider) {
-        return <div className="fixed inset-0 z-[100] bg-black"><MobileChatRoom serviceId={service.id} providerId={provider.id} providerName={provider.first_name} currentUserId={currentUser?.id || ''} onClose={() => setShowChat(false)} /></div>;
+    const activeProvider = provider || { id: service?.user_id, first_name: 'Provider', full_name: 'Provider' };
+    const providerDisplayName = activeProvider.full_name || [activeProvider.first_name, activeProvider.last_name].filter(Boolean).join(' ') || 'Provider';
+
+    if (showChat && activeProvider.id) {
+        return (
+            <div className="fixed inset-0 z-[100] bg-black">
+                <MobileChatRoom 
+                    serviceId={service.id} 
+                    providerId={activeProvider.id} 
+                    providerName={providerDisplayName} 
+                    providerAvatar={activeProvider.avatar_url}
+                    currentUserId={currentUser?.id || ''} 
+                    onClose={() => setShowChat(false)} 
+                />
+            </div>
+        );
     }
 
     if (showReviewForm) {
@@ -107,25 +121,23 @@ export default function MobileServiceDetails({
                     </div>
                 </div>
 
-                {/* Provider Info */}
-                {provider && (
-                    <div className="mt-8 flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-[#1A1C2E] border-2 border-[#f5c619]/20 flex items-center justify-center text-[#f5c619] font-bold bg-cover bg-center"
-                                style={provider.avatar_url ? { backgroundImage: `url("${provider.avatar_url}")` } : {}}>
-                                {!provider.avatar_url && (provider.first_name?.[0] || 'P')}
-                            </div>
-                            <div>
-                                <p className="font-bold text-lg">{provider.first_name} {provider.last_name || ''}</p>
-                                <p className="text-xs text-slate-400">Host</p>
-                            </div>
+                {/* Provider Info & Direct Chat Trigger */}
+                <div className="mt-8 flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#1A1C2E] border-2 border-[#f5c619]/20 flex items-center justify-center text-[#f5c619] font-bold bg-cover bg-center"
+                            style={activeProvider.avatar_url ? { backgroundImage: `url("${activeProvider.avatar_url}")` } : {}}>
+                            {!activeProvider.avatar_url && (providerDisplayName[0]?.toUpperCase() || 'P')}
                         </div>
-                        <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
-                            <MessageSquare className="w-4 h-4 text-[#f5c619]" />
-                            <span className="text-sm font-bold">Message</span>
-                        </button>
+                        <div>
+                            <p className="font-bold text-lg">{providerDisplayName}</p>
+                            <p className="text-xs text-slate-400">Host</p>
+                        </div>
                     </div>
-                )}
+                    <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
+                        <MessageSquare className="w-4 h-4 text-[#f5c619]" />
+                        <span className="text-sm font-bold">Message</span>
+                    </button>
+                </div>
 
                 {/* Amenities Grid */}
                 {service.amenities?.length > 0 && (

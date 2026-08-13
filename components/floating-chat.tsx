@@ -139,7 +139,7 @@ export function FloatingChat() {
                 dragConstraints={constraintsRef}
                 dragMomentum={false}
                 dragElastic={0.1}
-                className="fixed bottom-32 md:bottom-6 right-6 z-[60] flex flex-col items-end gap-3"
+                className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-end gap-3"
             >
                 {/* Nudge Bubble */}
                 {showNudge && !isOpen && (
@@ -164,7 +164,7 @@ export function FloatingChat() {
                 )}
 
                 {isOpen && (
-                    <div className="w-[300px] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
+                    <div className="w-[calc(100vw-2rem)] sm:w-[340px] max-h-[70vh] h-[450px] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-200">
                         {/* Header */}
                         <div className="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
                             <div className="flex items-center gap-2">

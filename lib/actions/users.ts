@@ -79,6 +79,38 @@ export async function getProfile(): Promise<Profile | null> {
     return profile
 }
 
+export async function getPublicProviderInfo(userId: string): Promise<Profile | null> {
+    if (!userId) return null
+    try {
+        const supabase = await createClient()
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle()
+
+        if (profile) {
+            return profile
+        }
+    } catch (e) {
+        console.error('[getPublicProviderInfo] Error fetching profile:', e)
+    }
+
+    return {
+        id: userId,
+        full_name: 'Provider',
+        first_name: 'Provider',
+        last_name: '',
+        phone_number: null,
+        id_card_link: null,
+        role: 'provider',
+        avatar_url: null,
+        username: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    } as unknown as Profile
+}
+
 export async function updateProviderProfile(formData: FormData): Promise<void> {
     const supabase = await createClient()
     let user = null
