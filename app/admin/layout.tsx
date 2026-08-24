@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+import { isAdmin } from "@/lib/admin-auth";
 
 export default async function AdminLayout({
     children,
@@ -18,7 +17,7 @@ export default async function AdminLayout({
         // Expired/corrupt session — treat as logged out
     }
 
-    if (!user || user.email !== ADMIN_EMAIL) {
+    if (!(await isAdmin())) {
         redirect("/");
     }
 
