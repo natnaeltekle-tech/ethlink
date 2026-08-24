@@ -68,8 +68,22 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
                 if (payload.eventType === 'INSERT') {
                     const newMsg = payload.new as Message
                     setMessages((prev) => {
+                        // Replace our optimistic placeholder (matched by sender +
+                        // content, since DB ids differ from temp ids) with the
+                        // persisted message.
+                        const tempIndex = prev.findIndex(
+                            (m) =>
+                                String(m.id).startsWith('temp-') &&
+                                m.sender_id === newMsg.sender_id &&
+                                m.content === newMsg.content
+                        )
+                        if (tempIndex !== -1) {
+                            const next = [...prev]
+                            next[tempIndex] = newMsg
+                            return next
+                        }
+                        // Otherwise dedupe against already-known real messages.
                         if (prev.some(m => m.id === newMsg.id)) return prev
-                        if (String(newMsg.id).startsWith('temp-')) return prev
                         return [...prev, newMsg]
                     })
                 }
