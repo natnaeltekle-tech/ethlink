@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import * as Sentry from '@sentry/nextjs'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { Capacitor } from '@capacitor/core'
 
@@ -12,6 +13,8 @@ export default function GlobalError({
 }) {
     useEffect(() => {
         console.error('Global Error:', error)
+        // Report to Sentry (no-op when no DSN is configured)
+        Sentry.captureException(error)
         // Hide splash screen on error to prevent hanging
         const hideSplash = async () => {
             try {
