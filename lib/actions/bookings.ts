@@ -138,6 +138,17 @@ export async function createBooking(formData: FormData) {
         redirect(`/payment/${data.id}`)
 
     } catch (error: any) {
+        // Never swallow or re-wrap Next.js redirect control-flow errors,
+        // otherwise redirect(...) inside the try block silently breaks.
+        if (
+            error &&
+            typeof error === 'object' &&
+            'digest' in error &&
+            typeof error.digest === 'string' &&
+            error.digest.startsWith('NEXT_REDIRECT')
+        ) {
+            throw error
+        }
         console.error('Error creating booking:', error)
         // Pass the error message through so the UI can display it
         // The error boundary or form handler should catch this.
