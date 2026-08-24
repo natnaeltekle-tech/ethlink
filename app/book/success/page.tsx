@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { PrintButton } from "@/components/print-button";
 import { Card } from "@/components/ui/card";
 import { PaymentStatusChecker } from "@/components/payment-status-checker";
+import { formatBookingDate, formatBookingTime, BOOKING_TIME_ZONE_LABEL } from "@/lib/booking-time";
 
 type StatusView = "paid" | "pending" | "unpaid";
 
@@ -139,25 +140,11 @@ export default async function SuccessPage({
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 dark:text-gray-400">Scheduled Date</span>
-                            <span className="font-medium">
-                                {new Date(booking.date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                    timeZone: 'UTC'
-                                })}
-                            </span>
+                            <span className="font-medium">{formatBookingDate(booking.date)}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500 dark:text-gray-400">Scheduled Time</span>
-                            <span className="font-medium">
-                                {new Date(booking.date).toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true,
-                                    timeZone: 'UTC'
-                                })}
-                            </span>
+                            <span className="text-gray-500 dark:text-gray-400">Scheduled Time ({BOOKING_TIME_ZONE_LABEL})</span>
+                            <span className="font-medium">{formatBookingTime(booking.date)}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 dark:text-gray-400">Payment Method</span>

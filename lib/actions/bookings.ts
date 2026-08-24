@@ -30,11 +30,31 @@ export async function getAvailableServices(date: string, category?: string) {
     // normalize date
     const checkDate = new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`
 
-    // 1. Get all active services (optionally filtered by category)
+    // 1. Fetch only the service_ids that have an active booking at this exact
+    //    time — no full booking rows are loaded into memory.
+    const { data: conflicts, error: conflictError } = await supabase
+        .from('bookings')
+        .select('service_id')
+        .eq('date', checkDate)
+        .in('status', ['confirmed', 'pending', 'paid'])
+
+    if (conflictError) {
+        console.error('Error fetching booking conflicts:', conflictError)
+        return []
+    }
+
+    const bookedServiceIds = [...new Set((conflicts ?? []).map((b) => b.service_id))]
+
+    // 2. Let the database exclude booked services via a NOT IN filter instead
+    //    of filtering the full service + bookings result set in JavaScript.
     let query = supabase
         .from('services')
-        .select('*, bookings(date, status)')
+        .select('*')
         .eq('is_active', true)
+
+    if (bookedServiceIds.length > 0) {
+        query = query.not('id', 'in', `(${bookedServiceIds.join(',')})`)
+    }
 
     if (category) {
         query = query.eq('category', category)
@@ -47,21 +67,7 @@ export async function getAvailableServices(date: string, category?: string) {
         return []
     }
 
-    // 2. Filter out services that have a booking collision at the requested time
-    const availableServices = services.filter(service => {
-        // If no bookings, it's available
-        if (!service.bookings || service.bookings.length === 0) return true
-
-        // Check if any booking overlaps with our requested time
-        const hasCollision = service.bookings.some((booking: any) =>
-            booking.date === checkDate &&
-            ['confirmed', 'pending', 'paid'].includes(booking.status)
-        )
-
-        return !hasCollision
-    })
-
-    return availableServices
+    return services || []
 }
 
 export async function createBooking(formData: FormData) {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { completeJob, updateBookingStatus } from '@/lib/actions';
 import { toast } from 'sonner';
+import { formatBookingDate } from '@/lib/booking-time';
 import { ChevronLeft, MoreHorizontal, Edit2, ClipboardList, CreditCard, Bell, ShieldCheck, LifeBuoy, LogOut, CheckCircle, XCircle, Clock, MapPin, DollarSign, Briefcase, Check, X, Loader2, Camera, User as UserIcon, Phone, Save } from 'lucide-react';
 import MobileVerification from './MobileVerification';
 import MobileMyBookings from './MobileMyBookings';
@@ -390,7 +391,7 @@ export default function MobileProfile({
                                                 <h3 className="text-white text-lg font-bold leading-tight truncate mb-1">{booking.services?.title || 'Service'}</h3>
                                                 <div className="flex items-center gap-1.5 text-slate-400 text-xs">
                                                     <Clock className="w-3.5 h-3.5 text-[#f5c619]" />
-                                                    <span>{new Date(booking.date).toLocaleDateString()}</span>
+                                                    <span>{formatBookingDate(booking.date)}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 mt-3">

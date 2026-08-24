@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Clock, CheckCircle, Hourglass, XCircle, ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { getUserBookings } from '@/lib/actions';
+import { formatBookingDate } from '@/lib/booking-time';
 
 type TabType = 'active' | 'pending' | 'completed';
 
@@ -98,7 +99,7 @@ export default function MobileMyBookings({ initialBookings }: MobileMyBookingsPr
                                     <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                                         <h3 className="text-white text-base font-bold leading-tight truncate">{booking.services?.title || 'Service'}</h3>
                                         <div className="flex items-center gap-3 text-[#bab39c] text-xs">
-                                            <div className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-[#f5c619]" />{new Date(booking.date).toLocaleDateString()}</div>
+                                            <div className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-[#f5c619]" />{formatBookingDate(booking.date)}</div>
                                             {booking.services?.location && <div className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-[#f5c619]" />{booking.services.location}</div>}
                                         </div>
                                         <span className="text-[#f5c619] font-bold text-sm mt-1">{booking.services?.price} ETB</span>

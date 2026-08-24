@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { CheckCircle, Calendar, MapPin, Copy, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatBookingDateTime, BOOKING_TIME_ZONE_LABEL } from '@/lib/booking-time';
 
 interface MobileBookingSuccessProps {
     bookingId: string;
@@ -65,7 +66,7 @@ export default function MobileBookingSuccess({
                         {bookingDate && (
                             <div className="flex items-center gap-2 text-[#bab39c]">
                                 <Calendar className="w-4 h-4 text-[#f5c619]" />
-                                <span className="text-sm">{new Date(bookingDate).toLocaleString()}</span>
+                                <span className="text-sm">{formatBookingDateTime(bookingDate)} ({BOOKING_TIME_ZONE_LABEL})</span>
                             </div>
                         )}
 

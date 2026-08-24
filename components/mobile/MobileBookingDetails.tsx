@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, MapPin, Star, Phone, MessageSquare, Clock, CalendarDays, CheckCircle, Navigation, CreditCard, Receipt } from 'lucide-react';
 import MobilePaymentSheet from './MobilePaymentSheet';
 import MobileReceipt from './MobileReceipt';
+import { formatBookingDate, formatBookingTime, BOOKING_TIME_ZONE_LABEL } from '@/lib/booking-time';
 
 interface MobileBookingDetailsProps {
     booking: any;
@@ -105,14 +106,14 @@ export default function MobileBookingDetails({ booking, service, provider }: Mob
                         <p className="text-[#bab39c] text-[10px] font-bold uppercase tracking-widest">Date</p>
                         <div className="flex items-center gap-2">
                             <CalendarDays className="w-5 h-5 text-[#f5c619]" />
-                            <span className="text-white font-bold text-sm">{booking?.date ? new Date(booking.date).toLocaleDateString() : 'TBD'}</span>
+                            <span className="text-white font-bold text-sm">{booking?.date ? formatBookingDate(booking.date) : 'TBD'}</span>
                         </div>
                     </div>
                     <div className="flex flex-col gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5">
                         <p className="text-[#bab39c] text-[10px] font-bold uppercase tracking-widest">Time</p>
                         <div className="flex items-center gap-2">
                             <Clock className="w-5 h-5 text-[#f5c619]" />
-                            <span className="text-white font-bold text-sm">{booking?.date ? new Date(booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}</span>
+                            <span className="text-white font-bold text-sm">{booking?.date ? `${formatBookingTime(booking.date)} (${BOOKING_TIME_ZONE_LABEL})` : 'TBD'}</span>
                         </div>
                     </div>
                 </div>

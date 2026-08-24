@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { User, Shield, Handshake, Check } from "lucide-react"
 import Link from "next/link"
 import { completeJob } from '@/lib/actions'
+import { formatBookingDate } from '@/lib/booking-time'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -87,7 +88,7 @@ export function DashboardTabs({ user, bookings, providerStats, providerServices,
                                                 <div className="space-y-1 w-full sm:w-auto">
                                                     <p className="font-bold text-lg">{booking.services?.title || 'Unknown Service'}</p>
                                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <span>{new Date(booking.date).toLocaleDateString()}</span>
+                                                        <span>{formatBookingDate(booking.date)}</span>
                                                         <span>•</span>
                                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${booking.status === 'paid'
                                                             ? 'bg-green-500/10 text-green-500'
