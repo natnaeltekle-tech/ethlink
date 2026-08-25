@@ -98,8 +98,8 @@ export default function MobileServiceDetails({
                 </div>
             </div>
 
-            {/* Main Content */}
-            <main className="relative -mt-6 bg-[#f8f8f5] dark:bg-[#121212] rounded-t-2xl px-4 pb-44">
+            {/* Main Content — extra bottom padding so content clears sticky bar + nav */}
+            <main className="relative -mt-6 bg-[#f8f8f5] dark:bg-[#121212] rounded-t-2xl px-4 pb-36">
                 {/* Header Info */}
                 <div className="pt-6">
                     <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
@@ -179,8 +179,6 @@ export default function MobileServiceDetails({
                     </p>
                 </div>
 
-                {/* Location Map Placeholder - DELETED */}
-
                 {/* Reviews Summary Section */}
                 <div className="mt-8 mb-4">
                     <div className="flex items-center justify-between mb-4">
@@ -210,16 +208,19 @@ export default function MobileServiceDetails({
                 </div>
             </main>
 
-            {/* Sticky Bottom Action Bar */}
-            <div className="fixed bottom-20 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-6 py-5 flex items-center justify-between shadow-2xl">
-                <div className="flex flex-col">
-                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Starting from</span>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-[#f5c619]">{service.price}</span>
-                        <span className="text-sm font-semibold text-slate-900 dark:text-white uppercase">ETB</span>
+            {/* Sticky Bottom Action Bar — compact to fit above mobile nav */}
+            <div className="fixed bottom-16 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-4 py-2.5 flex items-center justify-between gap-3 safe-area-pb">
+                <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider leading-none">From</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-lg font-bold text-[#f5c619] leading-none">{service.price}</span>
+                        <span className="text-xs font-semibold text-white/80 uppercase">ETB</span>
                     </div>
                 </div>
-                <Link href={'/book/' + service?.id} className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-8 py-4 rounded-full font-bold text-base shadow-[0_0_20px_rgba(245,198,25,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+                <Link
+                    href={'/book/' + service?.id}
+                    className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-5 py-2.5 rounded-full font-bold text-sm shadow-[0_0_12px_rgba(245,198,25,0.25)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                >
                     Book & Pay
                 </Link>
             </div>
