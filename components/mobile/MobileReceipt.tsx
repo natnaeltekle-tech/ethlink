@@ -3,6 +3,7 @@
 import React from 'react';
 import { ChevronLeft, X, CheckCircle, Download, Share2, CreditCard, Copy, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatBookingDate, formatBookingTime, BOOKING_TIME_ZONE_LABEL } from '@/lib/booking-time';
 
 interface MobileReceiptProps {
     transactionId: string;
@@ -16,8 +17,8 @@ interface MobileReceiptProps {
 export default function MobileReceipt({ transactionId, merchantName, amount, date, paymentMethod = 'Chapa Wallet', onClose }: MobileReceiptProps) {
     const shortTxn = transactionId?.slice(0, 14).toUpperCase() || '#TXN-0000';
     const copyTxn = () => { navigator.clipboard.writeText(transactionId || ''); toast.success('Copied!'); };
-    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const formattedTime = new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const formattedDate = formatBookingDate(date);
+    const formattedTime = `${formatBookingTime(date)} (${BOOKING_TIME_ZONE_LABEL})`;
 
     return (
         <div className="min-h-screen bg-[#221e10] font-sans antialiased text-white flex flex-col items-center justify-between overflow-x-hidden selection:bg-[#f5c619] selection:text-black">

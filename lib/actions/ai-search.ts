@@ -2,6 +2,23 @@
 
 import { getModel, GEMINI_MODEL_VERSION, logAIRequest } from "@/lib/gemini";
 import { searchServicesAdvanced } from "@/lib/actions";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+// Guard so a slow Gemini network call can never hang the request indefinitely.
+const AI_CALL_TIMEOUT_MS = 20_000;
+
+function withTimeout<T>(promise: Promise<T>): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+            setTimeout(
+                () => reject(new Error(`AI request timed out after ${AI_CALL_TIMEOUT_MS}ms`)),
+                AI_CALL_TIMEOUT_MS
+            )
+        ),
+    ]);
+}
 
 type GeminiUsageMetadata = {
     promptTokenCount?: number;
@@ -19,6 +36,25 @@ export async function processUserMessage(userMessage: string): Promise<string> {
     if (!userMessage || userMessage.length > 500) {
         return "Please keep your message under 500 characters.";
     }
+
+    // Per-user rate limiting via the shared rate-limit infrastructure.
+    // Authenticated users get their own bucket; anonymous users share one
+    // conservative bucket so nobody can spam expensive Gemini calls.
+    const supabase = await createClient();
+    let rateLimitKey = "anonymous";
+    try {
+        const { data } = await supabase.auth.getUser();
+        if (data.user) rateLimitKey = data.user.id;
+    } catch {
+        /* expired/corrupt session — treat as anonymous */
+    }
+
+    const rl = await checkRateLimit(rateLimitKey, "/ai-concierge");
+    if (!rl.allowed) {
+        const waitMinutes = Math.max(1, Math.ceil(rl.retryAfter / 60));
+        return `You've reached the concierge limit. Please try again in about ${waitMinutes} minute(s), or use the search bar in the meantime.`;
+    }
+
     // Sanitize: strip potential prompt injection delimiters
     const sanitizedMessage = userMessage.replace(/[`'"{}]/g, '');
 
@@ -44,7 +80,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
 
         let extractionResult;
         try {
-            extractionResult = await model.generateContent(extractionPrompt);
+            extractionResult = await withTimeout(model.generateContent(extractionPrompt));
             const usage = extractUsageMetadata(extractionResult);
             await logAIRequest(extractionPrompt, GEMINI_MODEL_VERSION, true, undefined, {
                 inputTokens: usage.promptTokenCount,
@@ -89,7 +125,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             
             let introResult;
             try {
-                introResult = await model.generateContent(introPrompt);
+                introResult = await withTimeout(model.generateContent(introPrompt));
                 const usage = extractUsageMetadata(introResult);
                 await logAIRequest(introPrompt, GEMINI_MODEL_VERSION, true, undefined, {
                     inputTokens: usage.promptTokenCount,
@@ -122,7 +158,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             
             let result;
             try {
-                result = await model.generateContent(noResultsPrompt);
+                result = await withTimeout(model.generateContent(noResultsPrompt));
                 const usage = extractUsageMetadata(result);
                 await logAIRequest(noResultsPrompt, GEMINI_MODEL_VERSION, true, undefined, {
                     inputTokens: usage.promptTokenCount,

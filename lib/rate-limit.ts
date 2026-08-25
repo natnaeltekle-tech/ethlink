@@ -5,11 +5,12 @@
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
-type RateLimitBucket = 'auth' | 'api' | 'default'
+type RateLimitBucket = 'auth' | 'api' | 'ai' | 'default'
 
 const RATE_LIMITS: Record<RateLimitBucket, { max: number; windowMs: number }> = {
     auth: { max: 5, windowMs: 15 * 60 * 1000 },
     api: { max: 20, windowMs: 15 * 60 * 1000 },
+    ai: { max: 10, windowMs: 15 * 60 * 1000 },
     default: { max: 100, windowMs: 15 * 60 * 1000 },
 }
 
@@ -18,6 +19,7 @@ const upstashLimiters = new Map<RateLimitBucket, Ratelimit | null>()
 export function getRateLimitBucket(pathname: string): RateLimitBucket {
     if (pathname.startsWith('/auth')) return 'auth'
     if (pathname.startsWith('/api')) return 'api'
+    if (pathname.startsWith('/ai')) return 'ai'
     return 'default'
 }
 

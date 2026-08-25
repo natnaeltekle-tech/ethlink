@@ -4,6 +4,7 @@ import { ShieldCheck, Calendar, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { PaymentMethods } from '@/components/payment/payment-methods';
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
+import { formatBookingDateTime, BOOKING_TIME_ZONE_LABEL } from '@/lib/booking-time';
 
 export default async function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -40,7 +41,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
                                     <h3 className="text-xl font-semibold text-foreground">{service.title}</h3>
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                                         <Calendar className="h-3 w-3" />
-                                        <span>{new Date(booking.date).toLocaleString('en-US', { timeZone: 'UTC' })}</span>
+                                        <span>{formatBookingDateTime(booking.date)} ({BOOKING_TIME_ZONE_LABEL})</span>
                                     </div>
                                     <div className="mt-2 text-3xl font-bold text-primary">
                                         {service.price} ETB

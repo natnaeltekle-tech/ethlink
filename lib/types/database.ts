@@ -525,9 +525,12 @@ export type Database = {
             public_profiles: {
                 Row: {
                     id: string
+                    first_name: string | null
+                    last_name: string | null
                     full_name: string | null
                     username: string | null
                     avatar_url: string | null
+                    is_verified: boolean | null
                 }
                 Relationships: [
                     {
@@ -575,6 +578,18 @@ export type SystemSetting = Database["public"]["Tables"]["system_settings"]["Row
 export type ProcessedPayment = Database["public"]["Tables"]["processed_payments"]["Row"]
 export type ServiceView = Database["public"]["Views"]["services_view"]["Row"]
 export type PublicProfile = Database["public"]["Views"]["public_profiles"]["Row"]
+
+// Safe, client-shareable provider info. Mirrors the public_profiles view
+// columns — never contains phone, phone_number, id_card_url, or email.
+export interface PublicProviderInfo {
+    id: string
+    first_name: string
+    last_name: string
+    full_name: string
+    username: string | null
+    avatar_url: string | null
+    is_verified: boolean
+}
 
 // Composite types for joined queries
 export interface ReviewProfile {

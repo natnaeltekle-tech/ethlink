@@ -4,21 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { escrowResolutionSchema, uuidSchema } from '@/lib/validations'
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-if (!ADMIN_EMAIL) {
-    console.error("CRITICAL: ADMIN_EMAIL env var is not set. Admin features are disabled.");
-}
+import { isAdmin } from '@/lib/admin-auth'
 
 async function checkAdmin() {
-    const supabase = await createClient()
-    let user = null
-    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
-
-    if (!user || user.email !== ADMIN_EMAIL) {
-        return false
-    }
-    return true
+    return isAdmin()
 }
 
 export async function getAdminStats() {

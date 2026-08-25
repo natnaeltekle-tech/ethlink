@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { urlSchema, profileUpdateSchema, providerProfileSchema } from '@/lib/validations'
-import { Profile } from '@/lib/types/database'
+import { Profile, PublicProviderInfo } from '@/lib/types/database'
 
 export async function updateProfile(formData: FormData): Promise<{ success: boolean; error?: string }> {
     const supabase = await createClient()
@@ -84,58 +84,28 @@ export async function getProfile(): Promise<Profile | null> {
     return profile
 }
 
-export async function getUserFavorites(): Promise<any[]> {
-    const supabase = await createClient()
-    let user = null
-    try {
-        const { data } = await supabase.auth.getUser()
-        user = data.user
-    } catch {
-        /* expired/corrupt session */
-    }
 
-    if (!user) return []
-
-    const { data: favRows, error } = await supabase
-        .from('favorites')
-        .select('service_id')
-        .eq('user_id', user.id)
-
-    if (error || !favRows?.length) {
-        return []
-    }
-
-    const ids = favRows.map((f) => f.service_id).filter(Boolean)
-    if (!ids.length) return []
-
-    const { data: services } = await supabase
-        .from('services')
-        .select('id, title, price, location, category, image_url, gallery')
-        .in('id', ids)
-
-    return (services || []).map((s) => ({
-        id: s.id,
-        title: s.title,
-        price: s.price,
-        location: s.location,
-        category: s.category,
-        image_url: s.image_url,
-        gallery: s.gallery,
-    }))
-}
-
-export async function getPublicProviderInfo(userId: string): Promise<Profile | null> {
     if (!userId) return null
     try {
         const supabase = await createClient()
+        // Read ONLY through the public_profiles view — a strict column whitelist
+        // that structurally excludes phone, phone_number, id_card_url, and email.
         const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
+            .from('public_profiles')
+            .select('id, first_name, last_name, full_name, username, avatar_url, is_verified')
             .eq('id', userId)
             .maybeSingle()
 
         if (profile) {
-            return profile
+            return {
+                id: profile.id,
+                first_name: profile.first_name || profile.username || 'Provider',
+                last_name: profile.last_name ?? '',
+                full_name: profile.full_name || profile.username || 'Provider',
+                username: profile.username,
+                avatar_url: profile.avatar_url,
+                is_verified: profile.is_verified ?? false,
+            }
         }
     } catch (e) {
         console.error('[getPublicProviderInfo] Error fetching profile:', e)
@@ -143,17 +113,13 @@ export async function getPublicProviderInfo(userId: string): Promise<Profile | n
 
     return {
         id: userId,
-        full_name: 'Provider',
         first_name: 'Provider',
         last_name: '',
-        phone_number: null,
-        id_card_link: null,
-        role: 'provider',
-        avatar_url: null,
+        full_name: 'Provider',
         username: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    } as unknown as Profile
+        avatar_url: null,
+        is_verified: false,
+    }
 }
 
 export async function updateProviderProfile(formData: FormData): Promise<void> {

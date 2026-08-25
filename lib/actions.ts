@@ -37,6 +37,7 @@ export {
 export {
     initiatePayment,
     verifyPayment,
+    reconcileBookingPayment,
     getCommissionRate
 } from './actions/payments'
 

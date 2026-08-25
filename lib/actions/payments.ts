@@ -6,6 +6,7 @@ import { txRefSchema } from '@/lib/validations'
 import {
     confirmBookingPaymentAtomic,
     detectPaymentProvider,
+    extractBookingIdFromTxRef,
 } from '@/lib/services/payments'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -76,7 +77,7 @@ export async function initiatePayment(bookingId: string) {
         phone_number: user.user_metadata?.phone || undefined,
         tx_ref,
         callback_url: `${baseUrl}/api/payment/callback`,
-        return_url: `${baseUrl}/book/success?bookingId=${bookingId}`,
+        return_url: `${baseUrl}/book/success?bookingId=${bookingId}&tx_ref=${tx_ref}`,
         customization: {
             title: 'Payment for Eth-Links',
             description: 'Thank you for your order!',
@@ -229,4 +230,135 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
 
     revalidatePath('/dashboard')
     return { success: true }
+}
+
+// ─── Payment Reconciliation (fallback for missed/delayed webhooks) ─────────
+export type ReconcileResult =
+    | { status: 'paid' }
+    | { status: 'pending' }
+    | { status: 'failed'; message: string }
+
+export async function reconcileBookingPayment(
+    bookingId: string,
+    txRef?: string | null
+): Promise<ReconcileResult> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return { status: 'failed', message: 'Not authenticated' }
+
+    const { data: booking, error } = await supabase
+        .from('bookings')
+        .select('*, services(price)')
+        .eq('id', bookingId)
+        .single()
+
+    if (error || !booking || booking.user_id !== user.id) {
+        return { status: 'failed', message: 'Booking not found' }
+    }
+
+    if (booking.status === 'paid') {
+        revalidatePath('/dashboard')
+        return { status: 'paid' }
+    }
+
+    // Candidate tx_refs: the one from the return URL first (only if it belongs
+    // to this booking), then any tx_refs the webhook path recorded for it.
+    const candidates: string[] = []
+    if (
+        txRef &&
+        txRefSchema.safeParse(txRef).success &&
+        detectPaymentProvider(txRef) === 'chapa' &&
+        extractBookingIdFromTxRef(txRef) === bookingId
+    ) {
+        candidates.push(txRef)
+    }
+
+    try {
+        const adminSupabase = createAdminClient() as any
+        const { data: events } = await adminSupabase
+            .from('payment_webhook_events')
+            .select('tx_ref')
+            .eq('booking_id', bookingId)
+            .order('created_at', { ascending: false })
+            .limit(5)
+
+        for (const ref of ((events ?? []) as { tx_ref: string | null }[])
+            .map((e) => e.tx_ref)
+            .filter((r): r is string => Boolean(r))) {
+            if (!candidates.includes(ref)) candidates.push(ref)
+        }
+    } catch {
+        /* webhook event lookup is best-effort */
+    }
+
+    const chapaSecretKey = process.env.CHAPA_SECRET_KEY
+
+    for (const candidate of candidates) {
+        try {
+            if (chapaSecretKey) {
+                const verifyResponse = await fetch(
+                    `https://api.chapa.co/v1/transaction/verify/${candidate}`,
+                    { headers: { Authorization: `Bearer ${chapaSecretKey}` } }
+                )
+                if (!verifyResponse.ok) continue
+
+                const verifyResult = await verifyResponse.json()
+                if (verifyResult.data?.status !== 'success') continue
+
+                const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
+                if (Math.abs(paidAmount - booking.services.price) > 1) {
+                    console.error(
+                        '[Chapa] Reconciliation amount mismatch! Paid:',
+                        paidAmount,
+                        'Expected:',
+                        booking.services.price
+                    )
+                    continue
+                }
+            } else {
+                console.warn('[Chapa] No CHAPA_SECRET_KEY — reconciliation running in test/simulation mode.')
+            }
+
+            const price = booking.services.price
+            const commissionRate = await getCommissionRate()
+            const commission = price * commissionRate
+            const earnings = price - commission
+
+            const result = await confirmBookingPaymentAtomic({
+                txRef: candidate,
+                bookingId,
+                provider: detectPaymentProvider(candidate)!,
+                commission,
+                providerEarnings: earnings,
+            })
+
+            if (result.status === 'success' || result.status === 'already_processed') {
+                revalidatePath('/dashboard')
+                return { status: 'paid' }
+            }
+        } catch {
+            /* try next candidate */
+        }
+    }
+
+    // The webhook may have completed while we were reconciling.
+    const { data: refreshed } = await supabase
+        .from('bookings')
+        .select('status')
+        .eq('id', bookingId)
+        .single()
+
+    if (refreshed?.status === 'paid') {
+        revalidatePath('/dashboard')
+        return { status: 'paid' }
+    }
+
+    return { status: 'pending' }
 }

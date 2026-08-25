@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { updateBookingStatus, toggleServiceStatus } from "@/lib/actions"
+import { formatBookingDate, formatBookingDateTime } from "@/lib/booking-time"
 import { Loader2, Check, X, DollarSign, Briefcase, Settings, Calendar, AlertTriangle } from "lucide-react"
 
 interface ProviderPanelProps {
@@ -183,7 +184,7 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                     <div className="mb-4 sm:mb-0">
                                         <div className="font-bold text-lg">{booking.services?.title}</div>
                                         <div className="text-sm text-muted-foreground">
-                                            {new Date(booking.date).toLocaleString()}
+                                            {formatBookingDateTime(booking.date)}
                                             {['Hospitality', 'Transport', 'Events'].includes(booking.services?.category) && (
                                                 <> • {booking.guests || 1} Guest(s)</>
                                             )}
@@ -247,7 +248,7 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                             </Badge>
                                         </div>
                                         <div className="text-sm text-muted-foreground">
-                                            {new Date(booking.date).toLocaleString()}
+                                            {formatBookingDateTime(booking.date)}
                                             {['Hospitality', 'Transport', 'Events'].includes(booking.services?.category) && (
                                                 <> • {booking.guests || 1} Guest(s)</>
                                             )}
@@ -291,7 +292,7 @@ export function ProviderPanel({ stats, services }: ProviderPanelProps) {
                                     <div>
                                         <div className="font-bold">{job.service_title}</div>
                                         <div className="text-sm text-muted-foreground">
-                                            {new Date(job.booking_date).toLocaleDateString()}
+                                            {formatBookingDate(job.booking_date)}
                                         </div>
                                     </div>
                                     <div className="text-right">
