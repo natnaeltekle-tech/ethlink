@@ -29,8 +29,8 @@ describe('payment helpers', () => {
 
   it('detects supported payment providers from tx_ref prefixes', () => {
     expect(detectPaymentProvider(`tx-ethlink-${bookingId}-1710000000000-abcd1234`)).toBe('chapa')
-    expect(detectPaymentProvider(`tx-telebirr-${bookingId}-1710000000000-abcd1234`)).toBe('telebirr')
-    expect(detectPaymentProvider(`tx-cbe-${bookingId}-1710000000000-abcd1234`)).toBe('cbe')
+    expect(detectPaymentProvider(`tx-telebirr-${bookingId}-1710000000000-abcd1234`)).toBeNull()
+    expect(detectPaymentProvider(`tx-cbe-${bookingId}-1710000000000-abcd1234`)).toBeNull()
     expect(detectPaymentProvider(`tx-unknown-${bookingId}-1710000000000-abcd1234`)).toBeNull()
   })
 

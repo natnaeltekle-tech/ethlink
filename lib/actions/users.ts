@@ -84,7 +84,7 @@ export async function getProfile(): Promise<Profile | null> {
     return profile
 }
 
-
+export async function getPublicProviderInfo(userId: string): Promise<PublicProviderInfo | null> {
     if (!userId) return null
     try {
         const supabase = await createClient()
@@ -120,6 +120,32 @@ export async function getProfile(): Promise<Profile | null> {
         avatar_url: null,
         is_verified: false,
     }
+}
+
+export async function getUserFavorites(): Promise<any[]> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return []
+
+    const { data, error } = await supabase
+        .from('favorites')
+        .select('*, services(*)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('[getUserFavorites] Error:', error)
+        return []
+    }
+
+    return (data || []).map((fav: any) => fav.services).filter(Boolean)
 }
 
 export async function updateProviderProfile(formData: FormData): Promise<void> {
