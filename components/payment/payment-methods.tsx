@@ -89,7 +89,7 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
 
             {/* Trust badge */}
             <p className="text-xs text-center text-muted-foreground/70">
-                Supports TeleBirr, CBE Birr, Bank Cards &amp; more — powered by{' '}
+                Supports Bank Cards, Mobile Money &amp; more — powered by{' '}
                 <span className="font-medium" style={{ color: '#00A859' }}>Chapa</span>
             </p>
         </div>

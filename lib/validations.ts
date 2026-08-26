@@ -54,7 +54,7 @@ export const urlSchema = safeUrl;
 // ─── Payment Webhook ────────────────────────────────────────────────────────
 export const txRefSchema = z.string()
     .max(200)
-    .regex(/^tx-(ethlink|telebirr|cbe)-[a-f0-9-]+-\d+-[a-z0-9]+$/i, 'Invalid tx_ref format');
+    .regex(/^tx-ethlink-[a-f0-9-]+-\d+-[a-z0-9]+$/i, 'Invalid tx_ref format');
 
 export const paymentWebhookSchema = z.object({
     tx_ref: txRefSchema,

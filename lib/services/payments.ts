@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
-export type PaymentProvider = 'chapa' | 'telebirr' | 'cbe'
+export type PaymentProvider = 'chapa'
 export type PaymentEventStatus = 'received' | 'verified' | 'ignored' | 'processed' | 'already_processed' | 'failed'
 
 export type PaymentProcessResult =
@@ -10,8 +10,6 @@ export type PaymentProcessResult =
 
 export function detectPaymentProvider(txRef: string): PaymentProvider | null {
     if (txRef.startsWith('tx-ethlink-')) return 'chapa'
-    if (txRef.startsWith('tx-telebirr-')) return 'telebirr'
-    if (txRef.startsWith('tx-cbe-')) return 'cbe'
     return null
 }
 

@@ -28,6 +28,7 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
     }
 
     const { firstName, lastName, phoneNumber } = parsed.data
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim() || null
 
     try {
         const { error } = await supabase
@@ -36,7 +37,9 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
                 id: user.id,
                 first_name: firstName || null,
                 last_name: lastName || null,
+                full_name: fullName,
                 phone_number: phoneNumber || null,
+                updated_at: new Date().toISOString(),
             })
 
         if (error) {
@@ -45,6 +48,8 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
         }
 
         revalidatePath('/dashboard')
+        revalidatePath('/profile')
+        revalidatePath('/', 'layout')
         revalidatePath('/services/[id]')
         return { success: true }
     } catch (err: unknown) {
@@ -79,7 +84,51 @@ export async function getProfile(): Promise<Profile | null> {
     return profile
 }
 
+<<<<<<< HEAD
 export async function getPublicProviderInfo(userId: string): Promise<PublicProviderInfo | null> {
+=======
+export async function getUserFavorites(): Promise<any[]> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return []
+
+    const { data: favRows, error } = await supabase
+        .from('favorites')
+        .select('service_id')
+        .eq('user_id', user.id)
+
+    if (error || !favRows?.length) {
+        return []
+    }
+
+    const ids = favRows.map((f) => f.service_id).filter(Boolean)
+    if (!ids.length) return []
+
+    const { data: services } = await supabase
+        .from('services')
+        .select('id, title, price, location, category, image_url, gallery')
+        .in('id', ids)
+
+    return (services || []).map((s) => ({
+        id: s.id,
+        title: s.title,
+        price: s.price,
+        location: s.location,
+        category: s.category,
+        image_url: s.image_url,
+        gallery: s.gallery,
+    }))
+}
+
+export async function getPublicProviderInfo(userId: string): Promise<Profile | null> {
+>>>>>>> origin/main
     if (!userId) return null
     try {
         const supabase = await createClient()
@@ -146,6 +195,8 @@ export async function updateProviderProfile(formData: FormData): Promise<void> {
         .from('profiles')
         .upsert({
             id: user.id,
+            first_name: firstName,
+            last_name: lastName,
             full_name: `${firstName} ${lastName}`,
             phone_number: phoneNumber,
             id_card_link: idCardLink,
@@ -158,10 +209,10 @@ export async function updateProviderProfile(formData: FormData): Promise<void> {
     }
 
     revalidatePath('/services/new')
+    revalidatePath('/profile')
 }
 
 export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
-    // Validate URL
     const parsed = urlSchema.safeParse(avatarUrl)
     if (!parsed.success) throw new Error('Invalid avatar URL format')
 
@@ -178,8 +229,11 @@ export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
 
     const { error } = await supabase
         .from('profiles')
-        .update({ avatar_url: avatarUrl })
-        .eq('id', user.id)
+        .upsert({
+            id: user.id,
+            avatar_url: avatarUrl,
+            updated_at: new Date().toISOString(),
+        })
 
     if (error) {
         console.error('Error updating avatar:', error)
@@ -187,6 +241,7 @@ export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
     }
 
     revalidatePath('/dashboard')
+    revalidatePath('/profile')
     revalidatePath('/services/[id]')
 }
 
@@ -204,7 +259,6 @@ export async function safeSignOut(): Promise<{ success: boolean; error?: string 
         console.warn('[safeSignOut] Exception during signOut:', message)
         return { success: false, error: message }
     } finally {
-        // Always revalidate to clear cached user data from server components
         revalidatePath('/', 'layout')
     }
 
