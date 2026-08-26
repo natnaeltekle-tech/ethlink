@@ -84,51 +84,7 @@ export async function getProfile(): Promise<Profile | null> {
     return profile
 }
 
-<<<<<<< HEAD
 export async function getPublicProviderInfo(userId: string): Promise<PublicProviderInfo | null> {
-=======
-export async function getUserFavorites(): Promise<any[]> {
-    const supabase = await createClient()
-    let user = null
-    try {
-        const { data } = await supabase.auth.getUser()
-        user = data.user
-    } catch {
-        /* expired/corrupt session */
-    }
-
-    if (!user) return []
-
-    const { data: favRows, error } = await supabase
-        .from('favorites')
-        .select('service_id')
-        .eq('user_id', user.id)
-
-    if (error || !favRows?.length) {
-        return []
-    }
-
-    const ids = favRows.map((f) => f.service_id).filter(Boolean)
-    if (!ids.length) return []
-
-    const { data: services } = await supabase
-        .from('services')
-        .select('id, title, price, location, category, image_url, gallery')
-        .in('id', ids)
-
-    return (services || []).map((s) => ({
-        id: s.id,
-        title: s.title,
-        price: s.price,
-        location: s.location,
-        category: s.category,
-        image_url: s.image_url,
-        gallery: s.gallery,
-    }))
-}
-
-export async function getPublicProviderInfo(userId: string): Promise<Profile | null> {
->>>>>>> origin/main
     if (!userId) return null
     try {
         const supabase = await createClient()
@@ -164,6 +120,32 @@ export async function getPublicProviderInfo(userId: string): Promise<Profile | n
         avatar_url: null,
         is_verified: false,
     }
+}
+
+export async function getUserFavorites(): Promise<any[]> {
+    const supabase = await createClient()
+    let user = null
+    try {
+        const { data } = await supabase.auth.getUser()
+        user = data.user
+    } catch {
+        /* expired/corrupt session */
+    }
+
+    if (!user) return []
+
+    const { data, error } = await supabase
+        .from('favorites')
+        .select('*, services(*)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('[getUserFavorites] Error:', error)
+        return []
+    }
+
+    return (data || []).map((fav: any) => fav.services).filter(Boolean)
 }
 
 export async function updateProviderProfile(formData: FormData): Promise<void> {
