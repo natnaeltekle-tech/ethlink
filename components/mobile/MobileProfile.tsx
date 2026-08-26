@@ -4,28 +4,9 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { completeJob, updateBookingStatus, updateProfile, getUserFavorites } from '@/lib/actions'
 import { toast } from 'sonner'
-import {
-  ChevronLeft,
-  Edit2,
-  Loader2,
-  LogOut,
-  Clock,
-  CheckCircle,
-  Briefcase,
-  X,
-  Check,
-  CreditCard,
-  ShieldCheck,
-  LifeBuoy,
-  Camera,
-  User as UserIcon,
-  Phone,
-  Save,
-  Heart,
-} from 'lucide-react'
-import { updateProfile, getUserFavorites } from '@/lib/actions'
-import { completeJob, updateBookingStatus } from '@/lib/actions/bookings'
+import { ChevronLeft, Edit2, ClipboardList, CreditCard, LifeBuoy, LogOut, CheckCircle, Clock, Briefcase, Check, X, Loader2, Camera, User as UserIcon, Phone, Save, ShieldCheck } from 'lucide-react'
 import MobileVerification from './MobileVerification'
 import MobileMyBookings from './MobileMyBookings'
 import MobileFavorites from './MobileFavorites'
@@ -588,13 +569,10 @@ export default function MobileProfile({
               </div>
               <ChevronLeft className="w-5 h-5 text-slate-500 rotate-180" />
             </div>
-            <div
-              onClick={openFavorites}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 border-t border-white/[0.08]"
-            >
+            <div onClick={openFavorites} className="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 border-t border-white/[0.08]">
               <div className="flex items-center gap-4">
                 <div className="flex items-center justify-center size-10 rounded-full bg-[#f5c619]/10 text-[#f5c619]">
-                  <Heart className="w-5 h-5" />
+                  <ClipboardList className="w-5 h-5" />
                 </div>
                 <span className="text-white text-base font-medium">My Favorites</span>
               </div>
