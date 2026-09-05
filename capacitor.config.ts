@@ -1,23 +1,31 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ethlinks.app',        // change if your appId is different
+  appId: 'com.ethlinks.app',
   appName: 'Eth-Links',
-  webDir: 'out',                     // or 'dist' depending on your Next.js output
+  webDir: 'out',
   server: {
+    // Live site loaded inside the Android WebView
     url: 'https://ethlink-app.vercel.app',
-    cleartext: false, // Security: enforce HTTPS
+    cleartext: false,
   },
   android: {
-    allowMixedContent: false, // Security: block mixed content
+    allowMixedContent: false,
     backgroundColor: '#0B0C15',
-    webContentsDebuggingEnabled: false, // Security: disable devtools in production
+    // Temporarily true so device debugging can catch JS errors if black screen returns
+    webContentsDebuggingEnabled: true,
   },
   plugins: {
     SplashScreen: {
-      launchAutoHide: false,
-      launchShowDuration: 2000,
+      // Auto-hide so a JS hang cannot leave the user on a permanent black splash
+      launchAutoHide: true,
+      launchShowDuration: 2500,
       backgroundColor: '#0B0C15',
+      showSpinner: true,
+      androidSpinnerStyle: 'large',
+      spinnerColor: '#f5c619',
+      splashFullScreen: true,
+      splashImmersive: true,
     },
   },
 };
