@@ -14,9 +14,7 @@ interface AppReadyState {
 }
 
 /**
- * AppInitializer handles the splash screen lifecycle and app initialization.
- * It ensures the splash screen remains visible until the app is fully ready,
- * preventing the "White Screen of Death" issue.
+ * Handles splash lifecycle. Never leaves the user on a permanent black screen.
  */
 export function AppInitializer({ children }: AppInitializerProps) {
   const [state, setState] = useState<AppReadyState>({
@@ -24,41 +22,32 @@ export function AppInitializer({ children }: AppInitializerProps) {
     error: null,
   });
 
-  // Hide splash screen with fade animation
   const hideSplashScreen = useCallback(async () => {
     try {
       if (Capacitor.isNativePlatform()) {
-        const platform = Capacitor.getPlatform();
-        if (platform === "android") {
-          // Allow extra time for Android WebView to paint first frame
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
-        console.log("🚀 SPLASH HIDDEN - smooth transition to UI");
-        await SplashScreen.hide({
-          fadeOutDuration: 500, // Premium smooth fade transition
-        });
+        await SplashScreen.hide({ fadeOutDuration: 300 });
       }
     } catch (error) {
-      // Splash screen might already be hidden or not available
       console.log("Splash screen hide:", error);
     }
   }, []);
 
-  // Initialize app and hide splash when ready
+  // Always force-hide splash within 3s even if other init paths hang
+  useEffect(() => {
+    const forceHide = setTimeout(() => {
+      hideSplashScreen();
+      setState((prev) => (prev.isReady ? prev : { isReady: true, error: null }));
+    }, 3000);
+
+    return () => clearTimeout(forceHide);
+  }, [hideSplashScreen]);
+
   useEffect(() => {
     let mounted = true;
 
     const initializeApp = async () => {
       try {
-        // Minimum display time for splash screen to prevent flash
-        const minSplashTime = new Promise((resolve) =>
-          setTimeout(resolve, 500)
-        );
-
-        // Wait for minimum splash time
-        await minSplashTime;
-
+        await new Promise((resolve) => setTimeout(resolve, 400));
         if (mounted) {
           setState({ isReady: true, error: null });
         }
@@ -77,47 +66,24 @@ export function AppInitializer({ children }: AppInitializerProps) {
     };
   }, []);
 
-  // Service Worker purge: if app fails to hydrate within 3s, nuke dead SWs and reload
-  useEffect(() => {
-    const swTimeout = setTimeout(async () => {
-      if (!state.isReady && "serviceWorker" in navigator) {
-        console.warn("⚠️ PWA hydration stalled — purging service workers");
-        try {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(registrations.map((r) => r.unregister()));
-          // Clear all caches
-          if ("caches" in window) {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map((name) => caches.delete(name)));
-          }
-          window.location.reload();
-        } catch (e) {
-          console.error("SW purge failed:", e);
-        }
-      }
-    }, 3000);
-
-    return () => clearTimeout(swTimeout);
-  }, [state.isReady]);
-
-  // Hide splash screen when app is ready
   useEffect(() => {
     if (state.isReady) {
       hideSplashScreen();
     }
   }, [state.isReady, hideSplashScreen]);
 
-  // Show loading state with dark background to prevent white flash
   if (!state.isReady) {
     return <AppLoadingScreen />;
   }
 
-  // Show error state if initialization failed
   if (state.error) {
     return (
       <AppErrorScreen
         error={state.error}
-        onRetry={() => setState({ isReady: false, error: null })}
+        onRetry={() => {
+          setState({ isReady: false, error: null });
+          window.location.reload();
+        }}
       />
     );
   }
@@ -125,10 +91,6 @@ export function AppInitializer({ children }: AppInitializerProps) {
   return <>{children}</>;
 }
 
-/**
- * Loading screen shown while app initializes.
- * Matches the splash screen background to prevent flash.
- */
 function AppLoadingScreen() {
   return (
     <div
@@ -136,39 +98,13 @@ function AppLoadingScreen() {
       style={{ backgroundColor: "#0B0C15" }}
     >
       <div className="flex flex-col items-center gap-4">
-        <div className="bg-primary/10 p-4 rounded-full animate-pulse">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-primary"
-          >
-            <path d="M11 17a1 1 0 0 1 2 0" />
-            <path d="M7 7a1 1 0 1 0 2 0" />
-            <path d="M15 7a1 1 0 1 0 2 0" />
-            <path d="M7 12a1 1 0 1 0 2 0" />
-            <path d="M15 12a1 1 0 1 0 2 0" />
-            <path d="M12 3c-1.5 0-2.5 1-3 2.5-.5 1.5-1 2.5-2.5 3.5-1.5 1-2.5 2-2.5 3.5 0 3 4 6 8 6s8-3 8-6c0-1.5-1-2.5-2.5-3.5-1.5-1-2-2-2.5-3.5-.5-1.5-1.5-2.5-3-2.5" />
-          </svg>
-        </div>
-        <span className="text-muted-foreground text-sm animate-pulse">
-          Loading...
-        </span>
+        <div className="h-10 w-10 rounded-full border-2 border-[#f5c619] border-t-transparent animate-spin" />
+        <span className="text-white/60 text-sm">Loading Eth-Links…</span>
       </div>
     </div>
   );
 }
 
-/**
- * Error screen shown when initialization fails.
- * Provides a retry button to attempt reinitialization.
- */
 function AppErrorScreen({
   error,
   onRetry,
@@ -182,35 +118,13 @@ function AppErrorScreen({
       style={{ backgroundColor: "#0B0C15" }}
     >
       <div className="flex flex-col items-center gap-4 text-center max-w-sm">
-        <div className="bg-destructive/10 p-4 rounded-full">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-destructive"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-foreground">
-            Something went wrong
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {error.message || "Failed to initialize the app. Please try again."}
-          </p>
-        </div>
+        <h2 className="text-lg font-semibold text-white">Something went wrong</h2>
+        <p className="text-sm text-white/60">
+          {error.message || "Failed to initialize the app. Please try again."}
+        </p>
         <button
           onClick={onRetry}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
+          className="px-4 py-2 bg-[#f5c619] text-black rounded-lg font-medium"
         >
           Retry
         </button>
