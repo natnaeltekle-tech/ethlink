@@ -9,7 +9,7 @@ import { Users, Briefcase, Calendar, Banknote } from 'lucide-react'
 import { DeleteServiceButton } from '@/components/admin/delete-service-button'
 import { ConfirmPaymentButton } from '@/components/admin/confirm-payment-button'
 import Link from 'next/link'
-import { isSimulationMode } from '@/lib/payment-mode'
+import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats()
@@ -17,6 +17,7 @@ export default async function AdminDashboard() {
   const recentBookings = await getRecentBookings()
   const pendingPayments = await getPendingPaymentBookings()
   const simulation = isSimulationMode()
+  const autoConfirm = isSimulationAutoConfirm()
 
   if (!stats) {
     return <div className="p-8 text-center">Loading admin data...</div>
@@ -26,14 +27,24 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       {simulation && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
-          <strong>Payment mode: simulation.</strong> Live Chapa is off. Confirm
-          bank / offline transfers below with <em>Confirm paid</em>. Set{' '}
-          <code className="text-xs">PAYMENT_MODE=live</code> and{' '}
-          <code className="text-xs">CHAPA_SECRET_KEY</code> when regs are ready.
+          <strong>Payment mode: simulation.</strong>{' '}
+          {autoConfirm ? (
+            <>
+              Users complete <em>Pay now</em> themselves — bookings are marked paid
+              automatically. You do not need to confirm each payment. Admin
+              confirm below is only a backup for stuck pending rows.
+            </>
+          ) : (
+            <>
+              Auto-confirm is off. Use <em>Confirm paid</em> for each pending
+              transfer.
+            </>
+          )}{' '}
+          When regs are ready: set <code className="text-xs">PAYMENT_MODE=live</code>{' '}
+          + Chapa keys.
         </div>
       )}
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -79,7 +90,6 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Pending payments — simulation / offline confirm */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -93,7 +103,7 @@ export default async function AdminDashboard() {
         <CardContent>
           {pendingPayments.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No pending bookings waiting for payment confirmation.
+              No pending bookings. With auto-confirm, new pays go straight to paid.
             </p>
           ) : (
             <div className="space-y-4">
