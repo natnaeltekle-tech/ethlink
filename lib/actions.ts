@@ -38,7 +38,8 @@ export {
     initiatePayment,
     verifyPayment,
     reconcileBookingPayment,
-    getCommissionRate
+    getCommissionRate,
+    getPublicPaymentMode,
 } from './actions/payments'
 
 export {
