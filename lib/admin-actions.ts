@@ -106,7 +106,6 @@ export async function getPendingPaymentBookings() {
 /**
  * Manually confirm a pending booking as paid.
  * Uses the same idempotent process_payment_confirmation RPC as Chapa webhooks.
- * Safe to call more than once for the same booking.
  */
 export async function adminConfirmBookingPayment(bookingId: string, note?: string) {
     const isAdminUser = await checkAdmin()
@@ -146,7 +145,8 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
     const commissionRate = await getCommissionRate()
     const commission = price * commissionRate
     const earnings = price - commission
-    const txRef = `tx-ethlink-${bookingId}-${Date.now()}-admin-${crypto.randomUUID().slice(0, 8)}`
+    // Schema-compatible tx_ref (no extra hyphens in suffix)
+    const txRef = `tx-ethlink-${bookingId}-${Date.now()}-adm${crypto.randomUUID().slice(0, 6)}`
 
     const result = await confirmBookingPaymentAtomic({
         txRef,
@@ -173,7 +173,6 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
         },
     })
 
-    // Notify customer
     try {
         const title = service?.title ?? 'your booking'
         await adminSupabase.from('notifications').insert({

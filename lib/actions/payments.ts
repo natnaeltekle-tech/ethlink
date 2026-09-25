@@ -27,9 +27,10 @@ export async function getCommissionRate(): Promise<number> {
     return parseFloat(data.value)
 }
 
-function buildTxRef(bookingId: string, tag = ''): string {
-    const suffix = tag ? `-${tag}` : ''
-    return `tx-ethlink-${bookingId}-${Date.now()}${suffix}-${crypto.randomUUID().slice(0, 8)}`
+/** Schema-compatible: tx-ethlink-{uuid}-{timestamp}-{suffix} */
+function buildTxRef(bookingId: string, suffix = 'pay'): string {
+    const clean = suffix.replace(/[^a-z0-9]/gi, '').slice(0, 12) || 'pay'
+    return `tx-ethlink-${bookingId}-${Date.now()}-${clean}${crypto.randomUUID().slice(0, 6)}`
 }
 
 export async function initiatePayment(bookingId: string) {
@@ -66,7 +67,7 @@ export async function initiatePayment(bookingId: string) {
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const simulation = isSimulationMode()
-    const tx_ref = buildTxRef(bookingId, simulation ? 'sim' : '')
+    const tx_ref = buildTxRef(bookingId, simulation ? 'sim' : 'pay')
 
     // ── Simulation / offline path (no live Chapa) ───────────────────────────
     // Records payment intent only. Booking stays pending until an admin
@@ -86,28 +87,24 @@ export async function initiatePayment(bookingId: string) {
             },
         })
 
-        // Best-effort notify admin (service role) — non-blocking for the user flow
         try {
-            const adminEmail = process.env.ADMIN_EMAIL
-            if (adminEmail) {
-                const adminSupabase = createAdminClient()
-                const { data: adminProfile } = await adminSupabase
-                    .from('profiles')
-                    .select('id')
-                    .eq('role', 'admin')
-                    .limit(5)
+            const adminSupabase = createAdminClient()
+            const { data: adminProfile } = await adminSupabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'admin')
+                .limit(5)
 
-                const adminIds = (adminProfile ?? []).map((p: { id: string }) => p.id)
-                if (adminIds.length > 0) {
-                    await adminSupabase.from('notifications').insert(
-                        adminIds.map((id: string) => ({
-                            user_id: id,
-                            content: `Payment pending confirmation — booking ${bookingId.slice(0, 8).toUpperCase()} (${price} ETB)`,
-                            type: 'payment',
-                            link: '/admin',
-                        }))
-                    )
-                }
+            const adminIds = (adminProfile ?? []).map((p: { id: string }) => p.id)
+            if (adminIds.length > 0) {
+                await adminSupabase.from('notifications').insert(
+                    adminIds.map((id: string) => ({
+                        user_id: id,
+                        content: `Payment pending confirmation — booking ${bookingId.slice(0, 8).toUpperCase()} (${price} ETB)`,
+                        type: 'payment',
+                        link: '/admin',
+                    }))
+                )
             }
         } catch (e) {
             console.warn('[Payments] Admin notify skipped:', e)
@@ -228,7 +225,6 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     }
 
     // Simulation mode: never auto-confirm from the client path.
-    // Admin must call adminConfirmBookingPayment after verifying transfer.
     if (isSimulationMode()) {
         return {
             success: false,
