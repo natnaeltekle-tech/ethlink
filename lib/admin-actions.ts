@@ -145,7 +145,6 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
     const commissionRate = await getCommissionRate()
     const commission = price * commissionRate
     const earnings = price - commission
-    // Schema-compatible tx_ref (no extra hyphens in suffix)
     const txRef = `tx-ethlink-${bookingId}-${Date.now()}-adm${crypto.randomUUID().slice(0, 6)}`
 
     const result = await confirmBookingPaymentAtomic({
@@ -173,13 +172,14 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
         },
     })
 
+    // Notify customer — deep-link to receipt page so they can print/save it
     try {
         const title = service?.title ?? 'your booking'
         await adminSupabase.from('notifications').insert({
             user_id: booking.user_id,
-            content: `Payment confirmed for ${title}. Your booking is paid.`,
+            content: `Payment confirmed for ${title} (${price} ETB). Tap to view your receipt.`,
             type: 'payment',
-            link: '/dashboard',
+            link: `/book/success?bookingId=${bookingId}`,
         })
     } catch (e) {
         console.warn('[Admin] customer notify skipped:', e)
@@ -187,7 +187,7 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
 
     revalidatePath('/admin')
     revalidatePath('/dashboard')
-    revalidatePath(`/book/success`)
+    revalidatePath('/book/success')
 
     return { success: true, status: result.status }
 }
