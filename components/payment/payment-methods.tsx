@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Loader2, ShieldCheck, Banknote } from 'lucide-react'
+import { Loader2, ShieldCheck } from 'lucide-react'
 import { initiatePayment, getPublicPaymentMode } from '@/lib/actions'
 import { toast } from 'sonner'
 
@@ -33,14 +33,20 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
                 throw new Error('Failed to initialize payment')
             }
 
-            if (result.simulation || result.test_mode) {
-                toast.info('Payment request recorded — awaiting confirmation.')
+            if (result.auto_confirmed) {
+                toast.success('Payment successful!')
+            } else if (result.simulation || result.test_mode) {
+                toast.info('Payment submitted.')
             }
 
             window.location.href = result.checkout_url
         } catch (error) {
             console.error('Payment error:', error)
-            toast.error('Payment failed. Please check your connection and try again.')
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : 'Payment failed. Please try again.'
+            )
             setIsProcessing(false)
         }
     }
@@ -56,47 +62,41 @@ export function PaymentMethods({ bookingId, amount }: PaymentMethodsProps) {
                 <p className="text-3xl font-bold text-foreground mt-1">{amount} ETB</p>
             </div>
 
-            {simulation && (
-                <p className="text-sm text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
-                    Live card/mobile checkout is temporarily offline. Submit a payment
-                    request and transfer offline — we confirm once verified.
-                </p>
-            )}
-
             <Button
                 onClick={handlePayment}
                 disabled={isProcessing}
-                className="w-full h-14 text-lg font-semibold transition-all rounded-xl shadow-lg hover:shadow-xl"
+                className="w-full h-14 text-lg font-semibold transition-all rounded-xl shadow-lg"
                 style={{
-                    backgroundColor: isProcessing ? '#6b7280' : simulation ? '#f5c619' : '#00A859',
+                    backgroundColor: isProcessing
+                        ? '#6b7280'
+                        : simulation
+                          ? '#f5c619'
+                          : '#00A859',
                     color: simulation ? '#0B0C15' : '#ffffff',
                 }}
             >
                 {isProcessing ? (
                     <span className="flex items-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        {simulation ? 'Submitting…' : 'Connecting to Chapa...'}
-                    </span>
-                ) : simulation ? (
-                    <span className="flex items-center gap-2">
-                        <Banknote className="h-5 w-5" />
-                        Submit payment request
+                        Processing…
                     </span>
                 ) : (
                     <span className="flex items-center gap-2">
                         <ShieldCheck className="h-5 w-5" />
-                        Pay with Chapa
+                        {simulation ? 'Pay now' : 'Pay with Chapa'}
                     </span>
                 )}
             </Button>
 
             <p className="text-xs text-center text-muted-foreground/70">
                 {simulation
-                    ? 'Manual confirmation · Eth-Links support will verify your transfer'
+                    ? 'Secure in-app payment · Receipt available after success'
                     : (
                         <>
                             Supports Bank Cards, Mobile Money &amp; more — powered by{' '}
-                            <span className="font-medium" style={{ color: '#00A859' }}>Chapa</span>
+                            <span className="font-medium" style={{ color: '#00A859' }}>
+                                Chapa
+                            </span>
                         </>
                     )}
             </p>

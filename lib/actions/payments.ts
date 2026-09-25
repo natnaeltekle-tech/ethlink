@@ -9,10 +9,11 @@ import {
     extractBookingIdFromTxRef,
     logPaymentEvent,
 } from '@/lib/services/payments'
-import { isSimulationMode } from '@/lib/payment-mode'
+import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
+import { sendReceiptEmail } from '@/lib/receipt-email'
+import { formatBookingDateTime } from '@/lib/booking-time'
 import { revalidatePath } from 'next/cache'
 
-// ─── Dynamic Commission Configuration ──────────────────────────────────────
 export async function getCommissionRate(): Promise<number> {
     const supabase = createAdminClient()
     const { data, error } = await supabase
@@ -22,15 +23,46 @@ export async function getCommissionRate(): Promise<number> {
         .single()
 
     if (error || !data) {
-        return 0.10 // default to 10% commission
+        return 0.10
     }
     return parseFloat(data.value)
 }
 
-/** Schema-compatible: tx-ethlink-{uuid}-{timestamp}-{suffix} */
 function buildTxRef(bookingId: string, suffix = 'pay'): string {
     const clean = suffix.replace(/[^a-z0-9]/gi, '').slice(0, 12) || 'pay'
     return `tx-ethlink-${bookingId}-${Date.now()}-${clean}${crypto.randomUUID().slice(0, 6)}`
+}
+
+async function notifyCustomerPaid(params: {
+    userId: string
+    email?: string | null
+    bookingId: string
+    serviceTitle: string
+    amount: number
+    scheduledAt: string
+}) {
+    const adminSupabase = createAdminClient()
+    try {
+        await adminSupabase.from('notifications').insert({
+            user_id: params.userId,
+            content: `Payment confirmed for ${params.serviceTitle} (${params.amount} ETB). Tap to view your receipt.`,
+            type: 'payment',
+            link: `/book/success?bookingId=${params.bookingId}`,
+        })
+    } catch (e) {
+        console.warn('[Payments] customer notify skipped:', e)
+    }
+
+    if (params.email) {
+        void sendReceiptEmail({
+            to: params.email,
+            bookingId: params.bookingId,
+            serviceTitle: params.serviceTitle,
+            amount: params.amount,
+            scheduledLabel: formatBookingDateTime(params.scheduledAt),
+            reference: params.bookingId.slice(0, 8).toUpperCase(),
+        })
+    }
 }
 
 export async function initiatePayment(bookingId: string) {
@@ -47,7 +79,7 @@ export async function initiatePayment(bookingId: string) {
 
     const { data: booking, error } = await supabase
         .from('bookings')
-        .select('*, services(price)')
+        .select('*, services(price, title)')
         .eq('id', bookingId)
         .single()
 
@@ -64,29 +96,82 @@ export async function initiatePayment(bookingId: string) {
     }
 
     const price = booking.services.price
+    const serviceTitle = booking.services.title || 'Service'
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const simulation = isSimulationMode()
+    const autoConfirm = isSimulationAutoConfirm()
     const tx_ref = buildTxRef(bookingId, simulation ? 'sim' : 'pay')
 
-    // ── Simulation / offline path (no live Chapa) ───────────────────────────
-    // Records payment intent only. Booking stays pending until an admin
-    // confirms via adminConfirmBookingPayment. Never auto-marks paid here.
+    // ── Simulation path (no live Chapa) ─────────────────────────────────────
     if (simulation || !chapaSecretKey) {
         await logPaymentEvent({
             txRef: tx_ref,
             bookingId,
             provider: 'chapa',
             status: 'received',
-            message: 'simulation_payment_intent',
+            message: autoConfirm ? 'simulation_auto_pay' : 'simulation_payment_intent',
             payload: {
                 mode: 'simulation',
+                auto_confirm: autoConfirm,
                 amount: price,
                 user_id: user.id,
                 source: 'initiatePayment',
             },
         })
 
+        if (autoConfirm) {
+            // User pays → mark paid immediately (same RPC as live webhooks).
+            // You do NOT need to click Confirm on every payment.
+            const commissionRate = await getCommissionRate()
+            const commission = price * commissionRate
+            const earnings = price - commission
+
+            const result = await confirmBookingPaymentAtomic({
+                txRef: tx_ref,
+                bookingId,
+                provider: 'chapa',
+                commission,
+                providerEarnings: earnings,
+            })
+
+            if (result.status === 'error') {
+                console.error('[Payments] Simulation auto-confirm failed:', result.message)
+                throw new Error('Could not complete payment. Please try again.')
+            }
+
+            await logPaymentEvent({
+                txRef: tx_ref,
+                bookingId,
+                provider: 'chapa',
+                status: 'processed',
+                message: 'simulation_auto_confirmed',
+                payload: { amount: price },
+            })
+
+            await notifyCustomerPaid({
+                userId: user.id,
+                email: user.email,
+                bookingId,
+                serviceTitle,
+                amount: price,
+                scheduledAt: booking.date,
+            })
+
+            revalidatePath('/dashboard')
+            revalidatePath('/admin')
+
+            return {
+                success: true,
+                checkout_url: `${baseUrl}/book/success?bookingId=${bookingId}&tx_ref=${encodeURIComponent(tx_ref)}`,
+                tx_ref,
+                test_mode: true,
+                simulation: true,
+                auto_confirmed: true,
+            }
+        }
+
+        // Manual admin-confirm mode (SIMULATION_AUTO_CONFIRM=false)
         try {
             const adminSupabase = createAdminClient()
             const { data: adminProfile } = await adminSupabase
@@ -116,6 +201,7 @@ export async function initiatePayment(bookingId: string) {
             tx_ref,
             test_mode: true,
             simulation: true,
+            auto_confirmed: false,
         }
     }
 
@@ -182,6 +268,7 @@ export async function initiatePayment(bookingId: string) {
         tx_ref,
         test_mode: false,
         simulation: false,
+        auto_confirmed: false,
     }
 }
 
@@ -224,13 +311,27 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         return { success: true, message: 'Already processed' }
     }
 
-    // Simulation mode: never auto-confirm from the client path.
     if (isSimulationMode()) {
-        return {
-            success: false,
-            message: 'Simulation mode — payment awaits admin confirmation',
-            pending: true,
+        if (!isSimulationAutoConfirm()) {
+            return {
+                success: false,
+                message: 'Simulation mode — payment awaits admin confirmation',
+                pending: true,
+            }
         }
+        // Allow verify path to confirm in auto mode (idempotent)
+        const price = booking.services.price
+        const commissionRate = await getCommissionRate()
+        const result = await confirmBookingPaymentAtomic({
+            txRef: tx_ref,
+            bookingId,
+            provider,
+            commission: price * commissionRate,
+            providerEarnings: price - price * commissionRate,
+        })
+        if (result.status === 'error') throw new Error('Failed to update booking status')
+        revalidatePath('/dashboard')
+        return { success: true }
     }
 
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
@@ -289,7 +390,6 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     return { success: true }
 }
 
-// ─── Payment Reconciliation (fallback for missed/delayed webhooks) ─────────
 export type ReconcileResult =
     | { status: 'paid' }
     | { status: 'pending' }
@@ -325,8 +425,7 @@ export async function reconcileBookingPayment(
         return { status: 'paid' }
     }
 
-    // Simulation: never auto-confirm. User stays pending until admin acts.
-    if (isSimulationMode()) {
+    if (isSimulationMode() && !isSimulationAutoConfirm()) {
         return { status: 'pending' }
     }
 
@@ -355,11 +454,30 @@ export async function reconcileBookingPayment(
             if (!candidates.includes(ref)) candidates.push(ref)
         }
     } catch {
-        /* webhook event lookup is best-effort */
+        /* best-effort */
+    }
+
+    // Simulation auto-confirm: confirm with recorded tx_ref if still pending
+    if (isSimulationMode() && isSimulationAutoConfirm() && candidates.length > 0) {
+        const price = booking.services.price
+        const commissionRate = await getCommissionRate()
+        for (const candidate of candidates) {
+            const result = await confirmBookingPaymentAtomic({
+                txRef: candidate,
+                bookingId,
+                provider: 'chapa',
+                commission: price * commissionRate,
+                providerEarnings: price - price * commissionRate,
+            })
+            if (result.status === 'success' || result.status === 'already_processed') {
+                revalidatePath('/dashboard')
+                return { status: 'paid' }
+            }
+        }
     }
 
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
-    if (!chapaSecretKey) {
+    if (!chapaSecretKey || isSimulationMode()) {
         return { status: 'pending' }
     }
 
@@ -375,27 +493,16 @@ export async function reconcileBookingPayment(
             if (verifyResult.data?.status !== 'success') continue
 
             const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
-            if (Math.abs(paidAmount - booking.services.price) > 1) {
-                console.error(
-                    '[Chapa] Reconciliation amount mismatch! Paid:',
-                    paidAmount,
-                    'Expected:',
-                    booking.services.price
-                )
-                continue
-            }
+            if (Math.abs(paidAmount - booking.services.price) > 1) continue
 
             const price = booking.services.price
             const commissionRate = await getCommissionRate()
-            const commission = price * commissionRate
-            const earnings = price - commission
-
             const result = await confirmBookingPaymentAtomic({
                 txRef: candidate,
                 bookingId,
                 provider: detectPaymentProvider(candidate)!,
-                commission,
-                providerEarnings: earnings,
+                commission: price * commissionRate,
+                providerEarnings: price - price * commissionRate,
             })
 
             if (result.status === 'success' || result.status === 'already_processed') {
@@ -403,7 +510,7 @@ export async function reconcileBookingPayment(
                 return { status: 'paid' }
             }
         } catch {
-            /* try next candidate */
+            /* next */
         }
     }
 
@@ -421,7 +528,6 @@ export async function reconcileBookingPayment(
     return { status: 'pending' }
 }
 
-/** Public helper for UI: is the app currently in simulation payment mode? */
 export async function getPublicPaymentMode(): Promise<'simulation' | 'live'> {
     return isSimulationMode() ? 'simulation' : 'live'
 }
