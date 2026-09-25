@@ -5,36 +5,35 @@ import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { escrowResolutionSchema, uuidSchema } from '@/lib/validations'
 import { isAdmin } from '@/lib/admin-auth'
+import {
+    confirmBookingPaymentAtomic,
+    logPaymentEvent,
+} from '@/lib/services/payments'
+import { getCommissionRate } from '@/lib/actions/payments'
 
 async function checkAdmin() {
     return isAdmin()
 }
 
 export async function getAdminStats() {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) return null
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) return null
 
     const supabase = await createClient()
 
-    // Count Services
     const { count: servicesCount } = await supabase
         .from('services')
         .select('*', { count: 'exact', head: true })
 
-    // Count Bookings
     const { count: bookingsCount } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })
 
-    // Count Users from profiles table
-    // Use admin client to bypass RLS
     const adminSupabase = createAdminClient()
     const { count: usersCount } = await adminSupabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
 
-    // Calculate Platform Revenue
-    // Sum commission_amount from bookings
     const { data: revenueData, error: revenueError } = await supabase
         .from('bookings')
         .select('commission_amount')
@@ -42,20 +41,23 @@ export async function getAdminStats() {
 
     let totalRevenue = 0
     if (!revenueError && revenueData) {
-        totalRevenue = revenueData.reduce((sum, booking) => sum + (booking.commission_amount || 0), 0)
+        totalRevenue = revenueData.reduce(
+            (sum, booking) => sum + (booking.commission_amount || 0),
+            0
+        )
     }
 
     return {
         totalUsers: usersCount,
         totalServices: servicesCount || 0,
         totalBookings: bookingsCount || 0,
-        totalRevenue
+        totalRevenue,
     }
 }
 
 export async function getRecentServices() {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) return []
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) return []
 
     const supabase = await createClient()
     const { data } = await supabase
@@ -68,8 +70,8 @@ export async function getRecentServices() {
 }
 
 export async function getRecentBookings() {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) return []
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) return []
 
     const supabase = await createClient()
     const { data } = await supabase
@@ -81,9 +83,118 @@ export async function getRecentBookings() {
     return data || []
 }
 
+/** Pending bookings waiting for payment confirmation (simulation / offline). */
+export async function getPendingPaymentBookings() {
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) return []
+
+    const adminSupabase = createAdminClient()
+    const { data, error } = await adminSupabase
+        .from('bookings')
+        .select('id, status, date, created_at, user_id, services(id, title, price)')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(30)
+
+    if (error) {
+        console.error('[Admin] getPendingPaymentBookings:', error)
+        return []
+    }
+    return data || []
+}
+
+/**
+ * Manually confirm a pending booking as paid.
+ * Uses the same idempotent process_payment_confirmation RPC as Chapa webhooks.
+ */
+export async function adminConfirmBookingPayment(bookingId: string, note?: string) {
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) {
+        throw new Error('Unauthorized')
+    }
+
+    if (!uuidSchema.safeParse(bookingId).success) {
+        throw new Error('Invalid booking ID')
+    }
+
+    const adminSupabase = createAdminClient()
+    const { data: booking, error } = await adminSupabase
+        .from('bookings')
+        .select('id, status, user_id, services(price, title, user_id)')
+        .eq('id', bookingId)
+        .single()
+
+    if (error || !booking) {
+        throw new Error('Booking not found')
+    }
+
+    if (booking.status === 'paid' || booking.status === 'confirmed' || booking.status === 'completed') {
+        return { success: true, status: 'already_paid' as const }
+    }
+
+    if (booking.status !== 'pending') {
+        throw new Error(`Cannot confirm payment for status: ${booking.status}`)
+    }
+
+    const service = Array.isArray(booking.services) ? booking.services[0] : booking.services
+    const price = Number(service?.price ?? 0)
+    if (!price || price <= 0) {
+        throw new Error('Invalid service price')
+    }
+
+    const commissionRate = await getCommissionRate()
+    const commission = price * commissionRate
+    const earnings = price - commission
+    // Schema-compatible tx_ref (no extra hyphens in suffix)
+    const txRef = `tx-ethlink-${bookingId}-${Date.now()}-adm${crypto.randomUUID().slice(0, 6)}`
+
+    const result = await confirmBookingPaymentAtomic({
+        txRef,
+        bookingId,
+        provider: 'chapa',
+        commission,
+        providerEarnings: earnings,
+    })
+
+    if (result.status === 'error') {
+        throw new Error(result.message || 'Failed to confirm payment')
+    }
+
+    await logPaymentEvent({
+        txRef,
+        bookingId,
+        provider: 'chapa',
+        status: 'processed',
+        message: 'admin_manual_confirm',
+        payload: {
+            note: note?.slice(0, 500) || null,
+            amount: price,
+            source: 'adminConfirmBookingPayment',
+        },
+    })
+
+    try {
+        const title = service?.title ?? 'your booking'
+        await adminSupabase.from('notifications').insert({
+            user_id: booking.user_id,
+            content: `Payment confirmed for ${title}. Your booking is paid.`,
+            type: 'payment',
+            link: '/dashboard',
+        })
+    } catch (e) {
+        console.warn('[Admin] customer notify skipped:', e)
+    }
+
+    revalidatePath('/admin')
+    revalidatePath('/dashboard')
+    revalidatePath(`/book/success`)
+
+    return { success: true, status: result.status }
+}
+
 export async function adminDeleteService(id: string) {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) {
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) {
         throw new Error('Unauthorized')
     }
 
@@ -92,10 +203,7 @@ export async function adminDeleteService(id: string) {
     }
 
     const supabase = await createClient()
-    const { error } = await supabase
-        .from('services')
-        .delete()
-        .eq('id', id)
+    const { error } = await supabase.from('services').delete().eq('id', id)
 
     if (error) {
         console.error('Error deleting service:', error)
@@ -111,8 +219,8 @@ export async function resolveEscrowDispute(input: {
     resolution: 'release_to_provider' | 'refund_customer'
     reason: string
 }) {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) {
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) {
         throw new Error('Unauthorized')
     }
 
@@ -158,9 +266,10 @@ export async function resolveEscrowDispute(input: {
     const service = Array.isArray(booking.services) ? booking.services[0] : booking.services
     const title = service?.title ?? 'your booking'
     const providerId = service?.user_id
-    const content = resolution === 'release_to_provider'
-        ? `Escrow released to provider for ${title}.`
-        : `Escrow refund approved for ${title}.`
+    const content =
+        resolution === 'release_to_provider'
+            ? `Escrow released to provider for ${title}.`
+            : `Escrow refund approved for ${title}.`
 
     await adminSupabase.from('notifications').insert([
         {
@@ -169,12 +278,16 @@ export async function resolveEscrowDispute(input: {
             type: 'payment',
             link: '/dashboard',
         },
-        ...(providerId ? [{
-            user_id: providerId,
-            content,
-            type: 'payment',
-            link: '/dashboard',
-        }] : []),
+        ...(providerId
+            ? [
+                  {
+                      user_id: providerId,
+                      content,
+                      type: 'payment',
+                      link: '/dashboard',
+                  },
+              ]
+            : []),
     ])
 
     revalidatePath('/admin')
@@ -183,48 +296,41 @@ export async function resolveEscrowDispute(input: {
     return { success: true, status: nextStatus }
 }
 
-/**
- * Fetches provider information, falling back to Auth Admin API if profile is missing or incomplete.
- * This is used to display user details like "User (email@email.com)" when they haven't set up a profile.
- */
 export async function getProviderInfo(userId: string) {
-    const isAdmin = await checkAdmin()
-    if (!isAdmin) return null
+    const isAdminUser = await checkAdmin()
+    if (!isAdminUser) return null
 
     if (!uuidSchema.safeParse(userId).success) return null
 
     const adminSupabase = createAdminClient()
 
-    // 1. Try Profiles Table
     const { data: profileData } = await adminSupabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
-    // Check if we have a valid profile with a name
     if (profileData && profileData.full_name) {
         return profileData
     }
 
-    // 2. Fallback: Try Auth Admin to get metadata/email
     try {
-        const { data: { user: authUser } } = await adminSupabase.auth.admin.getUserById(userId)
+        const {
+            data: { user: authUser },
+        } = await adminSupabase.auth.admin.getUserById(userId)
 
         if (authUser) {
-            // Construct a profile-like object from auth data
             return {
                 id: authUser.id,
-                full_name: authUser.user_metadata?.full_name || '', // Leave empty to let UI decide display
+                full_name: authUser.user_metadata?.full_name || '',
                 email: authUser.email,
                 avatar_url: authUser.user_metadata?.avatar_url,
-                created_at: authUser.created_at
+                created_at: authUser.created_at,
             }
         }
     } catch (e) {
         console.error('Failed to fetch provider details via Admin API:', e)
     }
 
-    // 3. Last resort: Return whatever profile data we had (even if empty name) or null
     return profileData || null
 }

@@ -1,12 +1,13 @@
 import { getBookingDetails } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowLeft, Clock, XCircle } from "lucide-react";
+import { CheckCircle, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PrintButton } from "@/components/print-button";
 import { Card } from "@/components/ui/card";
 import { PaymentStatusChecker } from "@/components/payment-status-checker";
 import { formatBookingDate, formatBookingTime, BOOKING_TIME_ZONE_LABEL } from "@/lib/booking-time";
+import { isSimulationMode } from "@/lib/payment-mode";
 
 type StatusView = "paid" | "pending" | "unpaid";
 
@@ -21,9 +22,9 @@ function resolveStatusView(status: string): StatusView {
 export default async function SuccessPage({
     searchParams,
 }: {
-    searchParams: Promise<{ bookingId: string; tx_ref?: string }>;
+    searchParams: Promise<{ bookingId: string; tx_ref?: string; simulated?: string }>;
 }) {
-    const { bookingId, tx_ref } = await searchParams;
+    const { bookingId, tx_ref, simulated } = await searchParams;
 
     if (!bookingId) {
         return redirect("/dashboard");
@@ -37,6 +38,8 @@ export default async function SuccessPage({
 
     const service = booking.services;
     const statusView = resolveStatusView(booking.status ?? "");
+    const simulation =
+        isSimulationMode() || simulated === "1" || simulated === "true";
 
     if (statusView === "pending") {
         return (
@@ -47,16 +50,30 @@ export default async function SuccessPage({
                             <Clock className="h-10 w-10 text-amber-500" />
                         </div>
                         <h1 className="text-2xl font-bold text-white">
-                            Payment is being processed
+                            {simulation
+                                ? "Payment request received"
+                                : "Payment is being processed"}
                         </h1>
                         <p className="text-amber-50 mt-2">
-                            We are confirming your payment. This usually takes
-                            only a moment — please don&apos;t pay again.
+                            {simulation
+                                ? "We recorded your payment intent. An admin will confirm once the transfer is verified. Please don’t pay again."
+                                : "We are confirming your payment. This usually takes only a moment — please don’t pay again."}
                         </p>
                     </div>
 
                     <div className="p-8 space-y-6">
-                        <PaymentStatusChecker bookingId={bookingId} txRef={tx_ref} />
+                        {!simulation && (
+                            <PaymentStatusChecker bookingId={bookingId} txRef={tx_ref} />
+                        )}
+                        {simulation && (
+                            <p className="text-sm text-center text-gray-600 dark:text-gray-300">
+                                You can close this page. Check your dashboard for status updates.
+                                Reference:{' '}
+                                <span className="font-mono font-medium">
+                                    {booking.id.slice(0, 8).toUpperCase()}
+                                </span>
+                            </p>
+                        )}
 
                         <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3 text-sm">
                             <div className="flex justify-between">
@@ -148,7 +165,7 @@ export default async function SuccessPage({
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 dark:text-gray-400">Payment Method</span>
-                            <span className="font-medium">Local Transfer</span>
+                            <span className="font-medium">{simulation ? "Manual / transfer" : "Chapa"}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 dark:text-gray-400">Service</span>

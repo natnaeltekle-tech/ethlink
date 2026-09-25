@@ -7,9 +7,10 @@ import {
     confirmBookingPaymentAtomic,
     detectPaymentProvider,
     extractBookingIdFromTxRef,
+    logPaymentEvent,
 } from '@/lib/services/payments'
+import { isSimulationMode } from '@/lib/payment-mode'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
 // ─── Dynamic Commission Configuration ──────────────────────────────────────
 export async function getCommissionRate(): Promise<number> {
@@ -21,11 +22,16 @@ export async function getCommissionRate(): Promise<number> {
         .single()
 
     if (error || !data) {
-        return 0.10; // default to 10% commission
+        return 0.10 // default to 10% commission
     }
     return parseFloat(data.value)
 }
 
+/** Schema-compatible: tx-ethlink-{uuid}-{timestamp}-{suffix} */
+function buildTxRef(bookingId: string, suffix = 'pay'): string {
+    const clean = suffix.replace(/[^a-z0-9]/gi, '').slice(0, 12) || 'pay'
+    return `tx-ethlink-${bookingId}-${Date.now()}-${clean}${crypto.randomUUID().slice(0, 6)}`
+}
 
 export async function initiatePayment(bookingId: string) {
     const supabase = await createClient()
@@ -53,27 +59,79 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('Unauthorized')
     }
 
+    if (booking.status === 'paid' || booking.status === 'confirmed' || booking.status === 'completed') {
+        throw new Error('This booking is already paid')
+    }
+
     const price = booking.services.price
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const tx_ref = `tx-ethlink-${bookingId}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
+    const simulation = isSimulationMode()
+    const tx_ref = buildTxRef(bookingId, simulation ? 'sim' : 'pay')
 
-    if (!chapaSecretKey) {
-        console.warn('[Chapa] No CHAPA_SECRET_KEY set — running in test/simulation mode.')
+    // ── Simulation / offline path (no live Chapa) ───────────────────────────
+    // Records payment intent only. Booking stays pending until an admin
+    // confirms via adminConfirmBookingPayment. Never auto-marks paid here.
+    if (simulation || !chapaSecretKey) {
+        await logPaymentEvent({
+            txRef: tx_ref,
+            bookingId,
+            provider: 'chapa',
+            status: 'received',
+            message: 'simulation_payment_intent',
+            payload: {
+                mode: 'simulation',
+                amount: price,
+                user_id: user.id,
+                source: 'initiatePayment',
+            },
+        })
+
+        try {
+            const adminSupabase = createAdminClient()
+            const { data: adminProfile } = await adminSupabase
+                .from('profiles')
+                .select('id')
+                .eq('role', 'admin')
+                .limit(5)
+
+            const adminIds = (adminProfile ?? []).map((p: { id: string }) => p.id)
+            if (adminIds.length > 0) {
+                await adminSupabase.from('notifications').insert(
+                    adminIds.map((id: string) => ({
+                        user_id: id,
+                        content: `Payment pending confirmation — booking ${bookingId.slice(0, 8).toUpperCase()} (${price} ETB)`,
+                        type: 'payment',
+                        link: '/admin',
+                    }))
+                )
+            }
+        } catch (e) {
+            console.warn('[Payments] Admin notify skipped:', e)
+        }
+
         return {
             success: true,
-            checkout_url: `${baseUrl}/book/success?bookingId=${bookingId}&simulated=true`,
+            checkout_url: `${baseUrl}/book/success?bookingId=${bookingId}&tx_ref=${encodeURIComponent(tx_ref)}&simulated=1`,
             tx_ref,
             test_mode: true,
+            simulation: true,
         }
     }
 
+    // ── Live Chapa path ─────────────────────────────────────────────────────
     const payload = {
         amount: String(price),
         currency: 'ETB',
         email: user.email || 'customer@eth-links.com',
-        first_name: user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || 'Customer',
-        last_name: user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'User',
+        first_name:
+            user.user_metadata?.first_name ||
+            user.user_metadata?.full_name?.split(' ')[0] ||
+            'Customer',
+        last_name:
+            user.user_metadata?.last_name ||
+            user.user_metadata?.full_name?.split(' ').slice(1).join(' ') ||
+            'User',
         phone_number: user.user_metadata?.phone || undefined,
         tx_ref,
         callback_url: `${baseUrl}/api/payment/callback`,
@@ -109,11 +167,21 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('Payment initialization failed. Please try again.')
     }
 
+    await logPaymentEvent({
+        txRef: tx_ref,
+        bookingId,
+        provider: 'chapa',
+        status: 'received',
+        message: 'chapa_initialize_success',
+        payload: { mode: 'live', amount: price },
+    })
+
     return {
         success: true,
         checkout_url: result.data.checkout_url,
         tx_ref,
         test_mode: false,
+        simulation: false,
     }
 }
 
@@ -156,30 +224,20 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         return { success: true, message: 'Already processed' }
     }
 
+    // Simulation mode: never auto-confirm from the client path.
+    if (isSimulationMode()) {
+        return {
+            success: false,
+            message: 'Simulation mode — payment awaits admin confirmation',
+            pending: true,
+        }
+    }
+
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     const commissionRate = await getCommissionRate()
 
     if (!chapaSecretKey) {
-        console.warn('[Chapa] No CHAPA_SECRET_KEY — simulating verification success.')
-
-        const price = booking.services.price
-        const commission = price * commissionRate
-        const earnings = price - commission
-
-        const result = await confirmBookingPaymentAtomic({
-            txRef: tx_ref,
-            bookingId,
-            provider,
-            commission,
-            providerEarnings: earnings,
-        })
-
-        if (result.status === 'error') {
-            throw new Error('Failed to update booking status')
-        }
-
-        revalidatePath('/dashboard')
-        return { success: true }
+        throw new Error('Payment gateway is not configured')
     }
 
     const verifyResponse = await fetch(
@@ -204,7 +262,6 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         throw new Error('Payment was not completed successfully')
     }
 
-    // S2: Verify paid amount matches booking price (±1 ETB tolerance for rounding)
     const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
     const expectedPrice = booking.services.price
     if (Math.abs(paidAmount - expectedPrice) > 1) {
@@ -268,8 +325,11 @@ export async function reconcileBookingPayment(
         return { status: 'paid' }
     }
 
-    // Candidate tx_refs: the one from the return URL first (only if it belongs
-    // to this booking), then any tx_refs the webhook path recorded for it.
+    // Simulation: never auto-confirm. User stays pending until admin acts.
+    if (isSimulationMode()) {
+        return { status: 'pending' }
+    }
+
     const candidates: string[] = []
     if (
         txRef &&
@@ -299,31 +359,30 @@ export async function reconcileBookingPayment(
     }
 
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
+    if (!chapaSecretKey) {
+        return { status: 'pending' }
+    }
 
     for (const candidate of candidates) {
         try {
-            if (chapaSecretKey) {
-                const verifyResponse = await fetch(
-                    `https://api.chapa.co/v1/transaction/verify/${candidate}`,
-                    { headers: { Authorization: `Bearer ${chapaSecretKey}` } }
+            const verifyResponse = await fetch(
+                `https://api.chapa.co/v1/transaction/verify/${candidate}`,
+                { headers: { Authorization: `Bearer ${chapaSecretKey}` } }
+            )
+            if (!verifyResponse.ok) continue
+
+            const verifyResult = await verifyResponse.json()
+            if (verifyResult.data?.status !== 'success') continue
+
+            const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
+            if (Math.abs(paidAmount - booking.services.price) > 1) {
+                console.error(
+                    '[Chapa] Reconciliation amount mismatch! Paid:',
+                    paidAmount,
+                    'Expected:',
+                    booking.services.price
                 )
-                if (!verifyResponse.ok) continue
-
-                const verifyResult = await verifyResponse.json()
-                if (verifyResult.data?.status !== 'success') continue
-
-                const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
-                if (Math.abs(paidAmount - booking.services.price) > 1) {
-                    console.error(
-                        '[Chapa] Reconciliation amount mismatch! Paid:',
-                        paidAmount,
-                        'Expected:',
-                        booking.services.price
-                    )
-                    continue
-                }
-            } else {
-                console.warn('[Chapa] No CHAPA_SECRET_KEY — reconciliation running in test/simulation mode.')
+                continue
             }
 
             const price = booking.services.price
@@ -348,7 +407,6 @@ export async function reconcileBookingPayment(
         }
     }
 
-    // The webhook may have completed while we were reconciling.
     const { data: refreshed } = await supabase
         .from('bookings')
         .select('status')
@@ -361,4 +419,9 @@ export async function reconcileBookingPayment(
     }
 
     return { status: 'pending' }
+}
+
+/** Public helper for UI: is the app currently in simulation payment mode? */
+export async function getPublicPaymentMode(): Promise<'simulation' | 'live'> {
+    return isSimulationMode() ? 'simulation' : 'live'
 }
