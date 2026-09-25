@@ -10,7 +10,7 @@ export function PresenceTracker() {
 
   useEffect(() => {
     let cancelled = false
-    let subscription: { unsubscribe: () => void } | null = null
+    let unsubscribe: (() => void) | null = null
 
     const run = async () => {
       try {
@@ -22,12 +22,10 @@ export function PresenceTracker() {
         } = await supabase.auth.getUser()
         if (!cancelled && user) setUserId(user.id)
 
-        const { data } = supabase.auth.onAuthStateChange(
-          (_event: string, session: { user?: { id: string } } | null) => {
-            if (!cancelled) setUserId(session?.user?.id || null)
-          }
-        )
-        subscription = data.subscription
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!cancelled) setUserId(session?.user?.id || null)
+        })
+        unsubscribe = () => data.subscription.unsubscribe()
       } catch (err) {
         console.warn('[PresenceTracker] init skipped:', err)
       }
@@ -38,7 +36,7 @@ export function PresenceTracker() {
     return () => {
       cancelled = true
       try {
-        subscription?.unsubscribe()
+        unsubscribe?.()
       } catch {
         /* ignore */
       }
@@ -49,29 +47,30 @@ export function PresenceTracker() {
     if (!userId) return
 
     let cancelled = false
-    let channel: { track: (p: object) => Promise<unknown> } | null = null
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let supabase: any = null
+    let cleanup: (() => void) | null = null
 
     const run = async () => {
       try {
         const { createClient } = await import('@/lib/supabase/client')
-        supabase = createClient()
-        channel = supabase.channel('global-presence', {
+        const supabase = createClient()
+        const channel = supabase.channel('global-presence', {
           config: { presence: { key: userId } },
         })
 
         channel
-          // @ts-expect-error supabase channel chain
           .on('presence', { event: 'sync' }, () => {})
-          .subscribe(async (status: string) => {
-            if (status === 'SUBSCRIBED' && !cancelled && channel) {
+          .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED' && !cancelled) {
               await channel.track({
                 user_id: userId,
                 online_at: new Date().toISOString(),
               })
             }
           })
+
+        cleanup = () => {
+          void supabase.removeChannel(channel)
+        }
       } catch (err) {
         console.warn('[PresenceTracker] channel skipped:', err)
       }
@@ -82,7 +81,7 @@ export function PresenceTracker() {
     return () => {
       cancelled = true
       try {
-        if (supabase && channel) supabase.removeChannel(channel)
+        cleanup?.()
       } catch {
         /* ignore */
       }
