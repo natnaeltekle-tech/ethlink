@@ -4,6 +4,8 @@ import { getModel, GEMINI_MODEL_VERSION, logAIRequest } from "@/lib/gemini";
 import { searchServicesAdvanced } from "@/lib/actions";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { chatInputSchema } from "@/lib/validations";
+import { sanitizeUserText } from "@/lib/sanitize";
 
 // Guard so a slow Gemini network call can never hang the request indefinitely.
 const AI_CALL_TIMEOUT_MS = 20_000;
@@ -32,14 +34,13 @@ function extractUsageMetadata(result: unknown): GeminiUsageMetadata {
 }
 
 export async function processUserMessage(userMessage: string): Promise<string> {
-    // Validate input
-    if (!userMessage || userMessage.length > 500) {
+    // Structural validation (length + type) via Zod
+    const parsed = chatInputSchema.safeParse({ message: userMessage ?? '' });
+    if (!parsed.success) {
         return "Please keep your message under 500 characters.";
     }
 
     // Per-user rate limiting via the shared rate-limit infrastructure.
-    // Authenticated users get their own bucket; anonymous users share one
-    // conservative bucket so nobody can spam expensive Gemini calls.
     const supabase = await createClient();
     let rateLimitKey = "anonymous";
     try {
@@ -55,26 +56,28 @@ export async function processUserMessage(userMessage: string): Promise<string> {
         return `You've reached the concierge limit. Please try again in about ${waitMinutes} minute(s), or use the search bar in the meantime.`;
     }
 
-    // Sanitize: strip potential prompt injection delimiters
-    const sanitizedMessage = userMessage.replace(/[`'"{}]/g, '');
+    // Sanitize for prompt injection surface before embedding in prompts
+    const sanitizedMessage = sanitizeUserText(parsed.data.message, 500);
+    if (!sanitizedMessage) {
+        return "Please enter a short message about the service you need.";
+    }
 
     const model = getModel();
-    
+
     try {
-        // 1. Extract Search Criteria
         const extractionPrompt = `
-            You are a smart search assistant for a service marketplace called EthLink. 
+            You are a smart search assistant for a service marketplace called EthLink.
             Extract search criteria from the user's message: "${sanitizedMessage}".
-            
+
             Return a JSON object with:
             - "query": (string) main keywords (service type, category, etc.). Fix typos (e.g., "phototgraphy" -> "photography"). Remove filler words.
             - "location": (string) location if mentioned, else null.
             - "maxPrice": (number) maximum price if mentioned, else null.
-            
+
             Example: "find me a cheap taxi in addis under 200" -> {"query": "taxi", "location": "addis", "maxPrice": 200}
             Example: "wedding photo" -> {"query": "wedding photography", "location": null, "maxPrice": null}
             Example: "cleaning" -> {"query": "cleaning", "location": null, "maxPrice": null}
-            
+
             Output ONLY raw JSON. Do not use markdown blocks.
         `;
 
@@ -95,34 +98,39 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             });
             throw new Error(`AI extraction failed: ${(error as Error).message}`);
         }
-        
+
         const criteriaText = extractionResult.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
 
-        let criteria;
+        let criteria: { query?: string; location?: string | null; maxPrice?: number | null };
         try {
             criteria = JSON.parse(criteriaText);
-        } catch (e) {
+        } catch {
             console.error("Failed to parse AI criteria JSON:", criteriaText);
-            // Fallback to using the whole message as query
-            criteria = { query: userMessage, location: null, maxPrice: null };
+            criteria = { query: sanitizedMessage, location: null, maxPrice: null };
         }
 
-        // 2. Search Database
-        // If the query is empty/meaningless after extraction, we might get too many results, but searchServicesAdvanced handles empty query by returning everything or nothing depending on implementation.
-        // Let's ensure we have at least something.
-        const services = await searchServicesAdvanced(criteria.query || '', criteria.location, criteria.maxPrice);
+        const safeQuery = typeof criteria.query === 'string'
+            ? sanitizeUserText(criteria.query, 200)
+            : sanitizedMessage;
+        const safeLocation = typeof criteria.location === 'string'
+            ? sanitizeUserText(criteria.location, 100)
+            : null;
+        const safeMaxPrice =
+            typeof criteria.maxPrice === 'number' && Number.isFinite(criteria.maxPrice)
+                ? Math.min(Math.max(0, criteria.maxPrice), 10_000_000)
+                : null;
 
-        // 3. Generate Response
+        const services = await searchServicesAdvanced(safeQuery || '', safeLocation, safeMaxPrice);
+
         if (services && services.length > 0) {
-            // We'll let the AI generate a friendly intro, but WE will format the list to ensure data integrity.
             const introPrompt = `
-                The user asked: "${userMessage}".
-                We found ${services.length} services matching the criteria: ${JSON.stringify(criteria)}.
-                Write a short, friendly, conversational sentence introducing the results. 
+                The user asked: "${sanitizedMessage}".
+                We found ${services.length} services matching the criteria: ${JSON.stringify({ query: safeQuery, location: safeLocation, maxPrice: safeMaxPrice })}.
+                Write a short, friendly, conversational sentence introducing the results.
                 Example: "Here are some taxi services I found for you in Addis Ababa:"
                 Do NOT list the services.
             `;
-            
+
             let introResult;
             try {
                 introResult = await withTimeout(model.generateContent(introPrompt));
@@ -138,24 +146,23 @@ export async function processUserMessage(userMessage: string): Promise<string> {
                     fallbackUsed: true,
                     metadata: { stage: 'results_intro', resultCount: services.length },
                 });
-                // Use a generic intro if AI fails
                 introResult = { response: { text: () => `I found ${services.length} services for you:` } };
             }
-            
+
             const intro = introResult.response.text();
 
-            const formattedServices = services.slice(0, 3).map((s: any) => {
+            const formattedServices = services.slice(0, 3).map((s: { title?: string; price?: number; location?: string; id?: string }) => {
                 return `🔹 ${s.title} (ETB ${s.price})\n📍 ${s.location || 'Location not specified'}\n📅 [Book Now](/book/${s.id})`;
             }).join('\n\n');
 
             return `${intro}\n\n${formattedServices}`;
         } else {
             const noResultsPrompt = `
-                The user asked: "${userMessage}".
-                We searched for: ${JSON.stringify(criteria)} but found 0 results.
+                The user asked: "${sanitizedMessage}".
+                We searched for: ${JSON.stringify({ query: safeQuery, location: safeLocation, maxPrice: safeMaxPrice })} but found 0 results.
                 Write a helpful, polite response explaining we couldn't find anything and suggesting they try broader terms or check the spelling.
             `;
-            
+
             let result;
             try {
                 result = await withTimeout(model.generateContent(noResultsPrompt));
@@ -171,15 +178,14 @@ export async function processUserMessage(userMessage: string): Promise<string> {
                     fallbackUsed: true,
                     metadata: { stage: 'no_results' },
                 });
-                return `I couldn't find any services matching "${criteria.query || userMessage}"${criteria.location ? ` in ${criteria.location}` : ''}. Try searching with different keywords or browse all services.`;
+                return `I couldn't find any services matching "${safeQuery || sanitizedMessage}"${safeLocation ? ` in ${safeLocation}` : ''}. Try searching with different keywords or browse all services.`;
             }
-            
+
             return result.response.text();
         }
 
     } catch (error) {
         console.error("AI Processing Error:", error);
-        // Re-throw the error so the caller can fallback to rule-based
         throw error;
     }
 }

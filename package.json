@@ -7,7 +7,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:prod": "node scripts/verify-production.mjs"
+    "verify:prod": "node scripts/verify-production.mjs",
+    "security:check": "node scripts/security-check.mjs",
+    "audit": "npm audit --omit=dev"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
@@ -63,5 +65,4 @@
     "typescript": "^5",
     "vitest": "^2.1.9"
   }
-
 }

@@ -1,51 +1,35 @@
 /**
- * Content sanitization for user-generated text.
- * Strips HTML/script tags and normalizes whitespace.
+ * Lightweight text sanitization for user-controlled strings.
+ * Zod still does structural validation — this strips control chars
+ * and common injection delimiters before prompts / free-text storage.
  */
 
-const HTML_TAG_RE = /<[^>]*>/g
-const SCRIPT_RE = /javascript:/gi
-const CONTROL_CHARS_RE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g
-
-/**
- * Sanitize plain-text user content (messages, reviews, descriptions).
- * Removes HTML tags, script URIs, and control characters.
- */
-export function sanitizeText(input: string, maxLength = 5000): string {
-    if (!input) return ''
-
-    return input
-        .replace(HTML_TAG_RE, '')
-        .replace(SCRIPT_RE, '')
-        .replace(CONTROL_CHARS_RE, '')
-        .trim()
-        .slice(0, maxLength)
+/** Remove ASCII control characters except tab/newline. */
+export function stripControlChars(input: string): string {
+  return input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 }
 
 /**
- * Sanitize a short display name or title.
+ * Sanitize free-text for AI prompts and chat.
+ * Strips control chars and characters often used in prompt/code injection.
  */
-export function sanitizeShortText(input: string, maxLength = 200): string {
-    return sanitizeText(input, maxLength)
+export function sanitizeUserText(input: string, maxLen = 500): string {
+  return stripControlChars(input)
+    .replace(/[`'"{}<>\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
 }
 
-/**
- * Sanitize message content before persistence.
- */
-export function sanitizeMessage(content: string): string {
-    return sanitizeText(content, 2000)
-}
-
-/**
- * Sanitize review comment before persistence.
- */
-export function sanitizeReviewComment(comment: string): string {
-    return sanitizeText(comment, 2000)
-}
-
-/**
- * Sanitize service description before persistence.
- */
-export function sanitizeDescription(description: string): string {
-    return sanitizeText(description, 5000)
+/** Allow only http(s) or same-origin relative paths for markdown links. */
+export function isSafeHref(href: string | undefined | null): boolean {
+  if (!href) return false;
+  const h = href.trim();
+  if (h.startsWith('/') && !h.startsWith('//')) return true;
+  try {
+    const u = new URL(h);
+    return u.protocol === 'https:' || u.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
