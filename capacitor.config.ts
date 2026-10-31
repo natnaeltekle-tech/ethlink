@@ -12,8 +12,8 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     backgroundColor: '#0B0C15',
-    // Temporarily true so device debugging can catch JS errors if black screen returns
-    webContentsDebuggingEnabled: true,
+    // Keep false for release builds (no remote WebView debugging)
+    webContentsDebuggingEnabled: false,
   },
   plugins: {
     SplashScreen: {

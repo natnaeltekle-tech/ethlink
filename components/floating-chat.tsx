@@ -19,42 +19,6 @@ interface Message {
     content: React.ReactNode;
 }
 
-/** Allowed markdown elements only — no raw HTML, images, or scripts. */
-const markdownComponents = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    a: ({ href, children }: any) => {
-        if (!isSafeHref(href)) {
-            return <span>{children}</span>;
-        }
-        const isBookingLink = typeof href === 'string' && href.startsWith('/book/');
-        if (isBookingLink) {
-            return (
-                <span className="inline-block mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg font-semibold text-xs">
-                    {children}
-                </span>
-            );
-        }
-        return (
-            <a
-                href={href}
-                className="underline text-primary font-medium"
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-            >
-                {children}
-            </a>
-        );
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    p: (props: any) => <p {...props} className="leading-relaxed" />,
-    // Disallow potentially risky nodes by rendering nothing / plain text
-    img: () => null,
-    script: () => null,
-    iframe: () => null,
-    object: () => null,
-    embed: () => null,
-};
-
 export function FloatingChat() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -126,23 +90,14 @@ export function FloatingChat() {
                 responseText = await getChatResponse(String(userMessage.content));
             }
 
-            // Capture /book/{uuid} for in-app booking flow without trusting arbitrary links
-            const bookMatch = responseText.match(/\/book\/([0-9a-f-]{36})/i);
-            if (bookMatch?.[1]) {
-                // leave markdown as-is; user taps Book via button below if needed
-            }
-
-            const aiChatMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'ai',
-                content: responseText,
-            };
-            setMessages((prev) => [...prev, aiChatMessage]);
-
-            if (bookMatch?.[1]) {
-                // Optional: auto-offer booking panel for first match
-                // setBookingServiceId(bookMatch[1]);
-            }
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    role: 'ai',
+                    content: responseText,
+                },
+            ]);
         } catch (error) {
             console.error('Search failed', error);
             toast.error('Failed to connect to AI. Please try again.');
@@ -172,6 +127,51 @@ export function FloatingChat() {
     };
 
     const constraintsRef = useRef(null);
+
+    const markdownComponents = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        a: ({ href, children }: any) => {
+            if (!isSafeHref(href)) {
+                return <span>{children}</span>;
+            }
+            const isBookingLink =
+                typeof href === 'string' && href.startsWith('/book/');
+            if (isBookingLink) {
+                return (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            const id = href.split('/book/')[1]?.split(/[?#]/)[0];
+                            if (id && /^[0-9a-f-]{36}$/i.test(id)) {
+                                setBookingServiceId(id);
+                            }
+                        }}
+                        className="inline-block mt-2 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 font-semibold text-xs transition-colors cursor-pointer"
+                    >
+                        {children}
+                    </button>
+                );
+            }
+            return (
+                <a
+                    href={href}
+                    className="underline text-primary font-medium"
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                >
+                    {children}
+                </a>
+            );
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        p: (props: any) => <p {...props} className="leading-relaxed" />,
+        img: () => null,
+        script: () => null,
+        iframe: () => null,
+        object: () => null,
+        embed: () => null,
+    };
 
     return (
         <>
