@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
+import { getServiceImageUrl } from '@/lib/service-image'
 
 interface ServiceCardProps {
     service: {
@@ -19,27 +20,17 @@ interface ServiceCardProps {
         price: number
         location: string
         image_url?: string | null
+        gallery?: string[] | null
+        images?: string[] | null
         rating?: number
         review_count?: number
-        // Support array of images from views if necessary
-        images?: string[]
     }
     className?: string
     distance?: number
 }
 
 export function ServiceCard({ service, className, distance }: ServiceCardProps) {
-    // Helper to get full URL for relative paths
-    const getFullUrl = (path: string | null | undefined) => {
-        if (!path) return null
-        return path.startsWith('http')
-            ? path
-            : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/service-images/${path}`
-    }
-
-    // Determine image source with fallback
-    const rawImage = service.images?.[0] || service.image_url
-    const mainImage = getFullUrl(rawImage)
+    const mainImage = getServiceImageUrl(service)
 
     return (
         <motion.div
@@ -52,7 +43,6 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
             <Link href={`/services/${service.id}`} className="block h-full">
                 <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group">
 
-                    {/* Image Container */}
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                         <Image
                             src={mainImage || DEFAULT_SERVICE_IMAGE}
@@ -61,9 +51,9 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             onError={(e) => {
-                                const target = e.currentTarget as HTMLImageElement;
+                                const target = e.currentTarget as HTMLImageElement
                                 if (target.src !== DEFAULT_SERVICE_IMAGE) {
-                                    target.src = DEFAULT_SERVICE_IMAGE;
+                                    target.src = DEFAULT_SERVICE_IMAGE
                                 }
                             }}
                         />
@@ -73,10 +63,8 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                             </div>
                         )}
 
-                        {/* Overlay Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
 
-                        {/* Category Badge */}
                         <Badge
                             variant="secondary"
                             className="absolute top-3 right-3 backdrop-blur-md bg-white/10 hover:bg-white/20 text-white border-white/20 shadow-sm"
@@ -84,7 +72,6 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                             {service.category}
                         </Badge>
 
-                        {/* Price Tag */}
                         <div className="absolute bottom-3 left-3 flex flex-col items-start">
                             <span className="text-xs font-medium text-white/80 uppercase tracking-wider">Starting at</span>
                             <span className="text-lg font-bold text-white">
@@ -106,7 +93,6 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                                 <span className="line-clamp-1">{service.location}</span>
                             </div>
 
-                            {/* Optional: Rating */}
                             {(service.rating || 0) > 0 && (
                                 <div className="flex items-center gap-1 text-amber-500 font-medium">
                                     <Star className="h-3.5 w-3.5 fill-current" />
@@ -117,7 +103,6 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                                 </div>
                             )}
 
-                            {/* Distance */}
                             {distance !== undefined && (
                                 <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full ml-auto">
                                     {distance < 1

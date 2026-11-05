@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notification-bell'
+import { getServiceImageUrl } from '@/lib/service-image'
 import MobileMapExplore from './MobileMapExplore'
 import MobileSearchFilters from './MobileSearchFilters'
 import MobileNotifications from './MobileNotifications'
@@ -109,10 +110,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
           )}
 
           {(services || []).map((service, index) => {
-            const imageUrl =
-              service.gallery?.[0] ||
-              service.image_url ||
-              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800'
+            const imageUrl = getServiceImageUrl(service)
 
             return (
               <div

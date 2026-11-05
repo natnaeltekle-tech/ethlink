@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, MapPin, Star, List, Navigation, ChevronLeft } from 'lucide-react';
+import { getServiceImageUrl } from '@/lib/service-image';
 
 interface MobileMapExploreProps {
     services?: any[];
@@ -16,12 +17,10 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
 
     return (
         <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#1e293b] font-sans antialiased text-white">
-            {/* Map Background */}
             <div className="absolute inset-0 z-0 bg-[#1e293b]">
                 <div className="w-full h-full bg-cover bg-center opacity-30 mix-blend-overlay grayscale contrast-125"
                     style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA11Ugpg4DTzLGFkTbi0rCvZeL4QDMLgXGLNPnWnObuS_ptgoypKJbZy_KMlWLaJrfxe34c5-IIY8bXGiRbcxzSP5LZS6Y2qSFzDkVX4ftnUHWXp0kdOsv3DiOBOpLfXVFOea6l6d3WF_egDotrkWm2dgMWkPsw3FRG_uQeK8ukU1Me1StktZlvfwwnHPyQ-7cqv5BsRlDZvdiAEFzN1SYRcMcFiASc5KAHndNM0rZOmzihgDsxtc3qfCMvGM5-yiAcE2bnkoL_TwY')" }} />
 
-                {/* Map Pins */}
                 {services.slice(0, 4).map((s, i) => {
                     const positions = [{ top: '30%', left: '20%' }, { top: '45%', right: '15%' }, { top: '25%', right: '35%' }, { top: '55%', left: '40%' }];
                     const pos = positions[i] || positions[0];
@@ -43,9 +42,7 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
                 })}
             </div>
 
-            {/* UI Overlay */}
             <div className="relative z-10 flex flex-col h-full pointer-events-none">
-                {/* Header */}
                 <div className="w-full px-5 pt-14 pb-4 pointer-events-auto bg-gradient-to-b from-black/60 to-transparent">
                     <div className="flex items-center gap-3 w-full">
                         <button onClick={onClose} className="flex size-12 items-center justify-center rounded-full bg-[#221e10]/40 backdrop-blur-xl border border-white/10 shrink-0">
@@ -60,7 +57,6 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
                         </button>
                     </div>
 
-                    {/* Filter Chips */}
                     <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
                         {filters.map(f => (
                             <button key={f} onClick={() => setActiveFilter(f)}
@@ -73,7 +69,6 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
                     </div>
                 </div>
 
-                {/* Spacer + FABs */}
                 <div className="flex-1 flex flex-col justify-end pb-2">
                     <div className="flex justify-end px-5 mb-4 pointer-events-auto gap-3">
                         <button className="h-12 px-4 rounded-full bg-[#221e10]/90 text-white shadow-xl flex items-center justify-center border border-white/10 active:scale-95 transition-transform gap-2 backdrop-blur-md">
@@ -84,11 +79,10 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
                         </button>
                     </div>
 
-                    {/* Bottom Carousel */}
                     <div className="pointer-events-auto w-full">
                         <div className="flex overflow-x-auto px-5 pb-6 gap-4 snap-x snap-mandatory scroll-smooth">
                             {(services.length > 0 ? services.slice(0, 5) : [{ id: '1', title: 'Explore Listings', price: 0 }]).map((s, i) => {
-                                const img = s.gallery?.[0] || s.image_url || '';
+                                const img = getServiceImageUrl(s);
                                 const isSelected = i === selectedIdx;
                                 return (
                                     <Link key={s.id} href={`/services/${s.id}`}
@@ -99,7 +93,7 @@ export default function MobileMapExplore({ services = [], onClose }: MobileMapEx
                                         {isSelected && <div className="absolute top-0 right-0 w-40 h-40 bg-[#f5c619]/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />}
                                         <div className="flex gap-4 items-center">
                                             <div className="w-24 h-24 rounded-2xl bg-gray-800 bg-cover bg-center shrink-0 shadow-inner border border-white/10"
-                                                style={img ? { backgroundImage: `url("${img}")` } : {}} />
+                                                style={{ backgroundImage: `url("${img}")` }} />
                                             <div className="flex flex-col justify-center flex-1 min-w-0 py-0.5">
                                                 <h3 className="text-white font-bold text-lg leading-tight truncate pr-2">{s.title}</h3>
                                                 <div className="flex items-center gap-2 mb-2 mt-1">
