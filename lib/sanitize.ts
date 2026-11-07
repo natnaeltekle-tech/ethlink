@@ -33,3 +33,23 @@ export function isSafeHref(href: string | undefined | null): boolean {
     return false;
   }
 }
+
+/** Chat / messaging body text. */
+export function sanitizeMessage(input: string, maxLen = 2000): string {
+  return stripControlChars(String(input ?? ''))
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
+}
+
+/** Review comment body. */
+export function sanitizeReviewComment(input: string, maxLen = 2000): string {
+  return sanitizeMessage(input, maxLen);
+}
+
+/** Service description body. */
+export function sanitizeDescription(input: string, maxLen = 5000): string {
+  return stripControlChars(String(input ?? ''))
+    .trim()
+    .slice(0, maxLen);
+}

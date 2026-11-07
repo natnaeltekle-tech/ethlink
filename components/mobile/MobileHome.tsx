@@ -13,9 +13,29 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notification-bell'
 import { getServiceImageUrl } from '@/lib/service-image'
+import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 import MobileMapExplore from './MobileMapExplore'
 import MobileSearchFilters from './MobileSearchFilters'
 import MobileNotifications from './MobileNotifications'
+
+function ServiceCover({ service }: { service: any }) {
+  const [src, setSrc] = useState(() => getServiceImageUrl(service))
+
+  return (
+    <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={service.title || 'Service'}
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        loading="lazy"
+        onError={() => {
+          if (src !== DEFAULT_SERVICE_IMAGE) setSrc(DEFAULT_SERVICE_IMAGE)
+        }}
+      />
+    </div>
+  )
+}
 
 export default function MobileHome({ services = [] }: { services?: any[] }) {
   const [showNotifications, setShowNotifications] = useState(false)
@@ -109,67 +129,58 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
             </div>
           )}
 
-          {(services || []).map((service, index) => {
-            const imageUrl = getServiceImageUrl(service)
-
-            return (
+          {(services || []).map((service, index) => (
+            <div
+              key={service.id || index}
+              className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative"
+            >
               <div
-                key={service.id || index}
-                className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative"
+                className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white"
+                onClick={(e) => {
+                  e.preventDefault()
+                  toast.success('Added to favorites!')
+                }}
               >
-                <div
-                  className="absolute bottom-36 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    toast.success('Added to favorites!')
-                  }}
-                >
-                  <Heart className="w-5 h-5 hover:fill-red-500 hover:text-red-500 transition-colors cursor-pointer" />
-                </div>
-                <div className="absolute bottom-36 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
-                  Premium
-                </div>
-                <Link href={'/services/' + service.id} className="flex flex-col w-full h-full">
-                  <div className="relative w-full aspect-[4/3] overflow-hidden">
-                    <div
-                      className="absolute inset-0 bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-110"
-                      style={{ backgroundImage: `url("${imageUrl}")` }}
-                    />
-                  </div>
-                  <div className="flex w-full flex-col gap-3 p-5">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-[#f5c619] text-sm font-bold uppercase tracking-wider">
-                          {service.category}{' '}
-                          {service.location ? `• ${service.location}` : ''}
-                        </p>
-                        <h3 className="text-white text-xl font-bold leading-tight mt-1">
-                          {service.title}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
-                        <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
-                        <span className="text-white font-bold text-sm">
-                          {service.rating || 'New'}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-gray-400 text-sm line-clamp-2">{service.description}</p>
-                    <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-[#f5c619] text-xl font-extrabold">
-                          {service.price} ETB
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center rounded-full h-10 px-6 bg-[#f5c619] text-black text-sm font-bold hover:bg-white transition-colors">
-                        Explore
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <Heart className="w-5 h-5 hover:fill-red-500 hover:text-red-500 transition-colors cursor-pointer" />
               </div>
-            )
-          })}
+              <div className="absolute top-4 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+                Premium
+              </div>
+              <Link href={'/services/' + service.id} className="flex flex-col w-full h-full">
+                <ServiceCover service={service} />
+                <div className="flex w-full flex-col gap-3 p-5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[#f5c619] text-sm font-bold uppercase tracking-wider">
+                        {service.category}{' '}
+                        {service.location ? `• ${service.location}` : ''}
+                      </p>
+                      <h3 className="text-white text-xl font-bold leading-tight mt-1">
+                        {service.title}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+                      <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
+                      <span className="text-white font-bold text-sm">
+                        {service.rating || 'New'}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-sm line-clamp-2">{service.description}</p>
+                  <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[#f5c619] text-xl font-extrabold">
+                        {service.price} ETB
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center rounded-full h-10 px-6 bg-[#f5c619] text-black text-sm font-bold hover:bg-white transition-colors">
+                      Explore
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
         </div>
       </main>
 

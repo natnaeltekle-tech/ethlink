@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { MapPin, Star, Building2, ArrowRight } from 'lucide-react'
+import { MapPin, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,8 +20,8 @@ interface ServiceCardProps {
         price: number
         location: string
         image_url?: string | null
-        gallery?: string[] | null
-        images?: string[] | null
+        gallery?: unknown
+        images?: unknown
         rating?: number
         review_count?: number
     }
@@ -30,7 +30,7 @@ interface ServiceCardProps {
 }
 
 export function ServiceCard({ service, className, distance }: ServiceCardProps) {
-    const mainImage = getServiceImageUrl(service)
+    const [src, setSrc] = useState(() => getServiceImageUrl(service))
 
     return (
         <motion.div
@@ -42,26 +42,18 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
         >
             <Link href={`/services/${service.id}`} className="block h-full">
                 <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group">
-
                     <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                         <Image
-                            src={mainImage || DEFAULT_SERVICE_IMAGE}
+                            src={src}
                             alt={service.title}
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            onError={(e) => {
-                                const target = e.currentTarget as HTMLImageElement
-                                if (target.src !== DEFAULT_SERVICE_IMAGE) {
-                                    target.src = DEFAULT_SERVICE_IMAGE
-                                }
+                            unoptimized={src.startsWith('http') && !src.includes('supabase')}
+                            onError={() => {
+                                if (src !== DEFAULT_SERVICE_IMAGE) setSrc(DEFAULT_SERVICE_IMAGE)
                             }}
                         />
-                        {!mainImage && (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/20">
-                                <Building2 className="h-16 w-16" />
-                            </div>
-                        )}
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
 
