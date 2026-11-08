@@ -114,12 +114,14 @@ export async function processUserMessage(userMessage: string): Promise<string> {
             : sanitizedMessage;
         const safeLocation = typeof criteria.location === 'string'
             ? sanitizeUserText(criteria.location, 100)
-            : null;
+            : undefined;
         const safeMaxPrice =
             typeof criteria.maxPrice === 'number' && Number.isFinite(criteria.maxPrice)
                 ? Math.min(Math.max(0, criteria.maxPrice), 10_000_000)
-                : null;
+                : undefined;
 
+        // location/maxPrice must be string | undefined / number | undefined (not null)
+        // to match searchServicesAdvanced signature and pass TypeScript strict build.
         const services = await searchServicesAdvanced(safeQuery || '', safeLocation, safeMaxPrice);
 
         if (services && services.length > 0) {
