@@ -322,8 +322,8 @@ export async function createService(formData: FormData): Promise<void> {
         longitude: formData.get('longitude'),
     };
 
-    // Extract amenities (optional)
-    const amenities = formData.getAll('amenities') as string[]
+    // Extract amenities (optional) — stored only if column exists; not in generated Insert type
+    const amenities = (formData.getAll('amenities') as string[]).filter(Boolean)
 
     try {
         const validatedData = serviceSchema.parse(rawData);
@@ -332,13 +332,20 @@ export async function createService(formData: FormData): Promise<void> {
             description: sanitizeDescription(validatedData.description),
         };
 
+        // Build insert payload without `amenities` unless present.
+        // amenities is not on Database['public']['Tables']['services']['Insert'],
+        // so spreading it as null caused: Type 'string[] | null' is not assignable to type 'never'.
+        const insertPayload: Record<string, unknown> = {
+            ...sanitizedData,
+            user_id: user.id,
+        }
+        if (amenities.length > 0) {
+            insertPayload.amenities = amenities
+        }
+
         const { data, error } = await supabase
             .from('services')
-            .insert({
-                ...sanitizedData,
-                user_id: user.id,
-                amenities: amenities.length > 0 ? amenities : null
-            })
+            .insert(insertPayload as never)
             .select()
             .single()
 
@@ -638,89 +645,4 @@ export async function resetServiceImage(serviceId: string): Promise<void> {
 
     revalidatePath('/dashboard')
     revalidatePath(`/services/${serviceId}`)
-}
-
-export async function createServiceWithProfile(formData: FormData): Promise<void> {
-    const supabase = await createClient()
-    let user = null
-    try {
-        const { data } = await supabase.auth.getUser()
-        user = data.user
-    } catch {
-        /* expired/corrupt session */
-    }
-
-    if (!user) {
-        redirect('/auth/login')
-    }
-
-    // 1. Extract and Validate Provider Details
-    const firstName = (formData.get('firstName') as string || '').slice(0, 100).trim()
-    const lastName = (formData.get('lastName') as string || '').slice(0, 100).trim()
-    const phoneNumber = (formData.get('phoneNumber') as string || '').slice(0, 50).trim()
-    const idCardLink = (formData.get('idCardLink') as string || '').slice(0, 2000).trim()
-
-    if (!firstName || !lastName || !phoneNumber || !idCardLink) {
-        throw new Error('All Provider Details are required')
-    }
-
-    // 2. Parse and Validate Service Details with Zod
-    const rawCategory = formData.get('category') as string
-    const customCategory = formData.get('custom_category') as string
-    const category = rawCategory === 'Other' && customCategory ? customCategory : rawCategory
-
-    const rawData = {
-        title: formData.get('title'),
-        category: category,
-        location: formData.get('location'),
-        price: formData.get('price'),
-        description: formData.get('description'),
-        image_url: formData.get('image_url') || '',
-        latitude: formData.get('latitude'),
-        longitude: formData.get('longitude'),
-    };
-
-    // Extract amenities (optional)
-    const amenities = formData.getAll('amenities') as string[]
-
-    let validatedData;
-    try {
-        validatedData = serviceSchema.parse(rawData);
-    } catch (e: any) {
-        console.error('Validation failed:', e)
-        throw new Error('Invalid service details provided')
-    }
-
-    // 3. Upsert Profile
-    const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-            id: user.id,
-            full_name: `${firstName} ${lastName}`,
-            phone_number: phoneNumber,
-            id_card_link: idCardLink,
-            role: 'provider'
-        })
-
-    if (profileError) {
-        console.error('Warning: Failed to update provider profile. Proceeding with service creation.', profileError)
-    }
-
-    // 4. Create Service
-    const { data: service, error: serviceError } = await supabase
-        .from('services')
-        .insert({
-            ...validatedData,
-            user_id: user.id,
-            amenities: amenities.length > 0 ? amenities : null
-        })
-        .select()
-        .single()
-
-    if (serviceError) {
-        console.error('Error creating service:', serviceError)
-        throw new Error('Failed to create service')
-    }
-
-    redirect(`/services/${service.id}`)
 }
