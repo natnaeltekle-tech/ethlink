@@ -153,7 +153,8 @@ export async function processUserMessage(userMessage: string): Promise<string> {
 
             const intro = introResult.response.text();
 
-            const formattedServices = services.slice(0, 3).map((s: { title?: string; price?: number; location?: string; id?: string }) => {
+            // Do not narrow types — ServiceView.location is string | null
+            const formattedServices = services.slice(0, 3).map((s) => {
                 return `🔹 ${s.title} (ETB ${s.price})\n📍 ${s.location || 'Location not specified'}\n📅 [Book Now](/book/${s.id})`;
             }).join('\n\n');
 
