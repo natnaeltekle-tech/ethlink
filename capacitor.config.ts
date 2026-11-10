@@ -5,8 +5,9 @@ const config: CapacitorConfig = {
   appName: 'Eth-Links',
   webDir: 'out',
   server: {
-    // Live site loaded inside the Android WebView
-    url: 'https://ethlink-app.vercel.app',
+    // Live production deployment (must match Vercel production alias)
+    // Rebuild the Android APK after changing this URL.
+    url: 'https://market-ai-v3-7pav-natnaeltekle236-5533s-projects.vercel.app',
     cleartext: false,
   },
   android: {
