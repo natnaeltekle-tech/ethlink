@@ -3,6 +3,11 @@ import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
 /**
  * Resolve the best cover image for a service across Home, Explore, details, etc.
  * Handles gallery as array OR JSON string, relative storage paths, and full URLs.
+ *
+ * Priority (cover-first):
+ * 1. image_url (explicit cover field)
+ * 2. gallery[0]
+ * 3. images[0]
  */
 export function getServiceImageUrl(service: {
   gallery?: unknown
@@ -11,10 +16,11 @@ export function getServiceImageUrl(service: {
 } | null | undefined): string {
   if (!service) return DEFAULT_SERVICE_IMAGE
 
+  // Prefer the dedicated cover field first so Home and Explore stay in sync
   const candidates = [
+    service.image_url,
     ...normalizeList(service.gallery),
     ...normalizeList(service.images),
-    service.image_url,
   ]
 
   for (const raw of candidates) {
@@ -96,12 +102,16 @@ function resolveStorageUrl(path: string | null | undefined): string | null {
 
   // Already a storage path fragment
   if (trimmed.includes('/storage/v1/object/public/')) {
-    return trimmed.startsWith('http') ? trimmed : `${base}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
+    return trimmed.startsWith('http')
+      ? trimmed
+      : `${base}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
   }
 
   const key = trimmed.replace(/^\//, '')
   // Ignore garbage single-char / bracket leftovers from bad JSON parsing
   if (key.length < 3 || key === '[' || key === ']') return null
+  // Skip obvious non-image junk
+  if (/^(null|undefined|none|n\/a)$/i.test(key)) return null
 
   return `${base}/storage/v1/object/public/service-images/${key}`
 }

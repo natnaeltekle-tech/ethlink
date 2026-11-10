@@ -79,9 +79,22 @@ export default function MobileHelpSupport({ onClose }: MobileHelpSupportProps) {
           <div>
             <p className="font-bold text-white text-sm">Common issues</p>
             <ul className="mt-2 text-xs text-slate-400 space-y-1.5 list-disc list-inside">
-              <li>Location blocked → enable in browser site settings</li>
-              <li>Payment pending → wait for confirmation SMS / email</li>
-              <li>Chat with provider → open service → Message</li>
+              <li>
+                Location / map not working → open Android Settings → Apps → EthLink →
+                Permissions → allow Location
+              </li>
+              <li>
+                Notifications blocked → Settings → Apps → EthLink → Notifications →
+                Allow notifications
+              </li>
+              <li>
+                Payment pending → this is a prototype; payments are simulated. Wait for
+                in-app confirmation or email
+              </li>
+              <li>Chat with provider → open a service → Message</li>
+              <li>
+                Wrong or missing photos → pull to refresh or force-stop the app and reopen
+              </li>
             </ul>
           </div>
         </div>
