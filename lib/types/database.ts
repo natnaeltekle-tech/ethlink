@@ -288,6 +288,9 @@ export type Database = {
                     total_price: number | null
                     provider_earnings: number | null
                     commission_amount: number | null
+                    dispute_reason: string | null
+                    dispute_resolution: string | null
+                    dispute_resolved_at: string | null
                 }
                 Insert: {
                     id?: string
@@ -300,6 +303,9 @@ export type Database = {
                     total_price?: number | null
                     provider_earnings?: number | null
                     commission_amount?: number | null
+                    dispute_reason?: string | null
+                    dispute_resolution?: string | null
+                    dispute_resolved_at?: string | null
                 }
                 Update: {
                     id?: string
@@ -312,6 +318,9 @@ export type Database = {
                     total_price?: number | null
                     provider_earnings?: number | null
                     commission_amount?: number | null
+                    dispute_reason?: string | null
+                    dispute_resolution?: string | null
+                    dispute_resolved_at?: string | null
                 }
                 Relationships: [
                     {
