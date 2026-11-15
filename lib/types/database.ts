@@ -15,9 +15,7 @@ export type Database = {
                     id: string
                     title: string
                     description: string | null
-                    // DB column is nullable but no row is null and the create form requires it;
-                    // payments rely on it. Pending: ALTER COLUMN price SET NOT NULL.
-                    price: number
+                    price: number // NOT NULL: 20261115100100_services_price_not_null.sql
                     category: string
                     location: string | null
                     image_url: string | null
@@ -35,7 +33,7 @@ export type Database = {
                     id?: string
                     title: string
                     description?: string | null
-                    price?: number | null
+                    price: number
                     category: string
                     location?: string | null
                     image_url?: string | null
@@ -53,7 +51,7 @@ export type Database = {
                     id?: string
                     title?: string
                     description?: string | null
-                    price?: number | null
+                    price?: number
                     category?: string
                     location?: string | null
                     image_url?: string | null
@@ -511,15 +509,14 @@ export type Database = {
         }
         Views: {
             services_view: {
-                // Live definition: supabase/migrations/20261115090000_services_view_baseline.sql
-                // Nullability follows the underlying services columns.
-                // Not exposed: gallery, latitude, longitude, amenities.
+                // Definition: supabase/migrations/20261115100000_services_view_add_gallery_coords.sql
+                // Nullability follows the underlying services columns. Not exposed: amenities.
                 Row: {
                     id: string
                     title: string
                     category: string
                     description: string | null
-                    price: number // see services.Row.price
+                    price: number
                     location: string | null
                     image_url: string | null
                     user_id: string
@@ -530,6 +527,9 @@ export type Database = {
                     /** COALESCE(avg(reviews.rating), 0) — 0 when unrated */
                     avg_rating: number
                     review_count: number
+                    gallery: string[] | null
+                    latitude: number | null
+                    longitude: number | null
                 }
                 Relationships: [
                     {

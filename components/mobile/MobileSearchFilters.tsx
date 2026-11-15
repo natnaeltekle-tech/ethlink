@@ -21,6 +21,7 @@ const CATEGORY_ICONS: Record<string, string> = {
     'Real Estate': '🏠',
     'Professional Services': '💼',
     Cleaning: '🧹',
+    'Home Services': '🔧',
     Tech: '💻',
     Events: '🎉',
 };

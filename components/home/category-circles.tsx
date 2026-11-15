@@ -10,6 +10,7 @@ const categories = [
   { label: 'Hotels', icon: '🏨', href: '/search?category=Hospitality', color: 'bg-blue-500' },
   { label: 'Transport', icon: '🚗', href: '/search?category=Transport', color: 'bg-green-500' },
   { label: 'Cleaning', icon: '🧹', href: '/search?category=Cleaning', color: 'bg-purple-500' },
+  { label: 'Repairs', icon: '🔧', href: '/search?category=Home%20Services', color: 'bg-teal-500' },
   { label: 'Tech', icon: '💻', href: '/search?category=Tech', color: 'bg-orange-500' },
   { label: 'Events', icon: '🎉', href: '/search?category=Events', color: 'bg-pink-500' },
   { label: 'Real Estate', icon: '🏠', href: '/search?category=Real%20Estate', color: 'bg-red-500' },

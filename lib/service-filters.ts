@@ -18,6 +18,7 @@ export const SERVICE_CATEGORIES = [
     'Real Estate',
     'Professional Services',
     'Cleaning',
+    'Home Services',
     'Tech',
     'Events',
 ] as const

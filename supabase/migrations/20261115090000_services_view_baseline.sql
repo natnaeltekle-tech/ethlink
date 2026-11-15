@@ -5,8 +5,8 @@
 --
 -- Columns: id, title, category, description, price, location, image_url,
 --   user_id, created_at, updated_at, images, is_active, avg_rating, review_count
--- NOTE: gallery, latitude, longitude and amenities exist on `services` but are
---   NOT exposed by this view.
+-- NOTE: at capture time gallery, latitude, longitude and amenities were
+--   NOT exposed (gallery + coords added in 20261115100000).
 --
 -- security_invoker = true → RLS on services/reviews applies to the caller.
 

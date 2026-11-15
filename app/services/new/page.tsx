@@ -173,6 +173,7 @@ export default function NewServicePage() {
                                         <option value="Real Estate">Real Estate</option>
                                         <option value="Professional Services">Professional Services</option>
                                         <option value="Cleaning">Cleaning</option>
+                                        <option value="Home Services">Home Services</option>
                                         <option value="Tech">Tech</option>
                                         <option value="Events">Events</option>
                                         <option value="Other">Other</option>
