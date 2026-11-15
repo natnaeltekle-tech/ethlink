@@ -78,7 +78,7 @@ export function SettingsTab({ services, user, profile }: { services: any[], user
         setIsUploadingAvatar(true)
         const supabase = createClient()
         const fileExt = file.name.split('.').pop()
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`
+        const fileName = `${user.id}/avatar_${Date.now()}.${fileExt}`
 
         let publicUrl = '';
         try {

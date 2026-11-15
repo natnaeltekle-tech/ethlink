@@ -286,29 +286,3 @@ export async function resetServiceImage(serviceId: string): Promise<void> {
     if (error) { console.error('Error resetting service image:', error); throw new Error('Failed to reset service image') }
     revalidatePath('/dashboard'); revalidatePath(`/services/${serviceId}`)
 }
-
-export async function createServiceWithProfile(formData: FormData): Promise<void> {
-    const supabase = await createClient()
-    let user = null
-    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
-    if (!user) redirect('/auth/login')
-    const firstName = (formData.get('firstName') as string || '').slice(0, 100).trim()
-    const lastName = (formData.get('lastName') as string || '').slice(0, 100).trim()
-    const phoneNumber = (formData.get('phoneNumber') as string || '').slice(0, 50).trim()
-    const idCardLink = (formData.get('idCardLink') as string || '').slice(0, 2000).trim()
-    if (!firstName || !lastName || !phoneNumber || !idCardLink) throw new Error('All Provider Details are required')
-    const rawCategory = formData.get('category') as string
-    const customCategory = formData.get('custom_category') as string
-    const category = rawCategory === 'Other' && customCategory ? customCategory : rawCategory
-    const rawData = { title: formData.get('title'), category: category, location: formData.get('location'), price: formData.get('price'), description: formData.get('description'), image_url: formData.get('image_url') || '', latitude: formData.get('latitude'), longitude: formData.get('longitude') }
-    const amenities = (formData.getAll('amenities') as string[]).filter(Boolean)
-    let validatedData
-    try { validatedData = serviceSchema.parse(rawData) } catch (e: any) { console.error('Validation failed:', e); throw new Error('Invalid service details provided') }
-    const { error: profileError } = await supabase.from('profiles').upsert({ id: user.id, full_name: `${firstName} ${lastName}`, phone_number: phoneNumber, id_card_link: idCardLink, role: 'provider' })
-    if (profileError) console.error('Warning: Failed to update provider profile. Proceeding with service creation.', profileError)
-    const insertPayload: Record<string, unknown> = { ...validatedData, user_id: user.id }
-    if (amenities.length > 0) insertPayload.amenities = amenities
-    const { data: service, error: serviceError } = await supabase.from('services').insert(insertPayload as never).select().single()
-    if (serviceError) { console.error('Error creating service:', serviceError); throw new Error('Failed to create service') }
-    redirect(`/services/${service.id}`)
-}

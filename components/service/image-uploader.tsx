@@ -47,8 +47,10 @@ export function ImageUploader({ defaultValue = '', name = 'image_url' }: ImageUp
 
             // Create a unique file name
             const fileExt = file.name.split('.').pop()
-            const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-            const filePath = `${fileName}`
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) throw new Error('Not authenticated')
+            // Uploads must live in the uploader's own folder (storage RLS)
+            const filePath = `${user.id}/${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
 
             // Upload
             const { error: uploadError } = await supabase.storage

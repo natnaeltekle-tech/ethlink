@@ -134,7 +134,7 @@ export default function MobileProfile({
     setIsUploading(true)
     try {
       const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const fileName = `avatars/${user.id}_${Date.now()}.${fileExt}`
+      const fileName = `${user.id}/avatar_${Date.now()}.${fileExt}`
       const bucketName = 'service-images'
       const { error: uploadError } = await supabase.storage
         .from(bucketName)

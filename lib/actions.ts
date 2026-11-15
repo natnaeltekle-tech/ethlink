@@ -20,8 +20,12 @@ export {
     getBuses,
     deleteService,
     resetServiceImage,
-    createServiceWithProfile
 } from './actions/listings'
+
+export {
+    getMyScreeningState,
+    submitProviderListing,
+} from './actions/provider-screening'
 
 export {
     createBooking,
