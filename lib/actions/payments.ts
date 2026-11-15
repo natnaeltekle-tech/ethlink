@@ -13,6 +13,7 @@ import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
 import { sendReceiptEmail } from '@/lib/receipt-email'
 import { formatBookingDateTime } from '@/lib/booking-time'
 import { revalidatePath } from 'next/cache'
+import { getRequestBaseUrl } from '@/lib/base-url'
 
 export async function getCommissionRate(): Promise<number> {
     const supabase = createAdminClient()
@@ -98,7 +99,8 @@ export async function initiatePayment(bookingId: string) {
     const price = booking.services.price
     const serviceTitle = booking.services.title || 'Service'
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Same host the customer is on (web, Capacitor app, any alias) — never localhost in prod
+    const baseUrl = await getRequestBaseUrl()
     const simulation = isSimulationMode()
     const autoConfirm = isSimulationAutoConfirm()
     const tx_ref = buildTxRef(bookingId, simulation ? 'sim' : 'pay')

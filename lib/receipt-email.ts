@@ -1,3 +1,4 @@
+import { getBaseUrl } from '@/lib/base-url'
 /**
  * Optional email receipt via Resend (https://resend.com).
  * If RESEND_API_KEY is not set, this is a no-op — in-app receipt still works.
@@ -21,7 +22,7 @@ export async function sendReceiptEmail(payload: ReceiptEmailPayload): Promise<bo
     process.env.RESEND_FROM_EMAIL ||
     'Eth-Links <onboarding@resend.dev>'
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ethlink-app.vercel.app'
+  const baseUrl = getBaseUrl()
   const receiptUrl = `${baseUrl}/book/success?bookingId=${payload.bookingId}`
 
   const html = `
