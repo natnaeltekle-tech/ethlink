@@ -10,12 +10,15 @@ import { DeleteServiceButton } from '@/components/admin/delete-service-button'
 import { ConfirmPaymentButton } from '@/components/admin/confirm-payment-button'
 import Link from 'next/link'
 import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
+import { getPendingProviderApplications } from '@/lib/actions/provider-review'
+import { ProviderVerificationPanel } from '@/components/admin/provider-verification-panel'
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats()
   const recentServices = await getRecentServices()
   const recentBookings = await getRecentBookings()
   const pendingPayments = await getPendingPaymentBookings()
+  const providerApplications = await getPendingProviderApplications()
   const simulation = isSimulationMode()
   const autoConfirm = isSimulationAutoConfirm()
 
@@ -25,6 +28,8 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+      <ProviderVerificationPanel applications={providerApplications} />
+
       {simulation && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
           <strong>Payment mode: simulation.</strong>{' '}
