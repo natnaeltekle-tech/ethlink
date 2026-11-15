@@ -75,6 +75,8 @@ export type Database = {
                 ]
             }
             profiles: {
+                // Synced with live schema + 20261115120000_prelaunch_catch_up.sql.
+                // role / is_verified are guarded by a trigger: clients may only go user → provider.
                 Row: {
                     id: string
                     first_name: string | null
@@ -82,10 +84,18 @@ export type Database = {
                     full_name: string | null
                     phone_number: string | null
                     id_card_link: string | null
-                    role: string | null
+                    role: 'user' | 'provider' | 'admin'
+                    is_verified: boolean | null
                     avatar_url: string | null
                     updated_at: string | null
                     username: string | null
+                    email: string | null
+                    business_name: string | null
+                    business_category: string | null
+                    /** legacy; app uses phone_number */
+                    phone: string | null
+                    /** legacy; app uses id_card_link */
+                    id_card_url: string | null
                 }
                 Insert: {
                     id: string
@@ -94,10 +104,16 @@ export type Database = {
                     full_name?: string | null
                     phone_number?: string | null
                     id_card_link?: string | null
-                    role?: string | null
+                    role?: 'user' | 'provider' | 'admin'
+                    is_verified?: boolean | null
                     avatar_url?: string | null
                     updated_at?: string | null
                     username?: string | null
+                    email?: string | null
+                    business_name?: string | null
+                    business_category?: string | null
+                    phone?: string | null
+                    id_card_url?: string | null
                 }
                 Update: {
                     id?: string
@@ -106,10 +122,16 @@ export type Database = {
                     full_name?: string | null
                     phone_number?: string | null
                     id_card_link?: string | null
-                    role?: string | null
+                    role?: 'user' | 'provider' | 'admin'
+                    is_verified?: boolean | null
                     avatar_url?: string | null
                     updated_at?: string | null
                     username?: string | null
+                    email?: string | null
+                    business_name?: string | null
+                    business_category?: string | null
+                    phone?: string | null
+                    id_card_url?: string | null
                 }
                 Relationships: [
                     {
@@ -244,35 +266,39 @@ export type Database = {
                 ]
             }
             notifications: {
+                // App writes content + type; title/message are legacy (nullable).
                 Row: {
                     id: string
                     user_id: string
                     title: string | null
+                    message: string | null
                     content: string | null
                     link: string | null
                     is_read: boolean
                     created_at: string
-                    type: string | null
+                    type: 'booking' | 'payment' | 'message' | 'info' | null
                 }
                 Insert: {
                     id?: string
                     user_id: string
                     title?: string | null
+                    message?: string | null
                     content?: string | null
                     link?: string | null
                     is_read?: boolean
                     created_at?: string
-                    type?: string | null
+                    type?: 'booking' | 'payment' | 'message' | 'info' | null
                 }
                 Update: {
                     id?: string
                     user_id?: string
                     title?: string | null
+                    message?: string | null
                     content?: string | null
                     link?: string | null
                     is_read?: boolean
                     created_at?: string
-                    type?: string | null
+                    type?: 'booking' | 'payment' | 'message' | 'info' | null
                 }
                 Relationships: [
                     {
@@ -294,6 +320,7 @@ export type Database = {
                     guests: number
                     total_price: number | null
                     provider_earnings: number | null
+                    commission_rate: number | null
                     commission_amount: number | null
                     dispute_reason: string | null
                     dispute_resolution: string | null
@@ -309,6 +336,7 @@ export type Database = {
                     guests?: number
                     total_price?: number | null
                     provider_earnings?: number | null
+                    commission_rate?: number | null
                     commission_amount?: number | null
                     dispute_reason?: string | null
                     dispute_resolution?: string | null
@@ -324,6 +352,7 @@ export type Database = {
                     guests?: number
                     total_price?: number | null
                     provider_earnings?: number | null
+                    commission_rate?: number | null
                     commission_amount?: number | null
                     dispute_reason?: string | null
                     dispute_resolution?: string | null
@@ -503,6 +532,49 @@ export type Database = {
                     value?: string
                     created_at?: string
                     updated_at?: string | null
+                }
+                Relationships: []
+            }
+            ai_logs: {
+                // Written only with the service role (lib/gemini.ts)
+                Row: {
+                    id: string
+                    created_at: string
+                    model_version: string
+                    prompt_length: number
+                    success: boolean
+                    input_tokens: number | null
+                    output_tokens: number | null
+                    total_tokens: number | null
+                    fallback_used: boolean
+                    error_message: string | null
+                    metadata: Json | null
+                }
+                Insert: {
+                    id?: string
+                    created_at?: string
+                    model_version: string
+                    prompt_length?: number
+                    success: boolean
+                    input_tokens?: number | null
+                    output_tokens?: number | null
+                    total_tokens?: number | null
+                    fallback_used?: boolean
+                    error_message?: string | null
+                    metadata?: Json | null
+                }
+                Update: {
+                    id?: string
+                    created_at?: string
+                    model_version?: string
+                    prompt_length?: number
+                    success?: boolean
+                    input_tokens?: number | null
+                    output_tokens?: number | null
+                    total_tokens?: number | null
+                    fallback_used?: boolean
+                    error_message?: string | null
+                    metadata?: Json | null
                 }
                 Relationships: []
             }

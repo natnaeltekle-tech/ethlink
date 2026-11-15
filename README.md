@@ -8,7 +8,7 @@ Live payments (Chapa) are **coming soon** — the product runs in **simulation m
 
 - **App**: Next.js App Router with server actions for bookings, listings, payments, chat, and admin workflows.
 - **Data**: Supabase Postgres with RLS, storage, realtime messages, and SQL migrations in `supabase/migrations`.
-- **Payments**: Simulation by default (`PAYMENT_MODE=simulation`). Live Chapa checkout + webhook path is implemented and ready when keys and regs allow.
+- **Payments**: Simulation by default (`PAYMENT_MODE=simulation`); bookings are confirmed manually by an admin in `/admin` until Chapa keys are configured. Live Chapa checkout + webhook path is implemented and ready when keys and regs allow.
 - **Escrow design**: Paid bookings can hold provider earnings until the customer completes the job or an admin resolves a dispute (activates fully with live payments).
 - **AI**: Gemini-powered search extraction with rule-based fallback.
 - **PWA / Android**: Capacitor loads the live site in a WebView.

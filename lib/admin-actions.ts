@@ -275,7 +275,7 @@ export async function resolveEscrowDispute(input: {
         {
             user_id: booking.user_id,
             content,
-            type: 'payment',
+            type: 'payment' as const,
             link: '/dashboard',
         },
         ...(providerId
@@ -283,7 +283,7 @@ export async function resolveEscrowDispute(input: {
                   {
                       user_id: providerId,
                       content,
-                      type: 'payment',
+                      type: 'payment' as const,
                       link: '/dashboard',
                   },
               ]
