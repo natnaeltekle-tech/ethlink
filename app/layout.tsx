@@ -50,6 +50,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
+  // Lets env(safe-area-inset-*) report real values in the Android WebView
+  viewportFit: "cover",
 };
 
 const geistSans = Geist({
@@ -73,8 +75,20 @@ export default function RootLayout({
       <head />
       <body
         className={`${geistSans.className} bg-background text-foreground antialiased pb-16 md:pb-0 overflow-x-hidden`}
-        style={{ backgroundColor: "#0B0C15", minHeight: "100vh" }}
+        style={{
+          backgroundColor: "#0B0C15",
+          minHeight: "100vh",
+          // Push the beta banner / headers below the status bar (0 on desktop)
+          paddingTop: "env(safe-area-inset-top)",
+        }}
       >
+        {/* Opaque strip behind the status bar so scrolled content and sticky
+            headers never render under the clock/notification icons */}
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-x-0 top-0 z-[300]"
+          style={{ height: "env(safe-area-inset-top)", backgroundColor: "#0B0C15" }}
+        />
         <SWCleaner />
         <ClientErrorBoundary>
           <ThemeProvider

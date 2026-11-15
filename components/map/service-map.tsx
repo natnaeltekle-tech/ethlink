@@ -7,9 +7,9 @@ import 'leaflet/dist/leaflet.css';
 import Link from 'next/link';
 
 // Fix for default markers not showing in Leaflet with Next.js/Webpack
-const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png';
-const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png';
-const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png';
+const iconRetinaUrl = '/leaflet/marker-icon-2x.png';
+const iconUrl = '/leaflet/marker-icon.png';
+const shadowUrl = '/leaflet/marker-shadow.png';
 
 interface Service {
     id: string;

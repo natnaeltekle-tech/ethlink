@@ -121,7 +121,10 @@ export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) 
     }, [onlineUsers, providerId])
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+        // Scroll only the chat's own message list. scrollIntoView() also
+        // scrolls the page, which made service pages jump to the bottom on load.
+        const list = messagesEndRef.current?.closest('.overflow-y-auto')
+        if (list) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
     }, [messages])
 
     const handleSend = async () => {

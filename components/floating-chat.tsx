@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,16 @@ interface Message {
     content: React.ReactNode;
 }
 
+// Long forms where the bubble would cover inputs/buttons while scrolling
+const HIDDEN_ON = ['/services/new', '/admin']
+
 export function FloatingChat() {
+    const pathname = usePathname()
+    if (HIDDEN_ON.some((p) => pathname === p || pathname?.startsWith(p + '/'))) return null
+    return <FloatingChatInner />
+}
+
+function FloatingChatInner() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');

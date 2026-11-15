@@ -1,14 +1,37 @@
 'use client';
 
 import { useState, useEffect, useRef, useId } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers in Leaflet with Next.js
-const iconRetinaUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png';
-const iconUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png';
-const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png';
+const iconRetinaUrl = '/leaflet/marker-icon-2x.png';
+const iconUrl = '/leaflet/marker-icon.png';
+const shadowUrl = '/leaflet/marker-shadow.png';
+
+/**
+ * Leaflet measures its container once. On mobile the picker often mounts while
+ * the page is still laying out (dynamic import, wizard step change, keyboard),
+ * leaving a gray, tile-less box. Re-measure after layout and on resize.
+ */
+function InvalidateSizeOnLayout() {
+    const map = useMap();
+    useEffect(() => {
+        const fix = () => map.invalidateSize();
+        const timers = [50, 300, 1000].map((ms) => setTimeout(fix, ms));
+        const container = map.getContainer();
+        const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fix) : null;
+        observer?.observe(container);
+        window.addEventListener('orientationchange', fix);
+        return () => {
+            timers.forEach(clearTimeout);
+            observer?.disconnect();
+            window.removeEventListener('orientationchange', fix);
+        };
+    }, [map]);
+    return null;
+}
 
 export default function LocationPicker({
     onLocationSelect
@@ -123,6 +146,7 @@ export default function LocationPicker({
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+                <InvalidateSizeOnLayout />
                 <LocationMarker />
             </MapContainer>
             {!position && (
