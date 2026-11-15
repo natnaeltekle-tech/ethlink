@@ -92,7 +92,7 @@ export async function getPublicProviderInfo(userId: string): Promise<PublicProvi
         // that structurally excludes phone, phone_number, id_card_url, and email.
         const { data: profile } = await supabase
             .from('public_profiles')
-            .select('id, first_name, last_name, full_name, username, avatar_url, is_verified')
+            .select('id, first_name, last_name, full_name, username, avatar_url, is_verified, has_business_license, account_type, business_name')
             .eq('id', userId)
             .maybeSingle()
 
@@ -105,6 +105,9 @@ export async function getPublicProviderInfo(userId: string): Promise<PublicProvi
                 username: profile.username,
                 avatar_url: profile.avatar_url,
                 is_verified: profile.is_verified ?? false,
+                has_business_license: profile.has_business_license ?? false,
+                account_type: profile.account_type ?? null,
+                business_name: profile.business_name ?? null,
             }
         }
     } catch (e) {
@@ -119,6 +122,9 @@ export async function getPublicProviderInfo(userId: string): Promise<PublicProvi
         username: null,
         avatar_url: null,
         is_verified: false,
+        has_business_license: false,
+        account_type: null,
+        business_name: null,
     }
 }
 

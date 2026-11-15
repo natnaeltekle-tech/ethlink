@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ServiceCover } from '@/components/service/service-cover'
+import { formatPrice } from '@/lib/provider-screening'
 
 interface ServiceCardProps {
     service: {
@@ -23,6 +24,7 @@ interface ServiceCardProps {
         // services_view columns
         avg_rating?: number | null
         review_count?: number | null
+        pricing_unit?: string | null
     }
     className?: string
     distance?: number
@@ -54,9 +56,9 @@ export function ServiceCard({ service, className, distance, priority = false }: 
                         </Badge>
 
                         <div className="absolute bottom-3 left-3 flex flex-col items-start">
-                            <span className="text-xs font-medium text-white/80 uppercase tracking-wider">Starting at</span>
+                            <span className="text-xs font-medium text-white/80 uppercase tracking-wider">Price</span>
                             <span className="text-lg font-bold text-white">
-                                {service.price ? `${service.price.toLocaleString()} ETB` : 'Negotiable'}
+                                {formatPrice(service.price, service.pricing_unit)}
                             </span>
                         </div>
                     </ServiceCover>

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 import { BookingForm } from '@/components/booking-form';
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
+import { TrustBadges } from '@/components/provider/trust-badges';
 
 export default function DesktopBooking({ service }: { service: any }) {
     return (
@@ -20,6 +21,7 @@ export default function DesktopBooking({ service }: { service: any }) {
                         <div className="absolute inset-0 bg-black/40 flex items-end">
                             <div className="p-6 text-white">
                                 <h1 className="text-3xl font-bold">{service.title}</h1>
+                                <TrustBadges className="mt-2" isVerified={service.provider?.is_verified} hasLicense={service.provider?.has_business_license} />
                                 <div className="flex items-center gap-2 mt-2 text-gray-200">
                                     <MapPin className="h-4 w-4" />
                                     <span>{service.location}</span>
@@ -32,7 +34,7 @@ export default function DesktopBooking({ service }: { service: any }) {
                         <p className="text-gray-500 dark:text-gray-400 mb-6 text-center text-sm">
                             Please select a date and time to confirm your booking.
                         </p>
-                        <BookingForm serviceId={service.id} price={service.price} category={service.category} />
+                        <BookingForm serviceId={service.id} price={service.price} pricingUnit={service.pricing_unit} category={service.category} />
                     </div>
                 </div>
             </div>

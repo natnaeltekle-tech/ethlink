@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
+import Link from 'next/link'
+import { TrustBadges } from '@/components/provider/trust-badges'
+import { ServiceBookingInfo } from '@/components/service/service-booking-info'
+import { formatPrice } from '@/lib/provider-screening';
 import { 
   ChevronLeft, Share, Heart, MapPin, Star, 
   Wifi, Waves, Shield, Dumbbell, MessageSquare, Edit2,
@@ -130,7 +133,8 @@ export default function MobileServiceDetails({
                         </div>
                         <div>
                             <p className="font-bold text-lg">{providerDisplayName}</p>
-                            <p className="text-xs text-slate-400">Host</p>
+                            {activeProvider.business_name && <p className="text-xs text-slate-400">{activeProvider.business_name}</p>}
+                            <TrustBadges isVerified={activeProvider.is_verified} hasLicense={activeProvider.has_business_license} className="mt-1" />
                         </div>
                     </div>
                     <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
@@ -170,6 +174,10 @@ export default function MobileServiceDetails({
                         </div>
                     </div>
                 )}
+
+                <div className="mt-8">
+                    <ServiceBookingInfo service={service} tone="dark" />
+                </div>
 
                 {/* Description */}
                 <div className="mt-8">
@@ -211,11 +219,8 @@ export default function MobileServiceDetails({
             {/* Sticky Bottom Action Bar — compact to fit above mobile nav */}
             <div className="fixed bottom-16 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-4 py-2.5 flex items-center justify-between gap-3 safe-area-pb">
                 <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider leading-none">From</span>
-                    <div className="flex items-baseline gap-1 mt-0.5">
-                        <span className="text-lg font-bold text-[#f5c619] leading-none">{service.price}</span>
-                        <span className="text-xs font-semibold text-white/80 uppercase">ETB</span>
-                    </div>
+                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider leading-none">Price</span>
+                    <span className="mt-0.5 text-lg font-bold leading-none text-[#f5c619]">{formatPrice(service.price, service.pricing_unit)}</span>
                 </div>
                 <Link
                     href={'/book/' + service?.id}

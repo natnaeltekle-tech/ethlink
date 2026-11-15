@@ -1,5 +1,7 @@
 'use client'
 
+import { formatPrice } from '@/lib/provider-screening'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,10 +20,11 @@ import {
 interface BookingFormProps {
     serviceId: string
     price: number
+    pricingUnit?: string | null
     category: string
 }
 
-export function BookingForm({ serviceId, price, category }: BookingFormProps) {
+export function BookingForm({ serviceId, price, pricingUnit, category }: BookingFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const router = useRouter()
 
@@ -67,7 +70,7 @@ export function BookingForm({ serviceId, price, category }: BookingFormProps) {
         <div className="w-full max-w-sm mx-auto bg-card p-4 rounded-xl border shadow-sm">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-bold">Book Service</h3>
-                <span className="text-xl font-bold text-primary">{price} ETB</span>
+                <span className="text-xl font-bold text-primary">{formatPrice(price, pricingUnit)}</span>
             </div>
             <form onSubmit={handleSubmit} className="space-y-3">
                 <input type="hidden" name="serviceId" value={serviceId} />

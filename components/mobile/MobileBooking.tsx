@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ChevronLeft, Star, User, Calendar, ArrowRight, CheckCircle, Users } from 'lucide-react';
 import { createBookingJson } from '@/lib/actions';
+import { TrustBadges } from '@/components/provider/trust-badges';
 
 export default function MobileBooking({ service }: { service: any }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,6 +71,7 @@ export default function MobileBooking({ service }: { service: any }) {
                         <div className="flex flex-col gap-1 flex-[2_2_0px] justify-center">
                             <p className="text-slate-500 dark:text-[#bab39c] text-xs font-semibold uppercase tracking-wider">Selected Service</p>
                             <p className="text-slate-900 dark:text-white text-base font-bold leading-tight line-clamp-2">{service.title}</p>
+                            <TrustBadges className="mt-1" isVerified={service.provider?.is_verified} hasLicense={service.provider?.has_business_license} />
                             <div className="flex items-center gap-1 mt-1">
                                 <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
                                 <p className="text-slate-500 dark:text-[#bab39c] text-xs font-medium leading-normal">5.0 <span className="font-normal">(Reviews)</span></p>

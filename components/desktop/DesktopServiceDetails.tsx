@@ -2,6 +2,7 @@ import React from 'react'
 import { ServiceHeader } from '@/components/service/service-header'
 import { ServiceGallery } from '@/components/service/service-gallery'
 import { ProviderCard } from '@/components/service/provider-card'
+import { ServiceBookingInfo } from '@/components/service/service-booking-info'
 import { ChatBox } from '@/components/service/chat-box'
 import { ReviewsList } from '@/components/service/reviews-list'
 import { ReviewForm } from '@/components/review-form'
@@ -46,6 +47,7 @@ export default function DesktopServiceDetails({
             <ServiceHeader
                 title={service.title}
                 price={service.price}
+                pricingUnit={service.pricing_unit}
                 location={service.location || 'Location not specified'}
                 category={service.category}
                 serviceId={service.id}
@@ -87,6 +89,7 @@ export default function DesktopServiceDetails({
 
                 {/* Right Column: The Deal Zone */}
                 <div className="space-y-6">
+                    <ServiceBookingInfo service={service} />
                     <ProviderCard provider={provider || { id: service.user_id }} />
 
                     <ChatBox

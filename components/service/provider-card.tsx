@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { User, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { TrustBadges } from '@/components/provider/trust-badges'
 
 interface ProviderCardProps {
     provider: {
@@ -7,8 +8,11 @@ interface ProviderCardProps {
         first_name?: string
         last_name?: string
         email?: string
-        avatar_url?: string
+        avatar_url?: string | null
         created_at?: string
+        is_verified?: boolean
+        has_business_license?: boolean
+        business_name?: string | null
     } | null
 }
 
@@ -53,9 +57,11 @@ export function ProviderCard({ provider }: ProviderCardProps) {
                     {/* Name & Date */}
                     <div>
                         <div className="font-semibold text-foreground">{displayName}</div>
+                        {provider.business_name && <div className="text-xs text-muted-foreground">{provider.business_name}</div>}
                         <div className="text-xs text-muted-foreground">Joined {joinDate}</div>
                     </div>
                 </div>
+                <TrustBadges isVerified={provider.is_verified} hasLicense={provider.has_business_license} />
 
                 {/* Email Row */}
                 {provider.email && (

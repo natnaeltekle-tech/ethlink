@@ -802,6 +802,9 @@ export interface PublicProviderInfo {
     username: string | null
     avatar_url: string | null
     is_verified: boolean
+    has_business_license: boolean
+    account_type: 'individual' | 'business' | null
+    business_name: string | null
 }
 
 // Composite types for joined queries

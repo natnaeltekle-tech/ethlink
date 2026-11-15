@@ -1,5 +1,7 @@
 'use client'
 
+import { formatPrice } from '@/lib/provider-screening'
+
 import { MapPin, Star, ChevronDown, ChevronUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,7 @@ import { ServiceActions } from './service-actions';
 interface ServiceHeaderProps {
     title: string
     price: number | null
+    pricingUnit?: string | null
     location: string | null
     category: string
     serviceId: string
@@ -22,6 +25,7 @@ interface ServiceHeaderProps {
 export function ServiceHeader({
     title,
     price,
+    pricingUnit,
     location,
     category,
     serviceId,
@@ -42,7 +46,7 @@ export function ServiceHeader({
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-primary">
-                            {price ? `$${price}` : 'Negotiable'}
+                            {formatPrice(price, pricingUnit)}
                         </span>
                     </div>
                     <ServiceActions
