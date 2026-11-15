@@ -4,6 +4,7 @@ import { getUserBookings, getProviderStats, getProviderServices, getProfile } fr
 import { Navbar } from "@/components/navbar";
 import DesktopDashboard from "@/components/desktop/DesktopDashboard";
 import DashboardSplitter from "@/components/DashboardSplitter";
+import { VerificationStatusBanner } from "@/components/provider/verification-status-banner";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -30,6 +31,12 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-background text-foreground">
             {/* Simple Header */}
             <Navbar hideSearch />
+
+            <VerificationStatusBanner
+                status={profile?.verification_status}
+                rejectionReason={profile?.rejection_reason}
+                isProvider={profile?.role === "provider" || (providerServices?.length ?? 0) > 0}
+            />
 
             <DashboardSplitter 
                 user={user}
