@@ -28,6 +28,11 @@ export type Database = {
                     latitude: number | null
                     longitude: number | null
                     amenities: string[] | null
+                    pricing_unit: 'fixed' | 'per_hour' | 'per_day' | 'starting_from'
+                    working_days: string[]
+                    opens_at: string | null
+                    closes_at: string | null
+                    whats_included: string | null
                 }
                 Insert: {
                     id?: string
@@ -46,6 +51,11 @@ export type Database = {
                     latitude?: number | null
                     longitude?: number | null
                     amenities?: string[] | null
+                    pricing_unit?: 'fixed' | 'per_hour' | 'per_day' | 'starting_from'
+                    working_days?: string[]
+                    opens_at?: string | null
+                    closes_at?: string | null
+                    whats_included?: string | null
                 }
                 Update: {
                     id?: string
@@ -64,6 +74,11 @@ export type Database = {
                     latitude?: number | null
                     longitude?: number | null
                     amenities?: string[] | null
+                    pricing_unit?: 'fixed' | 'per_hour' | 'per_day' | 'starting_from'
+                    working_days?: string[]
+                    opens_at?: string | null
+                    closes_at?: string | null
+                    whats_included?: string | null
                 }
                 Relationships: [
                     {
@@ -96,6 +111,13 @@ export type Database = {
                     phone: string | null
                     /** legacy; app uses id_card_link */
                     id_card_url: string | null
+                    account_type: 'individual' | 'business' | null
+                    /** Workflow: unsubmitted → pending → verified | rejected (admin-only except → pending) */
+                    verification_status: 'unsubmitted' | 'pending' | 'verified' | 'rejected'
+                    rejection_reason: string | null
+                    verification_submitted_at: string | null
+                    verified_at: string | null
+                    has_business_license: boolean
                 }
                 Insert: {
                     id: string
@@ -114,6 +136,12 @@ export type Database = {
                     business_category?: string | null
                     phone?: string | null
                     id_card_url?: string | null
+                    account_type?: 'individual' | 'business' | null
+                    verification_status?: 'unsubmitted' | 'pending' | 'verified' | 'rejected'
+                    rejection_reason?: string | null
+                    verification_submitted_at?: string | null
+                    verified_at?: string | null
+                    has_business_license?: boolean
                 }
                 Update: {
                     id?: string
@@ -132,6 +160,12 @@ export type Database = {
                     business_category?: string | null
                     phone?: string | null
                     id_card_url?: string | null
+                    account_type?: 'individual' | 'business' | null
+                    verification_status?: 'unsubmitted' | 'pending' | 'verified' | 'rejected'
+                    rejection_reason?: string | null
+                    verification_submitted_at?: string | null
+                    verified_at?: string | null
+                    has_business_license?: boolean
                 }
                 Relationships: [
                     {
@@ -578,6 +612,73 @@ export type Database = {
                 }
                 Relationships: []
             }
+            provider_verifications: {
+                // Private screening data: owner + service role only (RLS)
+                Row: {
+                    user_id: string
+                    id_type: 'fayda' | 'kebele' | 'passport' | 'drivers_license'
+                    id_front_path: string
+                    id_back_path: string | null
+                    selfie_path: string
+                    license_path: string | null
+                    phone_whatsapp: boolean
+                    phone_telegram: boolean
+                    service_modes: string[]
+                    service_zones: string[]
+                    payout_telebirr_phone: string | null
+                    payout_cbe_account: string | null
+                    payout_account_name: string
+                    years_experience: number | null
+                    bio: string | null
+                    created_at: string
+                    updated_at: string
+                    reviewed_at: string | null
+                    reviewed_by: string | null
+                }
+                Insert: {
+                    user_id: string
+                    id_type: 'fayda' | 'kebele' | 'passport' | 'drivers_license'
+                    id_front_path: string
+                    id_back_path?: string | null
+                    selfie_path: string
+                    license_path?: string | null
+                    phone_whatsapp?: boolean
+                    phone_telegram?: boolean
+                    service_modes?: string[]
+                    service_zones?: string[]
+                    payout_telebirr_phone?: string | null
+                    payout_cbe_account?: string | null
+                    payout_account_name: string
+                    years_experience?: number | null
+                    bio?: string | null
+                    created_at?: string
+                    updated_at?: string
+                    reviewed_at?: string | null
+                    reviewed_by?: string | null
+                }
+                Update: {
+                    user_id?: string
+                    id_type?: 'fayda' | 'kebele' | 'passport' | 'drivers_license'
+                    id_front_path?: string
+                    id_back_path?: string | null
+                    selfie_path?: string
+                    license_path?: string | null
+                    phone_whatsapp?: boolean
+                    phone_telegram?: boolean
+                    service_modes?: string[]
+                    service_zones?: string[]
+                    payout_telebirr_phone?: string | null
+                    payout_cbe_account?: string | null
+                    payout_account_name?: string
+                    years_experience?: number | null
+                    bio?: string | null
+                    created_at?: string
+                    updated_at?: string
+                    reviewed_at?: string | null
+                    reviewed_by?: string | null
+                }
+                Relationships: []
+            }
         }
         Views: {
             services_view: {
@@ -602,6 +703,13 @@ export type Database = {
                     gallery: string[] | null
                     latitude: number | null
                     longitude: number | null
+                    pricing_unit: 'fixed' | 'per_hour' | 'per_day' | 'starting_from'
+                    working_days: string[]
+                    opens_at: string | null
+                    closes_at: string | null
+                    whats_included: string | null
+                    amenities: string[] | null
+                    provider_verified: boolean
                 }
                 Relationships: [
                     {
@@ -621,6 +729,9 @@ export type Database = {
                     username: string | null
                     avatar_url: string | null
                     is_verified: boolean | null
+                    account_type: 'individual' | 'business' | null
+                    business_name: string | null
+                    has_business_license: boolean
                 }
                 Relationships: [
                     {
@@ -633,6 +744,18 @@ export type Database = {
             }
         }
         Functions: {
+            is_verified_provider: {
+                Args: { p_user_id: string }
+                Returns: boolean
+            }
+            has_booking_on_service: {
+                Args: { p_service_id: string }
+                Returns: boolean
+            }
+            my_verification_status: {
+                Args: Record<string, never>
+                Returns: string
+            }
             process_payment_confirmation: {
                 Args: {
                     p_tx_ref: string
@@ -693,3 +816,4 @@ export interface ReviewProfile {
 export interface ReviewWithProfile extends Review {
     profiles: ReviewProfile | null
 }
+export type ProviderVerification = Database["public"]["Tables"]["provider_verifications"]["Row"]
