@@ -7,7 +7,7 @@ export const SECURITY_HEADERS: Record<string, string> = {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
     'X-DNS-Prefetch-Control': 'on',
     // Modern browsers ignore X-XSS-Protection; CSP is the real control.
     'X-XSS-Protection': '0',
