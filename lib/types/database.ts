@@ -10,53 +10,62 @@ export type Database = {
     public: {
         Tables: {
             services: {
+                // Synced with live schema (market-ai-v3) 2026-11-15
                 Row: {
                     id: string
                     title: string
-                    description: string
+                    description: string | null
+                    // DB column is nullable but no row is null and the create form requires it;
+                    // payments rely on it. Pending: ALTER COLUMN price SET NOT NULL.
                     price: number
                     category: string
                     location: string | null
                     image_url: string | null
                     user_id: string
                     created_at: string
-                    updated_at: string | null
-                    is_active: boolean
+                    updated_at: string
+                    images: string[] | null
+                    is_active: boolean | null
                     gallery: string[] | null
                     latitude: number | null
                     longitude: number | null
+                    amenities: string[] | null
                 }
                 Insert: {
                     id?: string
                     title: string
-                    description: string
-                    price: number
+                    description?: string | null
+                    price?: number | null
                     category: string
                     location?: string | null
                     image_url?: string | null
                     user_id: string
                     created_at?: string
-                    updated_at?: string | null
-                    is_active?: boolean
+                    updated_at?: string
+                    images?: string[] | null
+                    is_active?: boolean | null
                     gallery?: string[] | null
                     latitude?: number | null
                     longitude?: number | null
+                    amenities?: string[] | null
                 }
                 Update: {
                     id?: string
                     title?: string
-                    description?: string
-                    price?: number
+                    description?: string | null
+                    price?: number | null
                     category?: string
                     location?: string | null
                     image_url?: string | null
                     user_id?: string
                     created_at?: string
-                    updated_at?: string | null
-                    is_active?: boolean
+                    updated_at?: string
+                    images?: string[] | null
+                    is_active?: boolean | null
                     gallery?: string[] | null
                     latitude?: number | null
                     longitude?: number | null
+                    amenities?: string[] | null
                 }
                 Relationships: [
                     {
@@ -502,25 +511,25 @@ export type Database = {
         }
         Views: {
             services_view: {
+                // Live definition: supabase/migrations/20261115090000_services_view_baseline.sql
+                // Nullability follows the underlying services columns.
+                // Not exposed: gallery, latitude, longitude, amenities.
                 Row: {
                     id: string
                     title: string
-                    description: string
-                    price: number
                     category: string
+                    description: string | null
+                    price: number // see services.Row.price
                     location: string | null
                     image_url: string | null
                     user_id: string
                     created_at: string
-                    updated_at: string | null
-                    is_active: boolean
-                    gallery: string[] | null
-                    latitude: number | null
-                    longitude: number | null
-                    avg_rating: number | null
-                    total_reviews: number | null
-                    provider_name: string | null
-                    provider_avatar: string | null
+                    updated_at: string
+                    images: string[] | null
+                    is_active: boolean | null
+                    /** COALESCE(avg(reviews.rating), 0) — 0 when unrated */
+                    avg_rating: number
+                    review_count: number
                 }
                 Relationships: [
                     {

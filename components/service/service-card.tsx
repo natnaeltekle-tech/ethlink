@@ -22,7 +22,7 @@ interface ServiceCardProps {
         images?: unknown
         // services_view columns
         avg_rating?: number | null
-        total_reviews?: number | null
+        review_count?: number | null
     }
     className?: string
     distance?: number
@@ -79,7 +79,7 @@ export function ServiceCard({ service, className, distance, priority = false }: 
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     <span>{rating.toFixed(1)}</span>
                                     <span className="text-muted-foreground ml-0.5 font-normal">
-                                        ({service.total_reviews || 0})
+                                        ({service.review_count || 0})
                                     </span>
                                 </div>
                             )}
