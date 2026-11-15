@@ -17,6 +17,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SERVICE_CATEGORIES } from "@/lib/service-filters";
+import { normalizeEthiopianPhone, type AccountType } from "@/lib/provider-screening";
 
 export function SignUpForm({
   className,
@@ -30,6 +32,7 @@ export function SignUpForm({
   const [phoneNumber, setPhoneNumber] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
+  const [accountType, setAccountType] = useState<AccountType>("individual");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -46,6 +49,19 @@ export function SignUpForm({
       setIsLoading(false);
       return;
     }
+    const phone = normalizeEthiopianPhone(phoneNumber);
+    if (!phone) {
+      setError("Enter a valid Ethiopian mobile number, e.g. +251 911 234 567");
+      setIsLoading(false);
+      return;
+    }
+    const isProvider = role === "provider";
+    const isBusiness = isProvider && accountType === "business";
+    if (isBusiness && (!businessName.trim() || !businessCategory)) {
+      setError("Business name and category are required for a registered business");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.signUp({
@@ -55,19 +71,24 @@ export function SignUpForm({
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             role,
-            full_name: fullName,
-            phone_number: phoneNumber,
-            business_name: role === "provider" ? businessName : null,
-            business_category: role === "provider" ? businessCategory : null,
+            full_name: fullName.trim(),
+            phone_number: phone,
+            account_type: isProvider ? accountType : null,
+            business_name: isBusiness ? businessName.trim() : null,
+            business_category: isProvider ? businessCategory || null : null,
           },
         },
       });
       if (error) throw error;
 
       // Success: show notification and redirect
-      toast.success("Account created successfully!");
+      toast.success(
+        isProvider
+          ? "Account created! Next: verify your identity and list your service."
+          : "Account created successfully!"
+      );
       router.refresh(); // Clear cache and sync session
-      router.push("/"); // Navigate to home
+      router.push(isProvider ? "/services/new" : "/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -132,34 +153,77 @@ export function SignUpForm({
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+251..."
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+251 911 234 567"
                   required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  aria-invalid={phoneNumber.length > 6 && !normalizeEthiopianPhone(phoneNumber)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Ethiopian mobile (Ethio telecom or Safaricom). {role === "provider" && "We may call to verify you."}
+                </p>
               </div>
 
               {role === "provider" && (
                 <>
                   <div className="grid gap-2">
-                    <Label htmlFor="business-name">Business Name</Label>
-                    <Input
-                      id="business-name"
-                      placeholder="My Service Business"
-                      required
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                    />
+                    <Label>Account type</Label>
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
+                      {([
+                        ["individual", "Individual / Freelancer"],
+                        ["business", "Registered Business"],
+                      ] as const).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          role="radio"
+                          aria-checked={accountType === value}
+                          onClick={() => setAccountType(value)}
+                          className={cn(
+                            "min-h-[44px] rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                            accountType === value
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-input text-muted-foreground hover:bg-secondary"
+                          )}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  {accountType === "business" && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="business-name">Registered business name</Label>
+                      <Input
+                        id="business-name"
+                        placeholder="e.g. Abebe Plumbing PLC"
+                        required
+                        maxLength={150}
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        You can upload your Trade License / TIN in the next step for a Licensed Business badge.
+                      </p>
+                    </div>
+                  )}
                   <div className="grid gap-2">
-                    <Label htmlFor="business-category">Category</Label>
-                    <Input
+                    <Label htmlFor="business-category">Main service category</Label>
+                    <select
                       id="business-category"
-                      placeholder="e.g., Plumbing, Cleaning"
-                      required
+                      required={accountType === "business"}
                       value={businessCategory}
                       onChange={(e) => setBusinessCategory(e.target.value)}
-                    />
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="">Select a category</option>
+                      {SERVICE_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                 </>
               )}
