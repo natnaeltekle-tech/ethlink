@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Search as SearchIcon, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,44 +11,75 @@ const ServiceMap = dynamic(() => import('@/components/map/service-map'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-secondary/20 animate-pulse rounded-lg" />
 })
-import { getFilteredServices } from '@/lib/actions'
+import { queryServices } from '@/lib/actions'
+import { SERVICE_CATEGORIES } from '@/lib/service-filters'
 import { cn } from '@/lib/utils'
 import { Haptics } from '@/lib/haptics'
 
-const FILTER_CATEGORIES = [
-  'All',
-  'Hotels',
-  'Transport',
-  'Home Services',
-  'Tech',
-  'Events',
-  'Health',
-  'Food',
-]
+// Exact category values from the create-service form
+const FILTER_CATEGORIES = ['All', ...SERVICE_CATEGORIES]
 
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
+  // useSearchParams needs a Suspense boundary for the static build
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <SearchPageContent />
+    </Suspense>
+  )
+}
+
+function SearchPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const urlCategory = searchParams.get('category') || 'All'
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const [selectedCategory, setSelectedCategory] = useState(urlCategory)
   const [services, setServices] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [retryToken, setRetryToken] = useState(0)
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map')
 
+  // Category links (/search?category=…) and back/forward update the selection
   useEffect(() => {
+    setSelectedCategory(urlCategory)
+  }, [urlCategory])
+
+  const selectCategory = (category: string) => {
+    setSelectedCategory(category)
+    const qs = new URLSearchParams(searchParams.toString())
+    if (category === 'All') qs.delete('category')
+    else qs.set('category', category)
+    const query = qs.toString()
+    router.replace(query ? `/search?${query}` : '/search', { scroll: false })
+  }
+
+  useEffect(() => {
+    let cancelled = false
     async function fetchServices() {
       setLoading(true)
+      setError(null)
       try {
         const category = selectedCategory === 'All' ? undefined : selectedCategory
-        const data = await getFilteredServices(category, searchQuery || undefined)
-        setServices(data || [])
-      } catch (error) {
-        console.error('Error fetching services:', error)
+        const result = await queryServices({ category, search: searchQuery.trim() || undefined })
+        if (cancelled) return
+        setServices(result.services)
+        setError(result.error)
+      } catch (err) {
+        console.error('Error fetching services:', err)
+        if (!cancelled) setError('Could not load services. Please try again.')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
-    fetchServices()
-  }, [selectedCategory, searchQuery])
+    // Debounce typing so slow networks aren't hit on every keystroke
+    const timer = setTimeout(fetchServices, searchQuery ? 300 : 0)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [selectedCategory, searchQuery, retryToken])
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -85,7 +117,7 @@ export default function SearchPage() {
               size="sm"
               onClick={() => {
                 Haptics.light()
-                setSelectedCategory(category)
+                selectCategory(category)
               }}
               className={cn(
                 'rounded-full whitespace-nowrap',
@@ -100,6 +132,15 @@ export default function SearchPage() {
         </div>
       </div>
 
+      {viewMode === 'map' && error && (
+        <div className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-sm">
+          <span className="text-muted-foreground">{error}</span>
+          <Button size="sm" variant="outline" onClick={() => setRetryToken((t) => t + 1)}>
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Map View */}
       {viewMode === 'map' && (
         <div className="h-[calc(100vh-200px)] w-full">
@@ -111,10 +152,22 @@ export default function SearchPage() {
       {viewMode === 'list' && (
         <div className="p-4 space-y-4">
           {loading ? (
-            <div className="text-center py-12 text-muted-foreground">Loading...</div>
+            <div className="space-y-4" aria-busy="true">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 rounded-xl bg-secondary/50 animate-pulse" />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 space-y-3">
+              <p className="text-muted-foreground">{error}</p>
+              <Button variant="outline" onClick={() => setRetryToken((t) => t + 1)}>
+                Retry
+              </Button>
+            </div>
           ) : services.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               No services found
+              {selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
             </div>
           ) : (
             services.map((service) => (

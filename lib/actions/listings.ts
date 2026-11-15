@@ -5,8 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { serviceSchema, messageSchema, reviewSchema } from '@/lib/validations'
 import { sanitizeMessage, sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
+import { redirect, unstable_rethrow } from 'next/navigation'
 import { Service, ServiceView, Message, ReviewWithProfile } from '@/lib/types/database'
+import type { ServiceFilters } from '@/lib/service-filters'
 
 export async function searchServices(query: string): Promise<ServiceView[]> {
     const supabase = await createClient()
@@ -33,17 +34,56 @@ export async function searchServicesAdvanced(query: string, location?: string, m
     return data || []
 }
 
-export async function getFilteredServices(category?: string, query?: string): Promise<ServiceView[]> {
-    const supabase = await createClient()
-    let dbQuery = supabase.from('services_view').select('*').eq('is_active', true)
-    if (category) dbQuery = dbQuery.eq('category', category)
-    if (query) {
-        const safeQuery = query.replace(/[.(),%_\\]/g, ' ')
-        dbQuery = dbQuery.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
+/**
+ * Explore query. Reads services_view through the request-scoped client (RLS
+ * applies) and only returns active listings. Every filter maps to a real column.
+ * Returns `error` separately so the UI can tell "no matches" from "query failed".
+ */
+export async function queryServices(
+    filters: ServiceFilters = {}
+): Promise<{ services: ServiceView[]; error: string | null }> {
+    try {
+        const supabase = await createClient()
+        let dbQuery = supabase.from('services_view').select('*').eq('is_active', true)
+
+        if (filters.category) dbQuery = dbQuery.eq('category', filters.category)
+        if (filters.search) {
+            const safeQuery = filters.search.slice(0, 200).replace(/[.(),%_\\]/g, ' ')
+            dbQuery = dbQuery.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`)
+        }
+        if (filters.location) {
+            const safeLocation = filters.location.slice(0, 100).replace(/[%_\\]/g, ' ')
+            dbQuery = dbQuery.ilike('location', `%${safeLocation}%`)
+        }
+        if (filters.minPrice !== undefined) dbQuery = dbQuery.gte('price', filters.minPrice)
+        if (filters.maxPrice !== undefined) dbQuery = dbQuery.lte('price', filters.maxPrice)
+        if (filters.minRating) dbQuery = dbQuery.gte('avg_rating', filters.minRating)
+
+        const { data, error } = await dbQuery
+            .order('created_at', { ascending: false })
+            .limit(50)
+            .returns<ServiceView[]>()
+
+        if (error) {
+            console.error('Error fetching filtered services:', error)
+            return { services: [], error: 'Could not load services. Please try again.' }
+        }
+        return { services: data || [], error: null }
+    } catch (err) {
+        // Let Next.js control-flow errors (dynamic rendering, redirects) through
+        unstable_rethrow(err)
+        console.error('Exception fetching filtered services:', err)
+        return { services: [], error: 'Could not load services. Please try again.' }
     }
-    const { data, error } = await dbQuery.limit(50).returns<ServiceView[]>()
-    if (error) { console.error('Error fetching filtered services:', error); return [] }
-    return data || []
+}
+
+/** Backward-compatible wrapper (Home, /search). Returns [] on error. */
+export async function getFilteredServices(category?: string, query?: string): Promise<ServiceView[]> {
+    const { services } = await queryServices({
+        category: category || undefined,
+        search: query || undefined,
+    })
+    return services
 }
 
 export async function searchServicesGreedy(keyword: string, maxPrice?: number): Promise<ServiceView[]> {

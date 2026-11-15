@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   Handshake,
   Search,
@@ -12,36 +13,39 @@ import {
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notification-bell'
-import { getServiceImageUrl } from '@/lib/service-image'
-import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
+import { ServiceCover } from '@/components/service/service-cover'
+import {
+  buildServicesHref,
+  countActiveFilters,
+  recallServiceFilters,
+  type ServiceFilters,
+} from '@/lib/service-filters'
 import MobileMapExplore from './MobileMapExplore'
 import MobileSearchFilters from './MobileSearchFilters'
 import MobileNotifications from './MobileNotifications'
-
-function ServiceCover({ service }: { service: any }) {
-  const [src, setSrc] = useState(() => getServiceImageUrl(service))
-
-  return (
-    <div className="relative w-full aspect-[4/3] overflow-hidden bg-black/40">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={service.title || 'Service'}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-        onError={() => {
-          if (src !== DEFAULT_SERVICE_IMAGE) setSrc(DEFAULT_SERVICE_IMAGE)
-        }}
-      />
-    </div>
-  )
-}
 
 export default function MobileHome({ services = [] }: { services?: any[] }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [showMap, setShowMap] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const router = useRouter()
+  // Last filters applied on Explore (this device/session) so Home ↔ Explore keeps them.
+  const [lastFilters, setLastFilters] = useState<ServiceFilters>({})
+  const [searchText, setSearchText] = useState('')
+
+  React.useEffect(() => {
+    const recalled = recallServiceFilters()
+    setLastFilters(recalled)
+    setSearchText(recalled.search ?? '')
+  }, [])
+
+  const activeFilterCount = countActiveFilters(lastFilters)
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    router.push(buildServicesHref({ ...lastFilters, search: searchText.trim() || undefined }))
+  }
 
   React.useEffect(() => {
     try {
@@ -94,20 +98,36 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
         </div>
 
         <div className="px-4 py-3 flex flex-row gap-2 items-center w-full">
-          <div className="flex w-full items-stretch bg-white/5 backdrop-blur-md border border-white/5 rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-[#f5c619]/50 transition-all">
+          <form
+            role="search"
+            onSubmit={submitSearch}
+            className="flex w-full items-stretch bg-white/5 backdrop-blur-md border border-white/5 rounded-full h-12 overflow-hidden ring-1 ring-white/10 focus-within:ring-[#f5c619]/50 transition-all">
             <div className="text-[#f5c619] flex items-center justify-center pl-4">
               <Search className="w-5 h-5" />
             </div>
             <input
+              type="search"
+              enterKeyHint="search"
+              aria-label="Search services"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              maxLength={200}
               className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-gray-500 px-4 text-base font-medium text-white"
               placeholder="Search for luxury stays, cars, guides..."
             />
-          </div>
+          </form>
           <button
+            type="button"
+            aria-label="Filters"
             onClick={() => setShowFilters(true)}
-            className="h-12 w-12 shrink-0 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+            className="relative h-12 w-12 shrink-0 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
           >
             <SlidersHorizontal className="w-5 h-5 text-[#f5c619]" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[#f5c619] text-black text-[11px] font-black flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -147,7 +167,11 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
                 Premium
               </div>
               <Link href={'/services/' + service.id} className="flex flex-col w-full h-full">
-                <ServiceCover service={service} />
+                <ServiceCover
+                  service={service}
+                  priority={index === 0}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
                 <div className="flex w-full flex-col gap-3 p-5">
                   <div className="flex justify-between items-start">
                     <div>
@@ -162,7 +186,9 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
                     <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
                       <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
                       <span className="text-white font-bold text-sm">
-                        {service.rating || 'New'}
+                        {Number(service.avg_rating) > 0
+                          ? Number(service.avg_rating).toFixed(1)
+                          : 'New'}
                       </span>
                     </div>
                   </div>
@@ -184,7 +210,12 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
         </div>
       </main>
 
-      {showFilters && <MobileSearchFilters onClose={() => setShowFilters(false)} />}
+      {showFilters && (
+        <MobileSearchFilters
+          initialFilters={{ ...lastFilters, search: searchText.trim() || undefined }}
+          onClose={() => setShowFilters(false)}
+        />
+      )}
     </div>
   )
 }

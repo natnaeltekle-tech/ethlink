@@ -22,7 +22,7 @@ const categories = [
     {
         label: "Cleaning",
         sub: "Home Services",
-        href: "/services?category=Home Services",
+        href: "/services?category=Cleaning",
         image: "https://images.unsplash.com/photo-1581578731117-104f2a9d4547?w=800"
     },
     {
@@ -38,10 +38,10 @@ const categories = [
         image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800"
     },
     {
-        label: "Health",
-        sub: "Medical",
-        href: "/services?category=Health",
-        image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800"
+        label: "Professional",
+        sub: "Legal/Finance",
+        href: "/services?category=Professional%20Services",
+        image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800"
     },
     {
         label: "Add Listing",

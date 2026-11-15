@@ -1,16 +1,14 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { MapPin, Star, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants'
-import { getServiceImageUrl } from '@/lib/service-image'
+import { ServiceCover } from '@/components/service/service-cover'
 
 interface ServiceCardProps {
     service: {
@@ -22,15 +20,18 @@ interface ServiceCardProps {
         image_url?: string | null
         gallery?: unknown
         images?: unknown
-        rating?: number
-        review_count?: number
+        // services_view columns
+        avg_rating?: number | null
+        total_reviews?: number | null
     }
     className?: string
     distance?: number
+    /** Eager-load the cover (first card above the fold). */
+    priority?: boolean
 }
 
-export function ServiceCard({ service, className, distance }: ServiceCardProps) {
-    const [src, setSrc] = useState(() => getServiceImageUrl(service))
+export function ServiceCard({ service, className, distance, priority = false }: ServiceCardProps) {
+    const rating = Number(service.avg_rating) || 0
 
     return (
         <motion.div
@@ -42,19 +43,7 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
         >
             <Link href={`/services/${service.id}`} className="block h-full">
                 <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group">
-                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                        <Image
-                            src={src}
-                            alt={service.title}
-                            fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-110"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            unoptimized={src.startsWith('http') && !src.includes('supabase')}
-                            onError={() => {
-                                if (src !== DEFAULT_SERVICE_IMAGE) setSrc(DEFAULT_SERVICE_IMAGE)
-                            }}
-                        />
-
+                    <ServiceCover service={service} priority={priority}>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
 
                         <Badge
@@ -70,7 +59,7 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                                 {service.price ? `${service.price.toLocaleString()} ETB` : 'Negotiable'}
                             </span>
                         </div>
-                    </div>
+                    </ServiceCover>
 
                     <CardContent className="flex-1 p-5 space-y-3">
                         <div className="flex justify-between items-start gap-2">
@@ -85,12 +74,12 @@ export function ServiceCard({ service, className, distance }: ServiceCardProps) 
                                 <span className="line-clamp-1">{service.location}</span>
                             </div>
 
-                            {(service.rating || 0) > 0 && (
+                            {rating > 0 && (
                                 <div className="flex items-center gap-1 text-amber-500 font-medium">
                                     <Star className="h-3.5 w-3.5 fill-current" />
-                                    <span>{service.rating}</span>
+                                    <span>{rating.toFixed(1)}</span>
                                     <span className="text-muted-foreground ml-0.5 font-normal">
-                                        ({service.review_count || 0})
+                                        ({service.total_reviews || 0})
                                     </span>
                                 </div>
                             )}

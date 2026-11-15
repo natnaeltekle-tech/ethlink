@@ -3,12 +3,22 @@ import { z } from 'zod';
 // ─── Reusable Primitives ────────────────────────────────────────────────────
 const safeString = (maxLen: number) => z.string().max(maxLen).trim();
 const safeUrl = z.string().url().max(2000);
+// URL query numbers: "" / missing → undefined (z.coerce alone would turn "" into 0).
+const optionalQueryNumber = <T extends z.ZodTypeAny>(schema: T) =>
+    z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : v), schema.optional())
+        .catch(undefined);
 
 // ─── Service ────────────────────────────────────────────────────────────────
 export const searchParamsSchema = z.object({
     search: safeString(200).optional().catch(''),
     category: safeString(100).optional().catch(''),
     page: z.coerce.number().min(1).optional().catch(1),
+    // Explore filters — all map to real services_view columns (price, location, avg_rating).
+    // Invalid values are dropped (undefined) rather than failing the page.
+    min_price: optionalQueryNumber(z.coerce.number().min(0).max(10_000_000)),
+    max_price: optionalQueryNumber(z.coerce.number().min(0).max(10_000_000)),
+    location: safeString(100).optional().catch(undefined),
+    min_rating: optionalQueryNumber(z.coerce.number().int().min(1).max(5)),
 });
 
 export const serviceSchema = z.object({

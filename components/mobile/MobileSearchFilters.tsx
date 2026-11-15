@@ -1,92 +1,163 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Star, Wifi, Car, Dumbbell, Waves, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Star, ArrowRight, X } from 'lucide-react';
+import {
+    SERVICE_CATEGORIES,
+    buildServicesHref,
+    type ServiceFilters,
+} from '@/lib/service-filters';
 
 interface MobileSearchFiltersProps {
     onClose: () => void;
-    onApply?: (filters: any) => void;
-    resultCount?: number;
+    /** Current filters (from the URL on Explore, or last-used on Home). */
+    initialFilters?: ServiceFilters;
 }
 
-const CATEGORIES = [
-    { id: 'hotels', label: 'Boutique Hotels', icon: '🏨' },
-    { id: 'dining', label: 'Fine Dining', icon: '🍽️' },
-    { id: 'tours', label: 'Private Tours', icon: '🧭' },
-    { id: 'wellness', label: 'Wellness & Spa', icon: '💆' },
-    { id: 'events', label: 'Cultural Events', icon: '🎭' },
-];
+const CATEGORY_ICONS: Record<string, string> = {
+    Hospitality: '🏨',
+    Transport: '🚗',
+    'Real Estate': '🏠',
+    'Professional Services': '💼',
+    Cleaning: '🧹',
+    Tech: '💻',
+    Events: '🎉',
+};
 
-const AMENITIES = [
-    { id: 'wifi', label: 'Fast WiFi', icon: Wifi },
-    { id: 'pool', label: 'Pool Access', icon: Waves },
-    { id: 'parking', label: 'Valet Parking', icon: Car },
-    { id: 'gym', label: 'Gym', icon: Dumbbell },
-];
+function toNumberOrUndefined(value: string): number | undefined {
+    if (value.trim() === '') return undefined;
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
 
-export default function MobileSearchFilters({ onClose, onApply, resultCount = 124 }: MobileSearchFiltersProps) {
-    const [priceRange, setPriceRange] = useState([120, 850]);
-    const [selectedCategories, setSelectedCategories] = useState<string[]>(['hotels']);
-    const [minRating, setMinRating] = useState(4);
-    const [selectedAmenities, setSelectedAmenities] = useState<string[]>(['pool']);
+/**
+ * Bottom-sheet filters. Only fields that exist on services_view:
+ * category, price, location, avg_rating. Applying navigates to
+ * /services?… so the URL carries the state.
+ */
+export default function MobileSearchFilters({ onClose, initialFilters = {} }: MobileSearchFiltersProps) {
+    const router = useRouter();
+    const [category, setCategory] = useState<string | undefined>(initialFilters.category);
+    const [minPrice, setMinPrice] = useState(initialFilters.minPrice?.toString() ?? '');
+    const [maxPrice, setMaxPrice] = useState(initialFilters.maxPrice?.toString() ?? '');
+    const [location, setLocation] = useState(initialFilters.location ?? '');
+    const [minRating, setMinRating] = useState<number>(initialFilters.minRating ?? 0);
 
-    const toggleCategory = (id: string) => setSelectedCategories(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
-    const toggleAmenity = (id: string) => setSelectedAmenities(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
+    // Show a custom category (e.g. from an "Other" listing link) alongside the standard ones.
+    const categories: string[] = [...SERVICE_CATEGORIES];
+    if (category && !categories.includes(category)) categories.push(category);
 
-    const handleReset = () => { setPriceRange([0, 1000]); setSelectedCategories([]); setMinRating(0); setSelectedAmenities([]); };
-    const handleApply = () => { onApply?.({ priceRange, selectedCategories, minRating, selectedAmenities }); onClose(); };
+    const handleReset = () => {
+        setCategory(undefined);
+        setMinPrice('');
+        setMaxPrice('');
+        setLocation('');
+        setMinRating(0);
+    };
+
+    const handleApply = () => {
+        router.push(
+            buildServicesHref({
+                search: initialFilters.search,
+                category,
+                minPrice: toNumberOrUndefined(minPrice),
+                maxPrice: toNumberOrUndefined(maxPrice),
+                location: location.trim() || undefined,
+                minRating: minRating || undefined,
+            })
+        );
+        onClose();
+    };
 
     return (
-        <div className="fixed inset-0 z-[70]">
+        <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="Filter results">
             {/* Backdrop */}
             <div className="fixed inset-0 bg-black/70 z-10" onClick={onClose} />
 
             {/* Bottom Sheet */}
-            <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col max-h-[92%] bg-[#121212] rounded-t-3xl shadow-2xl border-t border-white/5 font-sans">
+            <div className="fixed inset-x-0 bottom-0 z-20 mx-auto flex w-full max-w-lg flex-col max-h-[92dvh] bg-[#121212] rounded-t-3xl shadow-2xl border-t border-white/5 font-sans">
                 {/* Handle */}
-                <button className="flex h-8 w-full items-center justify-center shrink-0" onClick={onClose}>
+                <button type="button" aria-label="Close filters" className="flex h-8 w-full items-center justify-center shrink-0" onClick={onClose}>
                     <div className="h-1.5 w-12 rounded-full bg-[#3d3a30]" />
                 </button>
 
                 {/* Header */}
-                <div className="flex items-center px-6 py-2 justify-between">
+                <div className="flex items-center px-6 py-2 justify-between gap-4 shrink-0">
                     <h2 className="text-white text-xl font-bold tracking-tight flex-1">Filter Results</h2>
-                    <button onClick={handleReset} className="text-[#f5c619] text-base font-bold tracking-wide">Reset</button>
+                    <button type="button" onClick={handleReset} className="text-[#f5c619] text-base font-bold tracking-wide">Reset</button>
+                    <button type="button" onClick={onClose} aria-label="Close" className="text-white/60 hover:text-white">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8 pb-44">
-                    {/* Price Range */}
+                <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4 space-y-8">
+                    {/* Categories */}
                     <div className="space-y-4">
-                        <h3 className="text-white text-lg font-bold tracking-tight">Price Range</h3>
-                        <div className="bg-white/5 p-6 rounded-lg border border-white/5">
-                            <div className="flex justify-between w-full mb-4">
-                                <p className="text-white/60 text-sm font-medium uppercase tracking-widest">Per Service (ETB)</p>
-                                <p className="text-[#f5c619] text-lg font-bold">{priceRange[0]} — {priceRange[1]}+</p>
-                            </div>
-                            <div className="flex h-[38px] w-full pt-1.5 px-2">
-                                <div className="flex h-1.5 w-full rounded-full bg-[#3d3a30] relative items-center">
-                                    <div className="absolute h-1.5 rounded-full bg-[#f5c619] shadow-[0_0_15px_rgba(245,198,25,0.4)]" style={{ left: '20%', right: '30%' }} />
-                                    <div className="absolute left-[20%] -translate-x-1/2"><div className="size-6 rounded-full bg-white border-2 border-[#f5c619] shadow-lg cursor-pointer" /></div>
-                                    <div className="absolute right-[30%] translate-x-1/2"><div className="size-6 rounded-full bg-white border-2 border-[#f5c619] shadow-lg cursor-pointer" /></div>
-                                </div>
-                            </div>
+                        <h3 className="text-white text-lg font-bold tracking-tight">Category</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {categories.map((id) => {
+                                const selected = category === id;
+                                return (
+                                    <button
+                                        type="button"
+                                        key={id}
+                                        aria-pressed={selected}
+                                        onClick={() => setCategory(selected ? undefined : id)}
+                                        className={`px-4 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${selected
+                                            ? 'bg-[#f5c619] text-black font-bold shadow-md'
+                                            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}
+                                    >
+                                        <span>{CATEGORY_ICONS[id] ?? '✨'}</span> {id}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* Categories */}
+                    {/* Price Range */}
                     <div className="space-y-4">
-                        <h3 className="text-white text-lg font-bold tracking-tight">Categories</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {CATEGORIES.map(({ id, label, icon }) => (
-                                <button key={id} onClick={() => toggleCategory(id)}
-                                    className={`px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 transition-all ${selectedCategories.includes(id)
-                                        ? 'bg-[#f5c619] text-black font-bold shadow-md'
-                                        : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}>
-                                    <span>{icon}</span> {label}
-                                </button>
-                            ))}
+                        <h3 className="text-white text-lg font-bold tracking-tight">Price (ETB)</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <label className="flex flex-col gap-1.5 bg-white/5 p-3 rounded-lg border border-white/10 focus-within:border-[#f5c619]/60">
+                                <span className="text-white/60 text-xs font-medium uppercase tracking-widest">Min</span>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    placeholder="0"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                    className="bg-transparent border-none p-0 text-white text-lg font-bold focus:ring-0 outline-none placeholder:text-white/30"
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1.5 bg-white/5 p-3 rounded-lg border border-white/10 focus-within:border-[#f5c619]/60">
+                                <span className="text-white/60 text-xs font-medium uppercase tracking-widest">Max</span>
+                                <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    placeholder="Any"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                    className="bg-transparent border-none p-0 text-white text-lg font-bold focus:ring-0 outline-none placeholder:text-white/30"
+                                />
+                            </label>
                         </div>
+                    </div>
+
+                    {/* Location */}
+                    <div className="space-y-4">
+                        <h3 className="text-white text-lg font-bold tracking-tight">Location</h3>
+                        <input
+                            type="text"
+                            maxLength={100}
+                            placeholder="e.g. Bole, Piassa, Kazanchis"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            className="w-full bg-white/5 p-4 rounded-lg border border-white/10 text-white text-base focus:border-[#f5c619]/60 focus:ring-0 outline-none placeholder:text-white/30"
+                        />
                     </div>
 
                     {/* Rating */}
@@ -94,38 +165,31 @@ export default function MobileSearchFilters({ onClose, onApply, resultCount = 12
                         <h3 className="text-white text-lg font-bold tracking-tight">Minimum Rating</h3>
                         <div className="flex items-center justify-between bg-white/5 p-4 rounded-lg border border-white/5">
                             <div className="flex gap-1">
-                                {[1, 2, 3, 4, 5].map(s => (
-                                    <button key={s} onClick={() => setMinRating(s)}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                    <button
+                                        type="button"
+                                        key={s}
+                                        aria-label={`${s} stars and up`}
+                                        onClick={() => setMinRating(minRating === s ? 0 : s)}
+                                        className="p-1"
+                                    >
                                         <Star className={`w-6 h-6 transition-colors ${s <= minRating ? 'text-[#f5c619] fill-[#f5c619]' : 'text-white/20'}`} />
                                     </button>
                                 ))}
                             </div>
-                            <span className="text-white font-bold text-lg">{minRating}.0+</span>
-                        </div>
-                    </div>
-
-                    {/* Amenities */}
-                    <div className="space-y-4">
-                        <h3 className="text-white text-lg font-bold tracking-tight">Amenities</h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {AMENITIES.map(({ id, label, icon: Icon }) => (
-                                <button key={id} onClick={() => toggleAmenity(id)}
-                                    className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${selectedAmenities.includes(id)
-                                        ? 'bg-white/10 border-[#f5c619]/50 shadow-[0_0_10px_rgba(245,198,25,0.1)]'
-                                        : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
-                                    <Icon className="w-5 h-5 text-[#f5c619]" />
-                                    <span className="text-sm font-medium text-white">{label}</span>
-                                </button>
-                            ))}
+                            <span className="text-white font-bold text-lg">{minRating ? `${minRating}.0+` : 'Any'}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="absolute bottom-20 left-0 right-0 p-6 bg-gradient-to-t from-[#121212] via-[#121212] to-transparent pt-12">
-                    <button onClick={handleApply}
-                        className="w-full bg-[#f5c619] hover:bg-[#f5c619]/90 text-black font-extrabold py-4 rounded-full text-lg shadow-xl shadow-[#f5c619]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-                        Show {resultCount} Results <ArrowRight className="w-5 h-5" />
+                <div className="shrink-0 px-6 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] border-t border-white/5 bg-[#121212]">
+                    <button
+                        type="button"
+                        onClick={handleApply}
+                        className="w-full bg-[#f5c619] hover:bg-[#f5c619]/90 text-black font-extrabold py-4 rounded-full text-lg shadow-xl shadow-[#f5c619]/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                    >
+                        Show Results <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
             </div>

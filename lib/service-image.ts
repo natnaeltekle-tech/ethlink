@@ -115,3 +115,24 @@ function resolveStorageUrl(path: string | null | undefined): string | null {
 
   return `${base}/storage/v1/object/public/service-images/${key}`
 }
+
+/**
+ * Hosts allowed by next.config.mjs `images.remotePatterns`. Only these can go
+ * through the Next.js optimizer (resized + WebP — important on 3G). Anything
+ * else is rendered unoptimized so an unexpected host never crashes a card.
+ */
+const OPTIMIZABLE_HOSTS = [
+  /\.supabase\.co$/i,
+  /^images\.unsplash\.com$/i,
+  /^plus\.unsplash\.com$/i,
+  /^lh3\.googleusercontent\.com$/i,
+]
+
+export function isOptimizableImage(src: string): boolean {
+  try {
+    const url = new URL(src)
+    return url.protocol === 'https:' && OPTIMIZABLE_HOSTS.some((re) => re.test(url.hostname))
+  } catch {
+    return false
+  }
+}

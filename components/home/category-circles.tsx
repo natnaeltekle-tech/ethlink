@@ -5,14 +5,15 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Haptics } from '@/lib/haptics'
 
+// hrefs use the exact category values saved by the create-service form.
 const categories = [
   { label: 'Hotels', icon: '🏨', href: '/search?category=Hospitality', color: 'bg-blue-500' },
   { label: 'Transport', icon: '🚗', href: '/search?category=Transport', color: 'bg-green-500' },
-  { label: 'Cleaning', icon: '🧹', href: '/search?category=Home Services', color: 'bg-purple-500' },
+  { label: 'Cleaning', icon: '🧹', href: '/search?category=Cleaning', color: 'bg-purple-500' },
   { label: 'Tech', icon: '💻', href: '/search?category=Tech', color: 'bg-orange-500' },
   { label: 'Events', icon: '🎉', href: '/search?category=Events', color: 'bg-pink-500' },
-  { label: 'Health', icon: '🏥', href: '/search?category=Health', color: 'bg-red-500' },
-  { label: 'Food', icon: '🍔', href: '/search?category=Food', color: 'bg-yellow-500' },
+  { label: 'Real Estate', icon: '🏠', href: '/search?category=Real%20Estate', color: 'bg-red-500' },
+  { label: 'Professional', icon: '💼', href: '/search?category=Professional%20Services', color: 'bg-yellow-500' },
   { label: 'More', icon: '➕', href: '/search', color: 'bg-gray-500' },
 ]
 

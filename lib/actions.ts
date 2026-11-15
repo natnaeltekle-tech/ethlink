@@ -2,6 +2,7 @@ export {
     searchServices,
     searchServicesAdvanced,
     getFilteredServices,
+    queryServices,
     searchServicesGreedy,
     getServiceDetails,
     getReviews,
