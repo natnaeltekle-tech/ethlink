@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getReviewableBookings } from '@/lib/actions/dashboard';
 import Link from 'next/link'
 import { TrustBadges } from '@/components/provider/trust-badges'
 import { ServiceBookingInfo } from '@/components/service/service-booking-info'
@@ -35,6 +36,11 @@ export default function MobileServiceDetails({
     const router = useRouter();
     const [showChat, setShowChat] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
+    useEffect(() => {
+        if (!service?.id) return;
+        getReviewableBookings(service.id).then((rows) => setReviewBookingId(rows[0]?.id ?? null)).catch(() => {});
+    }, [service?.id]);
     const [isSaved, setIsSaved] = useState(isFavorite);
     
     const coverImage = service?.gallery?.[0] || service?.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
@@ -73,8 +79,8 @@ export default function MobileServiceDetails({
         );
     }
 
-    if (showReviewForm) {
-        return <div className="fixed inset-0 z-[100] bg-black"><MobileReviewForm serviceId={service.id} serviceName={service.title} onClose={() => setShowReviewForm(false)} /></div>;
+    if (showReviewForm && reviewBookingId) {
+        return <div className="fixed inset-0 z-[100] bg-black"><MobileReviewForm bookingId={reviewBookingId} serviceName={service.title} onClose={() => { setShowReviewForm(false); setReviewBookingId(null); }} /></div>;
     }
 
     return (
@@ -194,10 +200,12 @@ export default function MobileServiceDetails({
                 <div className="mt-8 mb-4">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold">Reviews</h3>
-                        <button onClick={() => setShowReviewForm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f5c619]/10 text-[#f5c619] border border-[#f5c619]/20 hover:bg-[#f5c619]/20 transition-colors">
-                            <Edit2 className="w-4 h-4" />
-                            <span className="text-sm font-bold">Write a Review</span>
-                        </button>
+                        {reviewBookingId && (
+                            <button onClick={() => setShowReviewForm(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f5c619]/10 text-[#f5c619] border border-[#f5c619]/20 hover:bg-[#f5c619]/20 transition-colors">
+                                <Edit2 className="w-4 h-4" />
+                                <span className="text-sm font-bold">Write a Review</span>
+                            </button>
+                        )}
                     </div>
                     {reviews?.length > 0 ? (
                         <div className="space-y-4">

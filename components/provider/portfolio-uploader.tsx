@@ -12,8 +12,8 @@ const MAX_PHOTOS = 8
  * "{userId}/portfolio/…". The first photo is the listing cover.
  * Submits each public URL as a hidden "gallery" input.
  */
-export function PortfolioUploader({ userId, onChange }: { userId: string; onChange?: (urls: string[]) => void }) {
-    const [urls, setUrls] = useState<string[]>([])
+export function PortfolioUploader({ userId, onChange, initial = [] }: { userId: string; onChange?: (urls: string[]) => void; initial?: string[] }) {
+    const [urls, setUrls] = useState<string[]>(initial)
     const [busy, setBusy] = useState(0)
     const [error, setError] = useState<string | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)

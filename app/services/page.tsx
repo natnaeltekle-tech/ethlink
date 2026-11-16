@@ -1,4 +1,6 @@
 import { Suspense } from 'react';
+import { after } from 'next/server';
+import { recordSearch } from '@/lib/actions/dashboard';
 import Link from 'next/link';
 import { SearchX, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -66,6 +68,9 @@ export default async function ServicesPage({
     const filters = parseServiceFilters(await searchParams);
     const queryKey = serviceFiltersToQuery(filters);
     const { search, category } = filters;
+    // Remember the query for "Recent searches" on the dashboard (signed-in users only).
+    // Started during render (it reads cookies); after() keeps it alive past the response.
+    if (search) after(recordSearch(search).catch(() => {}));
 
     return (
         <div className="container mx-auto px-4 py-8">

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import {
   Handshake,
   Search,
-  Heart,
   Star,
   SlidersHorizontal,
 } from 'lucide-react'
@@ -14,6 +13,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationBell } from '@/components/notification-bell'
 import { ServiceCover } from '@/components/service/service-cover'
+import { FavoriteHeart, useFavoriteIds } from '@/components/service/favorite-heart'
 import {
   buildServicesHref,
   countActiveFilters,
@@ -25,6 +25,7 @@ import MobileSearchFilters from './MobileSearchFilters'
 import MobileNotifications from './MobileNotifications'
 
 export default function MobileHome({ services = [] }: { services?: any[] }) {
+  const fav = useFavoriteIds()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [showMap, setShowMap] = useState(false)
@@ -154,15 +155,13 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
               key={service.id || index}
               className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative"
             >
-              <div
-                className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-md rounded-full p-2 text-white"
-                onClick={(e) => {
-                  e.preventDefault()
-                  toast.success('Added to favorites!')
-                }}
-              >
-                <Heart className="w-5 h-5 hover:fill-red-500 hover:text-red-500 transition-colors cursor-pointer" />
-              </div>
+              <FavoriteHeart
+                serviceId={service.id}
+                saved={fav.ids.has(service.id)}
+                signedIn={fav.signedIn}
+                className="absolute top-4 right-4 z-10"
+                onChange={(on) => fav.setIds((prev) => { const next = new Set(prev); if (on) next.add(service.id); else next.delete(service.id); return next })}
+              />
               <div className="absolute top-4 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
                 Premium
               </div>
