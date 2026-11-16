@@ -136,7 +136,7 @@ export function CustomerBookings({ bookings }: { bookings: DashboardBooking[] })
                                 {b.status === 'pending' && <p className="mt-2 text-xs text-muted-foreground">Not paid yet. Pay to secure your slot; your money stays in escrow until you confirm the job is done.</p>}
                                 {b.status === 'confirmed' && <p className="mt-2 text-xs text-muted-foreground">The provider accepted. Pay to secure your slot; your money stays in escrow until the job is done.</p>}
                                 {b.status === 'paid' && <p className="mt-2 text-xs text-muted-foreground">Your payment is held safely in escrow. Mark the job completed once you are satisfied.</p>}
-                                {b.status === 'disputed' && <p className="text-sm text-red-600 dark:text-red-400">Dispute under review{b.disputeReason ? `: "${b.disputeReason}"` : ''}. Your payment stays in escrow.</p>}
+                                {b.status === 'disputed' && <p className="text-sm text-red-600 dark:text-red-400">Dispute under review{b.disputeReason ? `: “${b.disputeReason}”` : '.'} Your payment stays in escrow.</p>}
                                 {b.status === 'refunded' && <p className="text-sm text-muted-foreground">Refunded to you after review.</p>}
                                 {open === 'review' && <div className="mt-3"><ReviewPanel booking={b} onDone={refresh} /></div>}
                                 {open === 'dispute' && <div className="mt-3"><DisputePanel booking={b} onDone={refresh} /></div>}

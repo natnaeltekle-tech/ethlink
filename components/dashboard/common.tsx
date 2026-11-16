@@ -120,4 +120,4 @@ export function BookingFrame({ booking, who, children, footer }: {
     )
 }
 
-export const actionBtn = 'inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold disabled:opacity-50 sm:flex-none'
+export const actionBtn = 'inline-flex min-h-[40px] flex-1 whitespace-nowrap items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-semibold disabled:opacity-50 sm:flex-none'

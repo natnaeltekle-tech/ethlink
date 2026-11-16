@@ -102,9 +102,9 @@ export function DashboardShell({ profile, customer, provider, isProvider }: {
                 <div className="flex gap-1 overflow-x-auto" role="tablist">
                     {tabs.map((t) => (
                         <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => go(mode, t.id)}
-                            className={cn('flex min-h-[44px] shrink-0 items-center gap-1.5 border-b-2 px-3 text-sm font-medium',
+                            className={cn('flex min-h-[44px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap border-b-2 px-2 text-sm font-medium sm:flex-none sm:px-3',
                                 tab === t.id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground')}>
-                            <t.icon className="h-4 w-4" />{t.label}
+                            <t.icon className="hidden h-4 w-4 sm:block" />{t.label}
                             {t.id === 'jobs' && requests > 0 && <span className="rounded-full bg-amber-500 px-1.5 text-xs text-white">{requests}</span>}
                         </button>
                     ))}

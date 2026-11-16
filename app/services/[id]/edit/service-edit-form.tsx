@@ -58,7 +58,7 @@ export function ServiceEditForm({ userId, service }: { userId: string; service: 
     // Offer the category's amenities plus anything already saved on the listing.
     const amenityOptions = useMemo(() => {
         const base = amenitiesForCategory(service.category)
-        const extra = service.amenities.filter((a) => !base.some((b) => b.label === a)).map((label) => ({ label, icon: '•' }))
+        const extra = service.amenities.filter((a) => !base.some((b) => b.label.toLowerCase() === a.toLowerCase())).map((label) => ({ label, icon: '•' }))
         return [...base, ...extra]
     }, [service.category, service.amenities])
 
@@ -162,7 +162,7 @@ export function ServiceEditForm({ userId, service }: { userId: string; service: 
                 {amenityOptions.length > 0 && (
                     <Section title="Amenities & extras">
                         <div className="flex flex-wrap gap-2">
-                            {amenityOptions.map((a) => <Chip key={a.label} name="amenities" value={a.label} label={`${a.icon} ${a.label}`} defaultChecked={service.amenities.includes(a.label)} />)}
+                            {amenityOptions.map((a) => <Chip key={a.label} name="amenities" value={a.label} label={`${a.icon} ${a.label}`} defaultChecked={service.amenities.some((x) => x.toLowerCase() === a.label.toLowerCase())} />)}
                         </div>
                     </Section>
                 )}
