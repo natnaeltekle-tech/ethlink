@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 import { Database } from '@/lib/types/database'
+import { uniqueChannel } from '@/lib/realtime'
 
 type Notification = Database['public']['Tables']['notifications']['Row']
 
@@ -52,7 +53,7 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
         // Subscribe to realtime updates
         const channel = supabase
-            .channel('bell')
+            .channel(uniqueChannel('bell'))
             .on(
                 'postgres_changes',
                 {

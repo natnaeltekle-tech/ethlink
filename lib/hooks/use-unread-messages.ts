@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getUnreadMessageCount } from '@/lib/actions/chat-messages'
+import { uniqueChannel } from '@/lib/realtime'
 
 /**
  * Live count of unread incoming messages for the nav badge. Recounts on new
@@ -25,7 +26,7 @@ export function useUnreadMessages(userId: string | null | undefined) {
         }
         recount()
         const channel = supabase
-            .channel(`unread:${userId}`)
+            .channel(uniqueChannel(`unread:${userId}`))
             .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${userId}` }, recount)
             .subscribe()
         const onVisible = () => { if (document.visibilityState === 'visible') recount() }

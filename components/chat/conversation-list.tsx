@@ -6,6 +6,7 @@ import { BadgeCheck, MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getMyConversations, type Conversation } from '@/lib/actions/chat-messages'
 import { cn } from '@/lib/utils'
+import { uniqueChannel } from '@/lib/realtime'
 
 const when = (iso: string) => {
     const d = new Date(iso)
@@ -36,7 +37,7 @@ export function ConversationList({ initial, currentUserId, serviceId, emptyText 
             timer.current = setTimeout(() => { void getMyConversations().then(setItems) }, 300)
         }
         const channel = supabase
-            .channel(`inbox:${currentUserId}`)
+            .channel(uniqueChannel(`inbox:${currentUserId}`))
             .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUserId}` }, refresh)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `sender_id=eq.${currentUserId}` }, refresh)
             .subscribe()

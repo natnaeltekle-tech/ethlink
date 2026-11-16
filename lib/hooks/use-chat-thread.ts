@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getThread, markThreadRead, sendChatMessage, type ChatMessage } from '@/lib/actions/chat-messages'
+import { uniqueChannel } from '@/lib/realtime'
 
 export type ThreadMessage = ChatMessage & {
     /** Client-only id for optimistic messages ("pending-…") */
@@ -73,7 +74,7 @@ export function useChatThread(serviceId: string, otherUserId: string, currentUse
     useEffect(() => {
         if (!enabled || !currentUserId) return
         const channel = supabase
-            .channel(`thread:${serviceId}:${[currentUserId, otherUserId].sort().join(':')}`)
+            .channel(uniqueChannel(`thread:${serviceId}:${[currentUserId, otherUserId].sort().join(':')}`))
             .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `service_id=eq.${serviceId}` }, (payload) => {
                 const row = payload.new as ChatMessage
                 if (!row?.id || !belongsToThread(row, serviceId, currentUserId, otherUserId)) return
