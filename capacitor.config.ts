@@ -21,6 +21,10 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
   },
   plugins: {
+    PushNotifications: {
+      // Also show notifications while the app is open (Android)
+      presentationOptions: ['sound', 'alert'],
+    },
     SplashScreen: {
       // Auto-hide so a JS hang cannot leave the user on a permanent black splash
       launchAutoHide: true,

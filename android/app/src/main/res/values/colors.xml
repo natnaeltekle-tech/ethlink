@@ -7,4 +7,7 @@
     
     <!-- Splash screen background - matches app's dark theme -->
     <color name="splashBackground">#0B0C15</color>
+
+    <!-- Accent colour of the notification icon / title -->
+    <color name="notificationColor">#F5C619</color>
 </resources>

@@ -21,7 +21,7 @@ export function ServiceActions({ serviceId, title, initialIsFavorite, isLoggedIn
     const handleShare = async () => {
         const shareData = {
             title: title,
-            text: 'Check out this service on EthLink!',
+            text: 'Check out this service on Eth-Links!',
             url: window.location.href,
         }
 

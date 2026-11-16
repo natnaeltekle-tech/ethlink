@@ -23,6 +23,8 @@ export function DeleteAccountForm({ blockers: initialBlockers }: { blockers: str
             toast.error(r.error)
             return
         }
+        // Tokens are deleted with the account; just forget the local copy.
+        try { localStorage.removeItem('ethlinks.pushToken') } catch { /* ignore */ }
         try { await createClient().auth.signOut() } catch { /* already gone */ }
         window.location.href = '/account/deleted'
     }

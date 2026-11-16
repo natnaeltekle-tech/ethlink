@@ -7,6 +7,7 @@ import { LogOut, Loader2 } from "lucide-react";
 import { safeSignOut } from "@/lib/actions";
 import { useLogoutDebug } from "@/lib/hooks/useLogoutDebug";
 import { LogoutOverlay } from "@/components/logout-overlay";
+import { unregisterPushBeforeLogout } from "@/lib/native/push";
 
 export function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -21,6 +22,9 @@ export function LogoutButton() {
     startTrace();
 
     try {
+      // 0. Stop push notifications to this phone (needs the session)
+      await unregisterPushBeforeLogout();
+
       // 1. Clear client-side Supabase session
       const supabase = createClient();
       await supabase.auth.signOut();

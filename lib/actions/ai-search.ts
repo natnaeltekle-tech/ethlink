@@ -66,7 +66,7 @@ export async function processUserMessage(userMessage: string): Promise<string> {
 
     try {
         const extractionPrompt = `
-            You are a smart search assistant for a service marketplace called EthLink.
+            You are a smart search assistant for a service marketplace called Eth-Links.
             Extract search criteria from the user's message: "${sanitizedMessage}".
 
             Return a JSON object with:

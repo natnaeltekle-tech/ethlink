@@ -54,7 +54,7 @@ function FloatingChatInner({ aboveBookingBar }: { aboveBookingBar: boolean }) {
                 {
                     id: 'welcome',
                     role: 'ai',
-                    content: 'Hi! I am the EthLink AI. What service are you looking for?',
+                    content: 'Hi! I am the Eth-Links AI. What service are you looking for?',
                 },
             ]);
         }
@@ -73,7 +73,7 @@ function FloatingChatInner({ aboveBookingBar }: { aboveBookingBar: boolean }) {
                 {
                     id: 'welcome',
                     role: 'ai',
-                    content: 'Hi! I am the EthLink AI. What service are you looking for?',
+                    content: 'Hi! I am the Eth-Links AI. What service are you looking for?',
                 },
             ]);
             setBookingServiceId(null);
@@ -229,7 +229,7 @@ function FloatingChatInner({ aboveBookingBar }: { aboveBookingBar: boolean }) {
                         <div className="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
                             <div className="flex items-center gap-2">
                                 <Bot className="h-5 w-5" />
-                                <span className="font-semibold">EthLink AI</span>
+                                <span className="font-semibold">Eth-Links AI</span>
                             </div>
                             <Button
                                 variant="ghost"

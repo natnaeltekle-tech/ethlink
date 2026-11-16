@@ -18,7 +18,7 @@ export default function TermsPage() {
 
                     <div className="prose prose-invert max-w-none">
                         <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                            By using EthLink, you agree to honor your bookings. EthLink acts as a marketplace. We are not responsible for the quality of service provided by third-party vendors.
+                            By using Eth-Links, you agree to honor your bookings. Eth-Links acts as a marketplace. We are not responsible for the quality of service provided by third-party vendors.
                         </p>
 
                         <p className="text-lg text-muted-foreground leading-relaxed mb-6">
@@ -38,7 +38,7 @@ export default function TermsPage() {
                         <div className="mt-6 p-6 bg-secondary/50 rounded-lg border border-border/50">
                             <h2 className="text-xl font-semibold mb-3 text-foreground">Platform Role</h2>
                             <p className="text-muted-foreground mb-3">
-                                EthLink operates as a marketplace connecting customers with independent service providers. We facilitate the connection but do not directly provide services.
+                                Eth-Links operates as a marketplace connecting customers with independent service providers. We facilitate the connection but do not directly provide services.
                             </p>
                             <p className="text-muted-foreground">
                                 We are not responsible for the quality, safety, or legality of services provided by third-party vendors. All disputes should be resolved directly with the service provider.

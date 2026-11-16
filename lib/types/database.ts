@@ -9,6 +9,12 @@ export type Json =
 export type Database = {
     public: {
         Tables: {
+            push_tokens: {
+                Row: { id: string; user_id: string; token: string; platform: 'android' | 'ios' | 'web'; created_at: string; last_seen_at: string }
+                Insert: { id?: string; user_id: string; token: string; platform?: 'android' | 'ios' | 'web'; created_at?: string; last_seen_at?: string }
+                Update: { id?: string; user_id?: string; token?: string; platform?: 'android' | 'ios' | 'web'; created_at?: string; last_seen_at?: string }
+                Relationships: []
+            }
             services: {
                 // Synced with live schema (market-ai-v3) 2026-11-15
                 Row: {
@@ -798,6 +804,8 @@ export type Database = {
             }
         }
         Functions: {
+            register_push_token: { Args: { p_token: string; p_platform?: string }; Returns: undefined }
+            unregister_push_token: { Args: { p_token: string }; Returns: undefined }
             my_account_deletion_blockers: { Args: Record<string, never>; Returns: string[] }
             delete_account_data: { Args: { p_user: string }; Returns: Json }
             get_my_conversations: {

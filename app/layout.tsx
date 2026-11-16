@@ -12,6 +12,7 @@ import { AppInitializer } from "@/components/app-initializer";
 import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
+import { PushNotificationsManager } from "@/components/push-notifications";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SWCleaner } from "@/components/sw-cleaner";
 
@@ -98,6 +99,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <CapacitorBackButton />
+            <PushNotificationsManager />
             <AppInitializer>
               <AuthGate>
                 <PresenceTracker />

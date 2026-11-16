@@ -82,11 +82,11 @@ export default function MobileHelpSupport({ onClose }: MobileHelpSupportProps) {
             <p className="font-bold text-white text-sm">Common issues</p>
             <ul className="mt-2 text-xs text-slate-400 space-y-1.5 list-disc list-inside">
               <li>
-                Location / map not working → open Android Settings → Apps → EthLink →
+                Location / map not working → open Android Settings → Apps → Eth-Links →
                 Permissions → allow Location
               </li>
               <li>
-                Notifications blocked → Settings → Apps → EthLink → Notifications →
+                Notifications blocked → Settings → Apps → Eth-Links → Notifications →
                 Allow notifications
               </li>
               <li>

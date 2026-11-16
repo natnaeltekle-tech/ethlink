@@ -30,7 +30,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
         <div className="flex flex-col min-h-screen bg-muted/40">
             <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px]">
                 <Link href="/dashboard" className="font-bold text-lg">
-                    EthLink
+                    Eth-Links
                 </Link>
                 <div className="ml-auto">
                     <Link href="/listings/new">
@@ -80,7 +80,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
                     <div className="flex flex-col items-center justify-center h-[400px] text-center border rounded-lg border-dashed">
                         <h3 className="text-xl font-semibold">No listings found</h3>
                         <p className="text-muted-foreground mt-2 mb-6">
-                            {search || category ? "Try adjusting your filters." : "Be the first to list an item on EthLink!"}
+                            {search || category ? "Try adjusting your filters." : "Be the first to list an item on Eth-Links!"}
                         </p>
                         <Link href="/listings/new">
                             <Button>Post a Listing</Button>

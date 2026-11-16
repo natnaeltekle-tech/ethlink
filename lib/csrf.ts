@@ -33,8 +33,10 @@ export function verifyRequestOrigin(request: NextRequest): boolean {
 }
 
 /**
- * Returns true if the route is a signed webhook (HMAC-verified, no CSRF needed).
+ * Returns true if the route is a signed webhook (HMAC- or shared-secret-verified, no CSRF needed).
  */
 export function isSignedWebhookRoute(pathname: string): boolean {
     return pathname.startsWith('/api/payment/callback')
+        // Supabase Database Webhook, verified by the x-push-webhook-secret header
+        || pathname === '/api/push/dispatch'
 }

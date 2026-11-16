@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { updateAccount } from '@/lib/actions/dashboard'
 import { updateAvatarUrl } from '@/lib/actions/avatar'
 import { safeSignOut } from '@/lib/actions'
+import { unregisterPushBeforeLogout } from '@/lib/native/push'
 import { compressImage, fileExtension } from '@/lib/client-image'
 import { normalizeEthiopianPhone } from '@/lib/provider-screening'
 import { Avatar, Section } from './common'
@@ -75,6 +76,7 @@ export function AccountSection({ profile, isProvider }: { profile: AccountProfil
         if (loggingOut) return
         setLoggingOut(true)
         try {
+            await unregisterPushBeforeLogout()
             await createClient().auth.signOut()
             await safeSignOut()
         } catch { /* always redirect */ }

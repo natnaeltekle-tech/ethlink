@@ -18,7 +18,7 @@ export default function PrivacyPage() {
 
                     <div className="prose prose-invert max-w-none">
                         <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                            EthLink respects your privacy. We collect your Name, Email, and Phone Number solely for the purpose of connecting you with Service Providers.
+                            Eth-Links respects your privacy. We collect your Name, Email, and Phone Number solely for the purpose of connecting you with Service Providers.
                         </p>
 
                         <p className="text-lg text-muted-foreground leading-relaxed mb-6">
