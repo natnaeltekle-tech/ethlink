@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { loadServiceAccount, sendToDevice } from '@/lib/push/fcm'
+import { diagnoseServiceAccount, loadServiceAccount, sendToDevice } from '@/lib/push/fcm'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -53,6 +53,11 @@ export async function POST(req: NextRequest) {
 
     const sa = loadServiceAccount()
     if (!sa) return NextResponse.json({ error: 'Firebase credentials missing' }, { status: 503 })
+    const configProblems = diagnoseServiceAccount(sa)
+    if (configProblems.length) {
+        configProblems.forEach((p) => console.error(`[fcm] config: ${p}`))
+        return NextResponse.json({ error: 'Firebase credentials invalid', problems: configProblems }, { status: 503 })
+    }
 
     const admin = createAdminClient()
     const { data: n } = await admin
