@@ -6,9 +6,11 @@ const config: CapacitorConfig = {
   // Bundled into the APK: only the branded offline page (the app itself loads server.url).
   webDir: 'mobile-shell',
   server: {
-    // Live production deployment (must match Vercel production alias)
+    // Public production domain. Must be a domain added under Vercel → Domains:
+    // the automatic *-projects.vercel.app aliases sit behind Vercel Authentication
+    // (Deployment Protection) and show Vercel's login/error page inside the app.
     // Rebuild the Android APK after changing this URL.
-    url: 'https://market-ai-v3-7pav-natnaeltekle236-5533s-projects.vercel.app',
+    url: 'https://ethlink-app.vercel.app',
     cleartext: false,
     // Shown instead of the Android WebView error page when the site can't load.
     // Keep APP_URL in mobile-shell/offline.html in sync with url above.
