@@ -1,0 +1,146 @@
+# Builds the Eth-Links Android app in the cloud — no Android Studio needed.
+# Run it: GitHub → Actions → "Build Android APK" → Run workflow → download the
+# artifact (a .zip containing the .apk) on your phone and install it.
+#
+# Secrets (Settings → Secrets and variables → Actions → New repository secret):
+#   GOOGLE_SERVICES_JSON        contents of google-services.json (enables push notifications)
+#   ANDROID_KEYSTORE_BASE64     optional, release builds: base64 of your upload keystore (.jks)
+#   ANDROID_KEYSTORE_PASSWORD   optional, release builds
+#   ANDROID_KEY_ALIAS           optional, release builds
+#   ANDROID_KEY_PASSWORD        optional, release builds
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'What to build'
+        type: choice
+        options: [debug, release, bundle]
+        default: debug
+      version_name:
+        description: 'Version name shown to users (e.g. 1.0.1)'
+        type: string
+        default: '1.0.0'
+      version_code:
+        description: 'Version code (whole number, must increase for Play). Empty = this run number.'
+        type: string
+        default: ''
+  # Also builds a debug APK when Android files change on a claude/* branch (CI check).
+  push:
+    branches: ['claude/**']
+    paths:
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'mobile-shell/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-android-apk.yml'
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+      VERSION_NAME: ${{ inputs.version_name || '1.0.0' }}
+      VERSION_CODE: ${{ inputs.version_code || github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install npm packages
+        run: npm ci
+
+      - name: Add google-services.json (push notifications)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -f android/app/google-services.json ]; then
+            echo "Using android/app/google-services.json from the repository"
+          elif [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            if printf '%s' "$GOOGLE_SERVICES_JSON" | head -c 1 | grep -q '{'; then
+              printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            else
+              printf '%s' "$GOOGLE_SERVICES_JSON" | base64 -d > android/app/google-services.json
+            fi
+            python3 -c "import json; d=json.load(open('android/app/google-services.json')); assert any(c['client_info']['android_client_info']['package_name']=='com.ethlink.app' for c in d['client']), 'google-services.json has no Android app with package com.ethlink.app'"
+            echo "google-services.json written from the GOOGLE_SERVICES_JSON secret"
+          else
+            echo "::warning title=Push notifications off::No GOOGLE_SERVICES_JSON secret — this build works but cannot receive push notifications."
+          fi
+
+      - name: Add release signing key
+        if: env.BUILD_TYPE != 'debug'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning title=Unsigned release::No ANDROID_KEYSTORE_BASE64 secret — the release output will be unsigned (not installable / not uploadable)."
+          fi
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build with Gradle
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          case "$BUILD_TYPE" in
+            debug)   TASK=assembleDebug ;;
+            release) TASK=assembleRelease ;;
+            bundle)  TASK=bundleRelease ;;
+          esac
+          chmod +x gradlew
+          ./gradlew "$TASK" -PversionCode="$VERSION_CODE" -PversionName="$VERSION_NAME" --console=plain
+
+      - name: Collect output
+        run: |
+          mkdir -p out
+          if [ "$BUILD_TYPE" = bundle ]; then
+            SRC=$(ls android/app/build/outputs/bundle/release/*.aab | head -1); EXT=aab
+          else
+            SRC=$(ls android/app/build/outputs/apk/$BUILD_TYPE/*.apk | head -1); EXT=apk
+          fi
+          NAME="eth-links-${BUILD_TYPE}-v${VERSION_NAME}-${VERSION_CODE}.${EXT}"
+          case "$SRC" in *unsigned*) NAME="${NAME%.*}-unsigned.${EXT}" ;; esac
+          cp "$SRC" "out/$NAME"
+          echo "ARTIFACT_NAME=${NAME%.*}" >> "$GITHUB_ENV"
+          ls -la out
+          {
+            echo "### Eth-Links Android build"
+            echo "- File: \`$NAME\` ($(du -h "out/$NAME" | cut -f1))"
+            echo "- Version: $VERSION_NAME ($VERSION_CODE), type: $BUILD_TYPE"
+            if [ -f android/app/google-services.json ]; then echo "- Push notifications: **on**"; else echo "- Push notifications: **off** (no google-services.json)"; fi
+            echo "- Download it from **Artifacts** below, unzip, and open the .$EXT on your phone."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: out/*
+          if-no-files-found: error
+          retention-days: 30

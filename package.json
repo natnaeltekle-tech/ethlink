@@ -11,7 +11,10 @@
     "security:check": "node scripts/security-check.mjs",
     "audit": "npm audit --omit=dev",
     "assets:android": "node scripts/render-app-assets.js assets && capacitor-assets generate --android --iconBackgroundColor '#0B0C15' --iconBackgroundColorDark '#0B0C15' --splashBackgroundColor '#0B0C15' --splashBackgroundColorDark '#0B0C15'",
-    "cap:sync": "cap sync android"
+    "cap:sync": "cap sync android",
+    "android:apk": "node scripts/android-build.mjs debug",
+    "android:apk:release": "node scripts/android-build.mjs release",
+    "android:aab": "node scripts/android-build.mjs bundle"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",

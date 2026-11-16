@@ -11,7 +11,8 @@ import { PUSH_CHANNEL_ID, rememberPushToken, safeNotificationLink } from '@/lib/
  * Android push notifications (FCM via @capacitor/push-notifications).
  * - Signed in → ask permission (Android 13+), register, save the token.
  * - Tap on a notification → open its `link` inside the app.
- * Requires android/app/google-services.json in the APK build.
+ * Requires android/app/google-services.json in the APK build (MainActivity exposes
+ * window.EthLinksNative.pushReady(); builds without it skip push safely).
  */
 export function PushNotificationsManager() {
     const router = useRouter()
@@ -20,6 +21,12 @@ export function PushNotificationsManager() {
 
     useEffect(() => {
         if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable('PushNotifications')) return
+        // Only APKs built with google-services.json can register (otherwise Firebase would crash the app).
+        const native = (window as unknown as { EthLinksNative?: { pushReady?: () => boolean } }).EthLinksNative
+        if (!native?.pushReady?.()) {
+            console.info('[push] this app build has no Firebase config — push notifications disabled')
+            return
+        }
         let alive = true
         const removers: (() => void)[] = []
         let signedIn = false

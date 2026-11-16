@@ -72,3 +72,8 @@ next-env.d.ts
 # local scratch and extracted design references
 /scratch/
 /extracted_ui_codes/
+
+# Android build outputs / signing (scripts/android-build.mjs)
+/android-builds/
+/android/keystore.properties
+*.jks
