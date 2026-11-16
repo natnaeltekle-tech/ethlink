@@ -23,7 +23,7 @@ export async function sendReceiptEmail(payload: ReceiptEmailPayload): Promise<bo
     'Eth-Links <onboarding@resend.dev>'
 
   const baseUrl = getBaseUrl()
-  const receiptUrl = `${baseUrl}/book/success?bookingId=${payload.bookingId}`
+  const receiptUrl = `${baseUrl}/receipt/${payload.bookingId}`
 
   const html = `
   <div style="font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#111">

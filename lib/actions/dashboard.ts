@@ -77,13 +77,14 @@ const num = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0)
 type RawBooking = {
     id: string; status: string; date: string; created_at: string; guests: number | null; user_id: string
     commission_amount: number | null; provider_earnings: number | null
+    quoted_price: number | null; amount_paid: number | null
     dispute_reason: string | null; dispute_resolution: string | null
     payout_status: 'unpaid' | 'paid_out'; paid_out_at: string | null; payout_method: string | null; payout_reference: string | null
     services: { id: string; title: string; category: string; price: number; pricing_unit: string | null; image_url: string | null; gallery: string[] | null; images: string[] | null; user_id: string } | null
 }
 
 const BOOKING_SELECT =
-    'id, status, date, created_at, guests, user_id, commission_amount, provider_earnings, dispute_reason, dispute_resolution, payout_status, paid_out_at, payout_method, payout_reference, services(id, title, category, price, pricing_unit, image_url, gallery, images, user_id)'
+    'id, status, date, created_at, guests, user_id, commission_amount, provider_earnings, quoted_price, amount_paid, dispute_reason, dispute_resolution, payout_status, paid_out_at, payout_method, payout_reference, services(id, title, category, price, pricing_unit, image_url, gallery, images, user_id)'
 
 async function peopleById(supabase: Awaited<ReturnType<typeof createClient>>, ids: string[]): Promise<Map<string, Person>> {
     const unique = [...new Set(ids.filter(Boolean))]
@@ -106,9 +107,11 @@ async function peopleById(supabase: Awaited<ReturnType<typeof createClient>>, id
 }
 
 function toBooking(b: RawBooking, counterpart: Person, rate: number, reviewed: boolean): DashboardBooking {
-    const price = num(b.services?.price)
-    const earnings = b.provider_earnings ?? price * (1 - rate)
-    const amount = b.provider_earnings != null && b.commission_amount != null ? num(b.provider_earnings) + num(b.commission_amount) : price
+    // Locked at booking/payment time — later price edits never change past bookings.
+    const price = num(b.quoted_price ?? b.services?.price)
+    const charged = b.provider_earnings != null && b.commission_amount != null ? num(b.provider_earnings) + num(b.commission_amount) : null
+    const amount = b.amount_paid != null ? num(b.amount_paid) : charged ?? price
+    const earnings = b.provider_earnings ?? amount * (1 - rate)
     return {
         id: b.id, status: b.status, date: b.date, createdAt: b.created_at, guests: b.guests ?? 1,
         amount, providerEarnings: num(earnings),

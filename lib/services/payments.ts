@@ -132,3 +132,21 @@ export async function confirmBookingPaymentAtomic(params: {
 
     return { status: 'error', message: result.message ?? 'unknown_error' }
 }
+
+const CHAPA_METHODS: Record<string, 'telebirr' | 'cbe' | 'card'> = {
+    telebirr: 'telebirr', cbebirr: 'cbe', cbe: 'cbe', 'cbe birr': 'cbe', card: 'card', visa: 'card', mastercard: 'card',
+}
+
+/** Store how the customer paid (shown on the escrow receipt). Only fills empty fields. */
+export async function recordPaymentDetails(bookingId: string, method: string | null | undefined, reference: string | null | undefined) {
+    try {
+        const admin = createAdminClient()
+        const m = (method ?? '').toLowerCase().trim()
+        const payment_method = CHAPA_METHODS[m] ?? (m === 'test' ? 'test' : 'chapa')
+        const update: { payment_method: typeof payment_method; payment_reference?: string } = { payment_method }
+        if (reference) update.payment_reference = String(reference).slice(0, 120)
+        await admin.from('bookings').update(update).eq('id', bookingId).is('payment_method', null)
+    } catch (e) {
+        console.warn('[Payments] Could not record payment details:', e)
+    }
+}

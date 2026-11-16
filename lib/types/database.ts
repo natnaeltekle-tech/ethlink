@@ -376,6 +376,13 @@ export type Database = {
                     paid_out_at: string | null
                     payout_method: 'telebirr' | 'cbe' | 'cash' | 'other' | null
                     payout_reference: string | null
+                    quoted_price: number | null
+                    amount_paid: number | null
+                    paid_at: string | null
+                    receipt_number: string | null
+                    payment_method: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
+                    payment_reference: string | null
+                    verify_token: string
                 }
                 Insert: {
                     id?: string
@@ -395,6 +402,13 @@ export type Database = {
                     paid_out_at?: string | null
                     payout_method?: 'telebirr' | 'cbe' | 'cash' | 'other' | null
                     payout_reference?: string | null
+                    quoted_price?: number | null
+                    amount_paid?: number | null
+                    paid_at?: string | null
+                    receipt_number?: string | null
+                    payment_method?: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
+                    payment_reference?: string | null
+                    verify_token?: string
                 }
                 Update: {
                     id?: string
@@ -414,6 +428,13 @@ export type Database = {
                     paid_out_at?: string | null
                     payout_method?: 'telebirr' | 'cbe' | 'cash' | 'other' | null
                     payout_reference?: string | null
+                    quoted_price?: number | null
+                    amount_paid?: number | null
+                    paid_at?: string | null
+                    receipt_number?: string | null
+                    payment_method?: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
+                    payment_reference?: string | null
+                    verify_token?: string
                 }
                 Relationships: [
                     {

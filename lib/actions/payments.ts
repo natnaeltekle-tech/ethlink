@@ -8,12 +8,18 @@ import {
     detectPaymentProvider,
     extractBookingIdFromTxRef,
     logPaymentEvent,
+    recordPaymentDetails,
 } from '@/lib/services/payments'
 import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
 import { sendReceiptEmail } from '@/lib/receipt-email'
 import { formatBookingDateTime } from '@/lib/booking-time'
 import { revalidatePath } from 'next/cache'
 import { getRequestBaseUrl } from '@/lib/base-url'
+
+/** The price locked when the booking was made (falls back to the live price for old rows). */
+function bookingPrice(booking: { quoted_price?: number | null; services: { price: number } }): number {
+    return Number(booking.quoted_price ?? booking.services.price)
+}
 
 export async function getCommissionRate(): Promise<number> {
     const supabase = createAdminClient()
@@ -34,6 +40,14 @@ function buildTxRef(bookingId: string, suffix = 'pay'): string {
     return `tx-ethlink-${bookingId}-${Date.now()}-${clean}${crypto.randomUUID().slice(0, 6)}`
 }
 
+async function receiptNumberFor(bookingId: string): Promise<string> {
+    try {
+        const { data } = await createAdminClient().from('bookings').select('receipt_number').eq('id', bookingId).maybeSingle()
+        if (data?.receipt_number) return data.receipt_number
+    } catch { /* fall through */ }
+    return bookingId.slice(0, 8).toUpperCase()
+}
+
 async function notifyCustomerPaid(params: {
     userId: string
     email?: string | null
@@ -48,7 +62,7 @@ async function notifyCustomerPaid(params: {
             user_id: params.userId,
             content: `Payment confirmed for ${params.serviceTitle} (${params.amount} ETB). Tap to view your receipt.`,
             type: 'payment',
-            link: `/book/success?bookingId=${params.bookingId}`,
+            link: `/receipt/${params.bookingId}`,
         })
     } catch (e) {
         console.warn('[Payments] customer notify skipped:', e)
@@ -61,7 +75,7 @@ async function notifyCustomerPaid(params: {
             serviceTitle: params.serviceTitle,
             amount: params.amount,
             scheduledLabel: formatBookingDateTime(params.scheduledAt),
-            reference: params.bookingId.slice(0, 8).toUpperCase(),
+            reference: await receiptNumberFor(params.bookingId),
         })
     }
 }
@@ -100,7 +114,7 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('This booking can no longer be paid')
     }
 
-    const price = booking.services.price
+    const price = bookingPrice(booking)
     const serviceTitle = booking.services.title || 'Service'
     const chapaSecretKey = process.env.CHAPA_SECRET_KEY
     // Same host the customer is on (web, Capacitor app, any alias) — never localhost in prod
@@ -145,6 +159,7 @@ export async function initiatePayment(bookingId: string) {
                 console.error('[Payments] Simulation auto-confirm failed:', result.message)
                 throw new Error('Could not complete payment. Please try again.')
             }
+            await recordPaymentDetails(bookingId, 'test', tx_ref)
 
             await logPaymentEvent({
                 txRef: tx_ref,
@@ -326,7 +341,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
             }
         }
         // Allow verify path to confirm in auto mode (idempotent)
-        const price = booking.services.price
+        const price = bookingPrice(booking)
         const commissionRate = await getCommissionRate()
         const result = await confirmBookingPaymentAtomic({
             txRef: tx_ref,
@@ -336,6 +351,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
             providerEarnings: price - price * commissionRate,
         })
         if (result.status === 'error') throw new Error('Failed to update booking status')
+        await recordPaymentDetails(bookingId, 'test', tx_ref)
         revalidatePath('/dashboard')
         return { success: true }
     }
@@ -370,13 +386,13 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     }
 
     const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
-    const expectedPrice = booking.services.price
+    const expectedPrice = bookingPrice(booking)
     if (Math.abs(paidAmount - expectedPrice) > 1) {
         console.error('[Chapa] Amount mismatch! Paid:', paidAmount, 'Expected:', expectedPrice)
         throw new Error('Payment amount does not match booking price')
     }
 
-    const price = booking.services.price
+    const price = bookingPrice(booking)
     const commission = price * commissionRate
     const earnings = price - commission
 
@@ -391,6 +407,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     if (result.status === 'error') {
         throw new Error('Failed to update booking status')
     }
+    await recordPaymentDetails(bookingId, verifyResult.data?.method, verifyResult.data?.reference ?? tx_ref)
 
     revalidatePath('/dashboard')
     return { success: true }
@@ -465,7 +482,7 @@ export async function reconcileBookingPayment(
 
     // Simulation auto-confirm: confirm with recorded tx_ref if still pending
     if (isSimulationMode() && isSimulationAutoConfirm() && candidates.length > 0) {
-        const price = booking.services.price
+        const price = bookingPrice(booking)
         const commissionRate = await getCommissionRate()
         for (const candidate of candidates) {
             const result = await confirmBookingPaymentAtomic({
@@ -476,6 +493,7 @@ export async function reconcileBookingPayment(
                 providerEarnings: price - price * commissionRate,
             })
             if (result.status === 'success' || result.status === 'already_processed') {
+                await recordPaymentDetails(bookingId, 'test', candidate)
                 revalidatePath('/dashboard')
                 return { status: 'paid' }
             }
@@ -499,9 +517,9 @@ export async function reconcileBookingPayment(
             if (verifyResult.data?.status !== 'success') continue
 
             const paidAmount = parseFloat(verifyResult.data?.amount ?? '0')
-            if (Math.abs(paidAmount - booking.services.price) > 1) continue
+            if (Math.abs(paidAmount - bookingPrice(booking)) > 1) continue
 
-            const price = booking.services.price
+            const price = bookingPrice(booking)
             const commissionRate = await getCommissionRate()
             const result = await confirmBookingPaymentAtomic({
                 txRef: candidate,
@@ -512,6 +530,7 @@ export async function reconcileBookingPayment(
             })
 
             if (result.status === 'success' || result.status === 'already_processed') {
+                await recordPaymentDetails(bookingId, verifyResult.data?.method, verifyResult.data?.reference ?? candidate)
                 revalidatePath('/dashboard')
                 return { status: 'paid' }
             }

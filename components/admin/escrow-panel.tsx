@@ -34,7 +34,7 @@ function DisputeRow({ item }: { item: EscrowQueueItem }) {
                 <p className="font-semibold">{item.serviceTitle}</p>
                 <span className="text-sm font-bold">{etb(item.amount)}</span>
             </div>
-            <p className="text-xs text-muted-foreground">{formatBookingDateTime(item.date)} · Customer: {item.customer.name} · Provider: {item.provider.name}</p>
+            <p className="text-xs text-muted-foreground">{formatBookingDateTime(item.date)} · Customer: {item.customer.name} · Provider: {item.provider.name} · <a href={`/receipt/${item.id}`} className="text-primary underline">Receipt</a></p>
             {item.disputeReason && <p className="rounded-lg bg-red-500/10 p-2 text-sm">&ldquo;{item.disputeReason}&rdquo;</p>}
             <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000}
                 placeholder="Decision note sent to both sides (10+ characters)" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
@@ -76,7 +76,7 @@ function PayoutRow({ item }: { item: EscrowQueueItem }) {
                 <p className="font-semibold">{p.name}</p>
                 <span className="text-sm font-bold text-green-600 dark:text-green-400">{etb(item.providerEarnings)}</span>
             </div>
-            <p className="text-xs text-muted-foreground">{item.serviceTitle} · completed job on {formatBookingDateTime(item.date)}</p>
+            <p className="text-xs text-muted-foreground">{item.serviceTitle} · completed job on {formatBookingDateTime(item.date)} · <a href={`/receipt/${item.id}`} className="text-primary underline">Receipt</a></p>
             <p className="text-xs">
                 {p.telebirr && <>Telebirr <b>{p.telebirr}</b> </>}
                 {p.cbe && <>· CBE <b>{p.cbe}</b> </>}

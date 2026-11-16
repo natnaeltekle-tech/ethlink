@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
     BadgeCheck, Banknote, Briefcase, Building2, CalendarClock, Check, Clock, Eye, History, Inbox, Loader2,
-    MessageCircle, Pencil, Plus, ShieldAlert, Star, Wallet, X, XCircle,
+    MessageCircle, Pencil, Plus, Receipt, ShieldAlert, Star, Wallet, X, XCircle,
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { updateBookingStatus, toggleServiceStatus } from '@/lib/actions'
@@ -119,6 +119,9 @@ export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jo
     ]
     const list = jobs[tab]
     const msgHref = (b: DashboardBooking) => `/messages/${b.service.id}/${b.counterpart.id}`
+    const receipt = (b: DashboardBooking) => ['paid', 'completed', 'disputed', 'refunded'].includes(b.status) && (
+        <Link href={`/receipt/${b.id}`} className={cn(actionBtn, 'border border-border')}><Receipt className="h-4 w-4" />Payment receipt</Link>
+    )
 
     return (
         <Section title="Jobs" icon={Briefcase}>
@@ -156,9 +159,13 @@ export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jo
                                             <button className={cn(actionBtn, 'border border-border text-muted-foreground')} disabled={busy === b.id}
                                                 onClick={() => act(b.id, 'cancelled', 'Cancel this job? The customer has not paid yet.')}>Cancel</button>
                                         )}
+                                        {receipt(b)}
                                     </>
                                 ) : (
-                                    <Link href={msgHref(b)} className={cn(actionBtn, 'border border-border')}><MessageCircle className="h-4 w-4" />Message</Link>
+                                    <>
+                                        <Link href={msgHref(b)} className={cn(actionBtn, 'border border-border')}><MessageCircle className="h-4 w-4" />Message</Link>
+                                        {receipt(b)}
+                                    </>
                                 )
                             }>
                             <p className="text-sm">

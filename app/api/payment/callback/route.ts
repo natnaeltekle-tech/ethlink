@@ -10,6 +10,7 @@ import {
     detectPaymentProvider,
     extractBookingIdFromTxRef,
     logPaymentEvent,
+    recordPaymentDetails,
     withRetry,
 } from '@/lib/services/payments'
 import { Booking } from '@/lib/types/database'
@@ -100,6 +101,7 @@ async function confirmChapaPayment(
 }
 
 type BookingWithService = Booking & { services: { price: number; user_id: string } }
+const lockedPrice = (b: BookingWithService) => Number(b.quoted_price ?? b.services.price)
 
 export async function POST(request: NextRequest) {
     let rawBody = ''
@@ -216,7 +218,7 @@ export async function POST(request: NextRequest) {
         }
 
         const booking = data as BookingWithService
-        const price = booking.services.price
+        const price = lockedPrice(booking)
 
         // S2: Verify paid amount matches booking price (±1 ETB tolerance for rounding)
         if (paidAmount === undefined || Math.abs(paidAmount - price) > 1) {
@@ -270,6 +272,8 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('[Payment Webhook] Booking updated to paid:', bookingId)
+        const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined)
+        await recordPaymentDetails(bookingId, str(body.payment_method) ?? str(body.method), str(body.reference) ?? txRef)
         await logPaymentEvent({ txRef, bookingId, provider, status: 'processed' })
         return NextResponse.json({ code: 0, msg: 'success' })
     } catch (error) {

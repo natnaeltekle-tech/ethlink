@@ -213,3 +213,29 @@
   .duration-normal { transition-duration: var(--duration-normal); }
   .ease-smooth { transition-timing-function: var(--ease-out); }
 }
+
+/* ── Escrow receipt: print / "Save as PDF" shows only the receipt, on one page ── */
+@media print {
+  @page { size: A4; margin: 10mm; }
+  html:has(#escrow-receipt), body:has(#escrow-receipt) {
+    background: #fff !important;
+    height: auto !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+  body:has(#escrow-receipt) * { visibility: hidden !important; }
+  body:has(#escrow-receipt) #escrow-receipt,
+  body:has(#escrow-receipt) #escrow-receipt * {
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body:has(#escrow-receipt) #escrow-receipt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    max-width: 150mm;
+  }
+}

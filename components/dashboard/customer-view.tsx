@@ -127,7 +127,7 @@ export function CustomerBookings({ bookings }: { bookings: DashboardBooking[] })
                                         {b.status === 'completed' && b.reviewed && <span className={cn(actionBtn, 'text-green-600 dark:text-green-400')}><Check className="h-4 w-4" />Reviewed</span>}
                                         {ACTIVE.includes(b.status) && msg(b)}
                                         {b.status === 'paid' && <button className={cn(actionBtn, 'border border-red-500/40 text-red-600')} onClick={() => togglePanel(b.id, 'dispute')}><AlertTriangle className="h-4 w-4" />Report a problem</button>}
-                                        {['paid', 'completed', 'disputed'].includes(b.status) && <Link href={`/book/success?bookingId=${b.id}`} className={cn(actionBtn, 'border border-border')}><Receipt className="h-4 w-4" />Receipt</Link>}
+                                        {['paid', 'completed', 'disputed', 'refunded'].includes(b.status) && <Link href={`/receipt/${b.id}`} className={cn(actionBtn, 'border border-border')}><Receipt className="h-4 w-4" />Receipt</Link>}
                                         {(b.status === 'pending' || b.status === 'confirmed') && <button className={cn(actionBtn, 'text-muted-foreground')} disabled={busy === b.id} onClick={() => cancel(b)}><X className="h-4 w-4" />Cancel</button>}
                                         {!ACTIVE.includes(b.status) && <Link href={`/book/${b.service.id}`} className={cn(actionBtn, 'border border-border')}><RotateCcw className="h-4 w-4" />Book again</Link>}
                                     </>

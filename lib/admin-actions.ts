@@ -107,7 +107,11 @@ export async function getPendingPaymentBookings() {
  * Manually confirm a pending booking as paid.
  * Uses the same idempotent process_payment_confirmation RPC as Chapa webhooks.
  */
-export async function adminConfirmBookingPayment(bookingId: string, note?: string) {
+export async function adminConfirmBookingPayment(
+    bookingId: string,
+    note?: string,
+    details?: { method: 'telebirr' | 'cbe' | 'cash' | 'other'; reference?: string },
+) {
     const isAdminUser = await checkAdmin()
     if (!isAdminUser) {
         throw new Error('Unauthorized')
@@ -120,7 +124,7 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
     const adminSupabase = createAdminClient()
     const { data: booking, error } = await adminSupabase
         .from('bookings')
-        .select('id, status, user_id, services(price, title, user_id)')
+        .select('id, status, user_id, quoted_price, services(price, title, user_id)')
         .eq('id', bookingId)
         .single()
 
@@ -137,7 +141,8 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
     }
 
     const service = Array.isArray(booking.services) ? booking.services[0] : booking.services
-    const price = Number(service?.price ?? 0)
+    // Charge the price locked when the booking was made, not today's listing price.
+    const price = Number(booking.quoted_price ?? service?.price ?? 0)
     if (!price || price <= 0) {
         throw new Error('Invalid service price')
     }
@@ -157,6 +162,15 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
 
     if (result.status === 'error') {
         throw new Error(result.message || 'Failed to confirm payment')
+    }
+
+    // What the admin verified: shown as the payment method + reference on the receipt.
+    if (details && ['telebirr', 'cbe', 'cash', 'other'].includes(details.method)) {
+        const reference = (details.reference ?? '').trim().slice(0, 120)
+        await adminSupabase
+            .from('bookings')
+            .update({ payment_method: details.method, ...(reference ? { payment_reference: reference } : {}) })
+            .eq('id', bookingId)
     }
 
     await logPaymentEvent({
@@ -179,7 +193,7 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
             user_id: booking.user_id,
             content: `Payment confirmed for ${title} (${price} ETB). Tap to view your receipt.`,
             type: 'payment',
-            link: `/book/success?bookingId=${bookingId}`,
+            link: `/receipt/${bookingId}`,
         })
     } catch (e) {
         console.warn('[Admin] customer notify skipped:', e)
@@ -188,6 +202,7 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
     revalidatePath('/admin')
     revalidatePath('/dashboard')
     revalidatePath('/book/success')
+    revalidatePath(`/receipt/${bookingId}`)
 
     return { success: true, status: result.status }
 }
