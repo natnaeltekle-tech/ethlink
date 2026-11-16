@@ -118,6 +118,7 @@ export type Database = {
                     verification_submitted_at: string | null
                     verified_at: string | null
                     has_business_license: boolean
+                    bio: string | null
                 }
                 Insert: {
                     id: string
@@ -142,6 +143,7 @@ export type Database = {
                     verification_submitted_at?: string | null
                     verified_at?: string | null
                     has_business_license?: boolean
+                    bio?: string | null
                 }
                 Update: {
                     id?: string
@@ -166,6 +168,7 @@ export type Database = {
                     verification_submitted_at?: string | null
                     verified_at?: string | null
                     has_business_license?: boolean
+                    bio?: string | null
                 }
                 Relationships: [
                     {
@@ -184,6 +187,7 @@ export type Database = {
                     rating: number
                     comment: string | null
                     created_at: string
+                    booking_id: string | null
                 }
                 Insert: {
                     id?: string
@@ -192,6 +196,7 @@ export type Database = {
                     rating: number
                     comment?: string | null
                     created_at?: string
+                    booking_id?: string | null
                 }
                 Update: {
                     id?: string
@@ -200,6 +205,7 @@ export type Database = {
                     rating?: number
                     comment?: string | null
                     created_at?: string
+                    booking_id?: string | null
                 }
                 Relationships: [
                     {
@@ -360,13 +366,16 @@ export type Database = {
                     status: string
                     created_at: string
                     guests: number
-                    total_price: number | null
                     provider_earnings: number | null
                     commission_rate: number | null
                     commission_amount: number | null
                     dispute_reason: string | null
                     dispute_resolution: string | null
                     dispute_resolved_at: string | null
+                    payout_status: 'unpaid' | 'paid_out'
+                    paid_out_at: string | null
+                    payout_method: 'telebirr' | 'cbe' | 'cash' | 'other' | null
+                    payout_reference: string | null
                 }
                 Insert: {
                     id?: string
@@ -376,13 +385,16 @@ export type Database = {
                     status?: string
                     created_at?: string
                     guests?: number
-                    total_price?: number | null
                     provider_earnings?: number | null
                     commission_rate?: number | null
                     commission_amount?: number | null
                     dispute_reason?: string | null
                     dispute_resolution?: string | null
                     dispute_resolved_at?: string | null
+                    payout_status?: 'unpaid' | 'paid_out'
+                    paid_out_at?: string | null
+                    payout_method?: 'telebirr' | 'cbe' | 'cash' | 'other' | null
+                    payout_reference?: string | null
                 }
                 Update: {
                     id?: string
@@ -392,13 +404,16 @@ export type Database = {
                     status?: string
                     created_at?: string
                     guests?: number
-                    total_price?: number | null
                     provider_earnings?: number | null
                     commission_rate?: number | null
                     commission_amount?: number | null
                     dispute_reason?: string | null
                     dispute_resolution?: string | null
                     dispute_resolved_at?: string | null
+                    payout_status?: 'unpaid' | 'paid_out'
+                    paid_out_at?: string | null
+                    payout_method?: 'telebirr' | 'cbe' | 'cash' | 'other' | null
+                    payout_reference?: string | null
                 }
                 Relationships: [
                     {
@@ -620,6 +635,13 @@ export type Database = {
                 }
                 Relationships: []
             }
+            saved_searches: {
+                // Recent searches (own rows only)
+                Row: { id: string; created_at: string; user_id: string; query: string; filters: Json | null }
+                Insert: { id?: string; created_at?: string; user_id: string; query: string; filters?: Json | null }
+                Update: { id?: string; created_at?: string; user_id?: string; query?: string; filters?: Json | null }
+                Relationships: []
+            }
             provider_verifications: {
                 // Private screening data: owner + service role only (RLS)
                 Row: {
@@ -740,6 +762,7 @@ export type Database = {
                     account_type: 'individual' | 'business' | null
                     business_name: string | null
                     has_business_license: boolean
+                    bio: string | null
                 }
                 Relationships: [
                     {
