@@ -1,12 +1,15 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
+import { isChatThreadPath } from "@/lib/hooks/use-unread-messages"
 import { X } from "lucide-react"
 
 export function GlobalBanner() {
     const [isVisible, setIsVisible] = useState(true)
+    const pathname = usePathname()
 
-    if (!isVisible) return null
+    if (!isVisible || isChatThreadPath(pathname)) return null
 
     return (
         <div className="bg-primary text-black px-4 py-2 text-sm font-medium relative z-[100]">

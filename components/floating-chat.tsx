@@ -21,7 +21,7 @@ interface Message {
 }
 
 // Long forms where the bubble would cover inputs/buttons while scrolling
-const HIDDEN_ON = ['/services/new', '/admin']
+const HIDDEN_ON = ['/services/new', '/admin', '/messages']
 
 export function FloatingChat() {
     const pathname = usePathname()

@@ -25,34 +25,30 @@ export function NotificationBell({ userId }: { userId: string | null }) {
     const [unreadCount, setUnreadCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         if (!userId) return
 
-        // Fetch initial notifications
+        // Notifications only — unread chat messages have their own badge
+        // (Messages tab / navbar), so they are not double-counted here.
         const fetchNotifications = async () => {
             const { data: notificationsData } = await supabase
                 .from('notifications')
                 .select('*')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
-
-            const { data: messagesData } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('receiver_id', userId)
-                .eq('is_read', false)
+                .limit(30)
 
             if (notificationsData) {
                 setNotifications(notificationsData)
-                const notificationUnread = notificationsData.filter(n => !n.is_read).length
-                const messagesUnread = messagesData?.length || 0
-                setUnreadCount(notificationUnread + messagesUnread)
+                setUnreadCount(notificationsData.filter(n => !n.is_read).length)
             }
         }
 
         fetchNotifications()
+        // A conversation opened elsewhere marks its message notification read
+        window.addEventListener('ethlinks:messages-read', fetchNotifications)
 
         // Subscribe to realtime updates
         const channel = supabase
@@ -67,30 +63,24 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                 },
                 (payload) => {
                     const newNotification = payload.new as Notification
-                    setNotifications(prev => [newNotification, ...prev])
+                    setNotifications(prev => [newNotification, ...prev].slice(0, 30))
                     setUnreadCount(prev => prev + 1)
-                    toast.info(newNotification.content)
-                }
-            )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `receiver_id=eq.${userId}`
-                },
-                (payload) => {
-                    setUnreadCount(prev => prev + 1)
-                    toast.info("New message received")
+                    // Don't toast a message for the conversation already on screen
+                    if (newNotification.link && newNotification.link === window.location.pathname) return
+                    toast.info(newNotification.content ?? newNotification.title ?? 'New notification', {
+                        action: newNotification.link
+                            ? { label: 'Open', onClick: () => router.push(newNotification.link as string) }
+                            : undefined,
+                    })
                 }
             )
             .subscribe()
 
         return () => {
+            window.removeEventListener('ethlinks:messages-read', fetchNotifications)
             supabase.removeChannel(channel)
         }
-    }, [userId, supabase])
+    }, [userId, supabase, router])
 
     const handleMarkAsRead = async (notificationId: string, link?: string) => {
         // Optimistic update
@@ -165,11 +155,11 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                                 )}
                                 onClick={() => handleMarkAsRead(notification.id, notification.link ?? undefined)}
                             >
-                                <div className="font-medium text-sm leading-none">
-                                    {notification.content}
+                                <div className="font-medium text-sm leading-snug line-clamp-2">
+                                    {notification.content ?? notification.title}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    {new Date(notification.created_at).toLocaleTimeString()}
+                                    {new Date(notification.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                                 </div>
                             </DropdownMenuItem>
                         ))}
