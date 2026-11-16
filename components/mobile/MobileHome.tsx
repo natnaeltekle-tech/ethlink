@@ -23,12 +23,14 @@ import {
 import MobileMapExplore from './MobileMapExplore'
 import MobileSearchFilters from './MobileSearchFilters'
 import MobileNotifications from './MobileNotifications'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 export default function MobileHome({ services = [] }: { services?: any[] }) {
   const fav = useFavoriteIds()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  useBackHandler(() => setShowNotifications(false), showNotifications)
   const [userId, setUserId] = useState<string | null>(null)
   const router = useRouter()
   // Last filters applied on Explore (this device/session) so Home ↔ Explore keeps them.

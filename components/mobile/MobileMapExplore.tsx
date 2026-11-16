@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, SlidersHorizontal, MapPin, Star, List, Navigation, ChevronLeft } from 'lucide-react';
 import { getServiceImageUrl } from '@/lib/service-image';
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobileMapExploreProps {
     services?: any[];
@@ -11,6 +12,7 @@ interface MobileMapExploreProps {
 }
 
 export default function MobileMapExplore({ services = [], onClose }: MobileMapExploreProps) {
+    useBackHandler(onClose)
     const [activeFilter, setActiveFilter] = useState('All');
     const [selectedIdx, setSelectedIdx] = useState(0);
     const filters = ['All', 'Hotels', 'Dining', 'Experiences'];

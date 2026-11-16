@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 
 import { Database } from '@/lib/types/database'
 import { uniqueChannel } from '@/lib/realtime'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 type Notification = Database['public']['Tables']['notifications']['Row']
 
@@ -25,6 +26,7 @@ export function NotificationBell({ userId }: { userId: string | null }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [unreadCount, setUnreadCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
+    useBackHandler(() => setIsOpen(false), isOpen)
     const router = useRouter()
     const [supabase] = useState(() => createClient())
 

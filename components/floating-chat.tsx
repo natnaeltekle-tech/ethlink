@@ -13,6 +13,7 @@ import ReactMarkdown from 'react-markdown';
 import { ChatBookingForm } from './chat-booking-form';
 import { toast } from 'sonner';
 import { isSafeHref } from '@/lib/sanitize';
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface Message {
     id: string;
@@ -21,7 +22,7 @@ interface Message {
 }
 
 // Browsing controls, long forms and full-screen chats: no bubble on top of them.
-const HIDDEN_PREFIXES = ['/services/new', '/add', '/admin', '/messages']
+const HIDDEN_PREFIXES = ['/services/new', '/add', '/admin', '/messages', '/account']
 const HIDDEN_EXACT = ['/services', '/explore']
 
 /** Service detail page: the sticky "Price / Book & Pay" bar sits above the bottom nav. */
@@ -45,6 +46,7 @@ function FloatingChatInner({ aboveBookingBar }: { aboveBookingBar: boolean }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [bookingServiceId, setBookingServiceId] = useState<string | null>(null);
     const [showNudge, setShowNudge] = useState(false);
+    useBackHandler(() => setIsOpen(false), isOpen);
 
     useEffect(() => {
         if (messages.length === 0) {

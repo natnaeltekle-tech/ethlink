@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Smartphone, ShieldCheck, CreditCard, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { initiatePayment } from '@/lib/actions';
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobilePaymentSheetProps {
     bookingId: string;
@@ -16,6 +17,7 @@ interface MobilePaymentSheetProps {
 type PaymentMethod = 'chapa' | 'bank';
 
 export default function MobilePaymentSheet({ bookingId, amount, merchantName, onClose, onSuccess }: MobilePaymentSheetProps) {
+    useBackHandler(onClose)
     const [method, setMethod] = useState<PaymentMethod>('chapa');
     const [phone, setPhone] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);

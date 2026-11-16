@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Star, Send, ChevronLeft, Loader2 } from 'lucide-react';
 import { reviewBooking } from '@/lib/actions/dashboard';
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobileReviewFormProps {
     bookingId: string;
@@ -23,6 +24,7 @@ export default function MobileReviewForm({
     serviceLocation,
     onClose
 }: MobileReviewFormProps) {
+    useBackHandler(onClose)
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');

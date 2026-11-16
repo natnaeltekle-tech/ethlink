@@ -10,6 +10,7 @@ import { cancelMyBooking, clearRecentSearches, reportDispute, reviewBooking, typ
 import { formatPrice } from '@/lib/provider-screening'
 import { BookingFrame, Empty, Section, StatusTimeline, actionBtn } from './common'
 import { cn } from '@/lib/utils'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 const ACTIVE = ['pending', 'confirmed', 'paid', 'disputed']
 
@@ -68,6 +69,7 @@ export function CustomerBookings({ bookings }: { bookings: DashboardBooking[] })
     const router = useRouter()
     const [tab, setTab] = useState<'active' | 'past'>('active')
     const [panel, setPanel] = useState<{ id: string; kind: 'review' | 'dispute' } | null>(null)
+    useBackHandler(() => setPanel(null), panel !== null)
     const [busy, setBusy] = useState<string | null>(null)
     const [, startTransition] = useTransition()
     const refresh = () => { setPanel(null); startTransition(() => router.refresh()) }

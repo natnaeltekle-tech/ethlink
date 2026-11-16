@@ -2,12 +2,14 @@
 
 import React from 'react'
 import { ChevronLeft, Smartphone, Building2, ShieldCheck, Info } from 'lucide-react'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobilePaymentMethodsProps {
   onClose: () => void
 }
 
 export default function MobilePaymentMethods({ onClose }: MobilePaymentMethodsProps) {
+    useBackHandler(onClose)
   return (
     <div className="min-h-screen bg-[#0B0C15] text-white font-sans pb-24">
       <header className="sticky top-0 z-50 flex items-center gap-3 px-4 py-4 bg-[#0B0C15]/95 backdrop-blur border-b border-white/5">

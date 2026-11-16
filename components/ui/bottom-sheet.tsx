@@ -5,6 +5,7 @@ import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHaptics } from '@/lib/hooks/useHaptics'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface BottomSheetProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export function BottomSheet({
   const [currentSnap, setCurrentSnap] = React.useState(initialSnap)
   const constraintsRef = React.useRef<HTMLDivElement>(null)
   const haptics = useHaptics()
+  useBackHandler(onClose, isOpen)
 
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const velocity = info.velocity.y

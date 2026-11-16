@@ -9,13 +9,17 @@
     "test:watch": "vitest",
     "verify:prod": "node scripts/verify-production.mjs",
     "security:check": "node scripts/security-check.mjs",
-    "audit": "npm audit --omit=dev"
+    "audit": "npm audit --omit=dev",
+    "assets:android": "node scripts/render-app-assets.js assets && capacitor-assets generate --android --iconBackgroundColor '#0B0C15' --iconBackgroundColorDark '#0B0C15' --splashBackgroundColor '#0B0C15' --splashBackgroundColorDark '#0B0C15'",
+    "cap:sync": "cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
     "@capacitor/app": "^8.0.1",
-    "@capacitor/cli": "^7.4.4",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/core": "^8.0.0",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",
@@ -50,6 +54,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.6.2",
     "@eslint/eslintrc": "^3",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { toast } from 'sonner'
 import { Check, Copy, Download, Send, Share2 } from 'lucide-react'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 type Props = {
     verifyUrl: string
@@ -39,6 +40,7 @@ export function ReceiptActions({ verifyUrl, receiptNumber, amountLabel, serviceT
     const [canShare, setCanShare] = useState(false)
     const [showShare, setShowShare] = useState(false)
     const [copied, setCopied] = useState(false)
+    useBackHandler(() => setShowShare(false), showShare)
 
     useEffect(() => {
         const isNative = Capacitor.isNativePlatform()
@@ -57,19 +59,37 @@ export function ReceiptActions({ verifyUrl, receiptNumber, amountLabel, serviceT
         `Verify: ${verifyUrl}`,
     ].join('\n')
 
-    const savePdf = () => {
+    const savePdf = async () => {
         if (native) {
-            // Android WebView can't print: open the public receipt in the phone's browser,
-            // which prints / saves as PDF (the app hands other hosts to the system browser).
+            // Android WebView can't print: open the public receipt in Chrome (in-app browser tab),
+            // which prints / saves as PDF.
             const url = new URL(verifyUrl)
             url.searchParams.set('print', '1')
-            window.location.href = url.toString()
+            try {
+                const { Browser } = await import('@capacitor/browser')
+                await Browser.open({ url: url.toString(), toolbarColor: '#0B0C15' })
+            } catch {
+                // Older app build without the Browser plugin: other hosts open in the system browser.
+                window.location.href = url.toString()
+            }
             return
         }
         window.print()
     }
 
     const share = async () => {
+        if (native) {
+            try {
+                const { Share } = await import('@capacitor/share')
+                if ((await Share.canShare()).value) {
+                    await Share.share({ title: `Eth-Links receipt ${receiptNumber ?? ''}`.trim(), text, url: verifyUrl, dialogTitle: 'Share receipt' })
+                    return
+                }
+            } catch (e) {
+                // Cancelled by the user, or an older app build without the Share plugin.
+                if (e instanceof Error && /cancel/i.test(e.message)) return
+            }
+        }
         if (canShare) {
             try {
                 await navigator.share({ title: `Eth-Links receipt ${receiptNumber ?? ''}`.trim(), text, url: verifyUrl })

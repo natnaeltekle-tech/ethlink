@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Eth-Links — No connection</title>
+<!--
+  Bundled inside the Android app (Capacitor server.errorPath). Shown instead of
+  the WebView error page when the live site can't be reached. No network needed.
+  Keep APP_URL in sync with server.url in capacitor.config.ts.
+-->
+<style>
+  :root { --bg:#0B0C15; --card:#151827; --brand:#F5C619; --text:#F1F5F9; --muted:#94A3B8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; background:var(--bg); color:var(--text); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:32px 24px calc(32px + env(safe-area-inset-bottom)); text-align:center; }
+  .logo { display:flex; align-items:center; gap:10px; color:var(--brand); font-weight:800; font-size:22px; }
+  .icon { width:88px; height:88px; border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center; }
+  h1 { font-size:22px; }
+  p { color:var(--muted); max-width:320px; }
+  button { margin-top:6px; min-height:52px; width:100%; max-width:320px; border:0; border-radius:14px; background:var(--brand); color:#0B0C15; font-weight:700; font-size:16px; }
+  button:active { transform:scale(.98); }
+  .status { font-size:13px; color:var(--muted); min-height:20px; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid var(--muted); border-top-color:transparent; border-radius:50%; animation:s .8s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes s { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<main>
+  <div class="logo">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#F5C619" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+    Eth-Links
+  </div>
+  <div class="icon" aria-hidden="true">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F5C619" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.43a5 5 0 0 1 7 0"/><path d="M5 12.86a10 10 0 0 1 5.17-2.69"/><path d="M19 12.86a10 10 0 0 0-2-1.39"/><path d="M2 8.82a15 15 0 0 1 4.18-2.65"/><path d="M22 8.82a15 15 0 0 0-11.29-3.76"/><path d="m2 2 20 20"/></svg>
+  </div>
+  <h1>No internet connection</h1>
+  <p>Check your mobile data or Wi-Fi. Your bookings and payments are safe — we'll reconnect as soon as you're back online.</p>
+  <button id="retry" type="button">Try again</button>
+  <div class="status" id="status" aria-live="polite"></div>
+</main>
+<script>
+  var APP_URL = 'https://market-ai-v3-7pav-natnaeltekle236-5533s-projects.vercel.app/';
+  var statusEl = document.getElementById('status');
+  var busy = false;
+  function reachable() {
+    // Opaque request: succeeds if the site answers at all.
+    return fetch(APP_URL + 'favicon.ico?ping=' + Date.now(), { mode: 'no-cors', cache: 'no-store' }).then(function () { return true; }, function () { return false; });
+  }
+  function retry(manual) {
+    if (busy) return;
+    busy = true;
+    if (manual) statusEl.innerHTML = '<span class="spin"></span>Reconnecting…';
+    reachable().then(function (ok) {
+      busy = false;
+      if (ok) { statusEl.textContent = 'Back online — loading…'; location.replace(APP_URL); }
+      else if (manual) statusEl.textContent = 'Still offline. We’ll keep trying.';
+    });
+  }
+  document.getElementById('retry').addEventListener('click', function () { retry(true); });
+  window.addEventListener('online', function () { retry(false); });
+  setInterval(function () { if (navigator.onLine) retry(false); }, 5000);
+</script>
+</body>
+</html>

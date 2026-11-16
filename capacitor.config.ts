@@ -1,14 +1,18 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ethlinks.app',
+  appId: 'com.ethlink.app',
   appName: 'Eth-Links',
-  webDir: 'out',
+  // Bundled into the APK: only the branded offline page (the app itself loads server.url).
+  webDir: 'mobile-shell',
   server: {
     // Live production deployment (must match Vercel production alias)
     // Rebuild the Android APK after changing this URL.
     url: 'https://market-ai-v3-7pav-natnaeltekle236-5533s-projects.vercel.app',
     cleartext: false,
+    // Shown instead of the Android WebView error page when the site can't load.
+    // Keep APP_URL in mobile-shell/offline.html in sync with url above.
+    errorPath: 'offline.html',
   },
   android: {
     allowMixedContent: false,

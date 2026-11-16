@@ -3,12 +3,14 @@
 import React from 'react'
 import { ChevronLeft, Mail, MessageCircle, Phone, FileText } from 'lucide-react'
 import { toast } from 'sonner'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobileHelpSupportProps {
   onClose: () => void
 }
 
 export default function MobileHelpSupport({ onClose }: MobileHelpSupportProps) {
+    useBackHandler(onClose)
   const email = 'support@ethlinks.app'
 
   const copyEmail = async () => {

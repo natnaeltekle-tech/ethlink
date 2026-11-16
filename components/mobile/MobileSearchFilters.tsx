@@ -8,6 +8,7 @@ import {
     buildServicesHref,
     type ServiceFilters,
 } from '@/lib/service-filters';
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobileSearchFiltersProps {
     onClose: () => void;
@@ -38,6 +39,7 @@ function toNumberOrUndefined(value: string): number | undefined {
  * /services?… so the URL carries the state.
  */
 export default function MobileSearchFilters({ onClose, initialFilters = {} }: MobileSearchFiltersProps) {
+    useBackHandler(onClose)
     const router = useRouter();
     const [category, setCategory] = useState<string | undefined>(initialFilters.category);
     const [minPrice, setMinPrice] = useState(initialFilters.minPrice?.toString() ?? '');

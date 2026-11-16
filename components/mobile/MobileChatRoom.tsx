@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, LogIn } from 'lucide-react'
 import { ChatThread } from '@/components/chat/chat-thread'
+import { useBackHandler } from '@/lib/native/back-handler'
 
 interface MobileChatRoomProps {
     providerId: string
@@ -26,6 +27,7 @@ export default function MobileChatRoom({
     providerId, providerName = 'Provider', providerAvatar, providerIsVerified, providerHasLicense,
     currentUserId, serviceId, serviceTitle, onClose,
 }: MobileChatRoomProps) {
+    useBackHandler(onClose)
     const router = useRouter()
     const isOwner = Boolean(currentUserId && currentUserId === providerId)
 
