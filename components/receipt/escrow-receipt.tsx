@@ -35,9 +35,9 @@ function formatPaidAt(iso: string | null) {
 
 function Row({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
     return (
-        <div className="flex items-start justify-between gap-4 py-1.5">
+        <div className="flex items-start justify-between gap-3 py-1.5">
             <dt className="shrink-0 text-[13px] text-slate-500">{label}</dt>
-            <dd className={cn('text-right text-[13px] font-medium text-slate-900 [overflow-wrap:anywhere]', mono && 'font-mono')}>{children}</dd>
+            <dd className={cn('text-right text-[13px] font-medium text-slate-900 [overflow-wrap:anywhere]', mono && 'whitespace-nowrap font-mono text-[12px] tracking-tight')}>{children}</dd>
         </div>
     )
 }

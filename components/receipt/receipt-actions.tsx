@@ -99,7 +99,7 @@ export function ReceiptActions({ verifyUrl, receiptNumber, amountLabel, serviceT
         <div className="receipt-actions mx-auto w-full max-w-lg space-y-2 print:hidden">
             <div className="flex gap-2">
                 <button type="button" onClick={savePdf} className={`${btn} bg-[#f5c619] text-[#0B0C15]`}>
-                    <Download className="h-4 w-4" />{native ? 'Save PDF' : 'Download / Print PDF'}
+                    <Download className="h-4 w-4" />{native ? 'Save PDF' : 'Print / Save PDF'}
                 </button>
                 <button type="button" onClick={share} aria-expanded={showShare} className={`${btn} border border-white/15 bg-white/5 text-white`}>
                     <Share2 className="h-4 w-4" />Share
