@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, PlusCircle, User, MessageCircle } from 'lucide-react'
+import { Home, Search, PlusCircle, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHaptics } from '@/lib/hooks/useHaptics'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useUnreadMessages, isChatThreadPath } from '@/lib/hooks/use-unread-messages'
+import { isChatThreadPath } from '@/lib/hooks/use-unread-messages'
 
 export function MobileNav() {
     const pathname = usePathname()
@@ -31,8 +31,6 @@ export function MobileNav() {
         return () => subscription.unsubscribe()
     }, [])
 
-    const unreadMessages = useUnreadMessages(user?.id)
-
     const links = [
         {
             href: '/',
@@ -52,13 +50,6 @@ export function MobileNav() {
             label: 'Add',
             icon: PlusCircle,
             exact: true
-        },
-        {
-            href: user ? '/messages' : '/auth/login?next=/messages',
-            label: 'Messages',
-            icon: MessageCircle,
-            exact: false,
-            badge: unreadMessages,
         },
         // Profile tab logic
         user
@@ -89,7 +80,6 @@ export function MobileNav() {
                 {links.map((link) => {
                     if (!link) return null
                     const Icon = link.icon
-                    const badge = 'badge' in link ? (link.badge ?? 0) : 0
                     let isActive: boolean
                     if (link.exact) {
                         isActive = pathname === link.href
@@ -112,15 +102,7 @@ export function MobileNav() {
                                     : "text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            <span className="relative">
-                                <Icon className={cn("w-6 h-6 transition-transform", isActive && "fill-current scale-110")} />
-                                {badge > 0 && (
-                                    <span className="absolute -right-2.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-background"
-                                        aria-label={`${badge} unread messages`}>
-                                        {badge > 99 ? '99+' : badge}
-                                    </span>
-                                )}
-                            </span>
+                            <Icon className={cn("w-6 h-6 transition-transform", isActive && "fill-current scale-110")} />
                             <span className="text-[10px] font-medium">{link.label}</span>
                         </Link>
                     )

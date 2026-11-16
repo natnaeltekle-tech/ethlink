@@ -20,16 +20,24 @@ interface Message {
     content: React.ReactNode;
 }
 
-// Long forms where the bubble would cover inputs/buttons while scrolling
-const HIDDEN_ON = ['/services/new', '/admin', '/messages']
+// Browsing controls, long forms and full-screen chats: no bubble on top of them.
+const HIDDEN_PREFIXES = ['/services/new', '/add', '/admin', '/messages']
+const HIDDEN_EXACT = ['/services', '/explore']
+
+/** Service detail page: the sticky "Price / Book & Pay" bar sits above the bottom nav. */
+const isServiceDetail = (path: string) => /^\/services\/(?!new(\/|$))[^/]+\/?$/.test(path)
 
 export function FloatingChat() {
-    const pathname = usePathname()
-    if (HIDDEN_ON.some((p) => pathname === p || pathname?.startsWith(p + '/'))) return null
-    return <FloatingChatInner />
+    const pathname = usePathname() ?? ''
+    if (HIDDEN_EXACT.includes(pathname) || HIDDEN_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))) return null
+    return <FloatingChatInner aboveBookingBar={isServiceDetail(pathname)} />
 }
 
-function FloatingChatInner() {
+function FloatingChatInner({ aboveBookingBar }: { aboveBookingBar: boolean }) {
+    // Mobile: always clear of the bottom nav (64px) — and of the booking bar on service pages.
+    const bottomClass = aboveBookingBar
+        ? 'bottom-[calc(148px+env(safe-area-inset-bottom))]'
+        : 'bottom-[calc(84px+env(safe-area-inset-bottom))]'
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -185,13 +193,13 @@ function FloatingChatInner() {
 
     return (
         <>
-            <div ref={constraintsRef} className="fixed inset-4 pointer-events-none z-[39]" />
+            <div ref={constraintsRef} className={cn('fixed left-4 right-4 top-4 pointer-events-none z-[39] md:bottom-4', bottomClass)} />
             <motion.div
                 drag
                 dragConstraints={constraintsRef}
                 dragMomentum={false}
                 dragElastic={0.1}
-                className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-end gap-3"
+                className={cn('fixed right-4 sm:right-6 z-[60] flex flex-col items-end gap-3 md:bottom-6', bottomClass)}
             >
                 {showNudge && !isOpen && (
                     <motion.div

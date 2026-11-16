@@ -228,14 +228,14 @@ export default function MobileServiceDetails({
             </main>
 
             {/* Sticky Bottom Action Bar — compact to fit above mobile nav */}
-            <div className="fixed bottom-16 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-4 py-2.5 flex items-center justify-between gap-3 safe-area-pb">
+            <div className="fixed bottom-16 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-5 py-3 flex items-center justify-between gap-4 safe-area-pb">
                 <div className="flex flex-col min-w-0">
                     <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider leading-none">Price</span>
                     <span className="mt-0.5 text-lg font-bold leading-none text-[#f5c619]">{formatPrice(service.price, service.pricing_unit)}</span>
                 </div>
                 <Link
                     href={'/book/' + service?.id}
-                    className="bg-[#f5c619] flex items-center justify-center text-[#121212] px-5 py-2.5 rounded-full font-bold text-sm shadow-[0_0_12px_rgba(245,198,25,0.25)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                    className="bg-[#f5c619] flex min-h-[44px] items-center justify-center whitespace-nowrap text-[#121212] px-7 py-2.5 rounded-full font-bold text-sm shadow-[0_0_12px_rgba(245,198,25,0.25)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
                 >
                     Book & Pay
                 </Link>
