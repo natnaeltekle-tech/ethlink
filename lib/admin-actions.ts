@@ -189,6 +189,7 @@ export async function adminConfirmBookingPayment(
     // Notify customer — deep-link to receipt page so they can print/save it
     try {
         const title = service?.title ?? 'your booking'
+        if (!booking.user_id) throw new Error('customer account deleted')
         await adminSupabase.from('notifications').insert({
             user_id: booking.user_id,
             content: `Payment confirmed for ${title} (${price} ETB). Tap to view your receipt.`,

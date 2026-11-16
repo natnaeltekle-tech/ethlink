@@ -163,7 +163,7 @@ export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jo
                                     </>
                                 ) : (
                                     <>
-                                        <Link href={msgHref(b)} className={cn(actionBtn, 'border border-border')}><MessageCircle className="h-4 w-4" />Message</Link>
+                                        {b.counterpart.id && <Link href={msgHref(b)} className={cn(actionBtn, 'border border-border')}><MessageCircle className="h-4 w-4" />Message</Link>}
                                         {receipt(b)}
                                     </>
                                 )

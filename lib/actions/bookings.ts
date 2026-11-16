@@ -229,7 +229,7 @@ export async function createBookingJson(formData: FormData) {
     // Trigger Notification for Provider
     const { data: service } = await supabase.from('services').select('user_id, title').eq('id', serviceId).single()
 
-    if (service && service.user_id !== user.id) {
+    if (service?.user_id && service.user_id !== user.id) {
         const adminSupabase = createAdminClient()
         await adminSupabase
             .from('notifications')
@@ -414,7 +414,7 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
     }
 
     // Auto-Message on Accept
-    if (status === 'confirmed') {
+    if (status === 'confirmed' && booking.user_id) {
         const { error: msgError } = await supabase
             .from('messages')
             .insert({

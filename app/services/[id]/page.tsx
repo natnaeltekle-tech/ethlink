@@ -57,7 +57,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
     ])
 
     // Fetch public provider info
-    const provider = await getPublicProviderInfo(service.user_id)
+    const provider = service.user_id ? await getPublicProviderInfo(service.user_id) : null
 
     const reviewCount = reviews.length
     const averageRating = reviewCount > 0

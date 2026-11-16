@@ -12,7 +12,7 @@ export default async function BookingPage({ params }: { params: Promise<{ id: st
     }
 
     // Trust badges on the booking screen (public, whitelisted fields only)
-    const provider = await getPublicProviderInfo(service.user_id);
+    const provider = service.user_id ? await getPublicProviderInfo(service.user_id) : null;
     const serviceWithProvider = { ...service, provider };
 
     return (

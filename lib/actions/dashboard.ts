@@ -75,7 +75,7 @@ const mask = (v: string | null, keep = 4) => (v ? `${'•'.repeat(Math.max(0, v.
 const num = (v: unknown) => (typeof v === 'number' ? v : Number(v) || 0)
 
 type RawBooking = {
-    id: string; status: string; date: string; created_at: string; guests: number | null; user_id: string
+    id: string; status: string; date: string; created_at: string; guests: number | null; user_id: string | null
     commission_amount: number | null; provider_earnings: number | null
     quoted_price: number | null; amount_paid: number | null
     dispute_reason: string | null; dispute_resolution: string | null
@@ -125,7 +125,7 @@ function toBooking(b: RawBooking, counterpart: Person, rate: number, reviewed: b
     }
 }
 
-const unknownPerson = (id: string): Person => ({ id, name: 'Eth-Links user', avatarUrl: null, isVerified: false, hasLicense: false })
+const unknownPerson = (id: string | null): Person => ({ id: id ?? '', name: id ? 'Eth-Links user' : 'Deleted account', avatarUrl: null, isVerified: false, hasLicense: false })
 
 // ─── Customer ───────────────────────────────────────────────────────────────
 export async function getCustomerDashboard(): Promise<CustomerDashboard | null> {
@@ -145,7 +145,7 @@ export async function getCustomerDashboard(): Promise<CustomerDashboard | null> 
     const reviewed = new Set((myReviews ?? []).map((r) => r.booking_id))
 
     return {
-        bookings: bookings.map((b) => toBooking(b, people.get(b.services?.user_id ?? '') ?? unknownPerson(b.services?.user_id ?? ''), rate, reviewed.has(b.id))),
+        bookings: bookings.map((b) => toBooking(b, (b.services?.user_id && people.get(b.services.user_id)) || unknownPerson(b.services?.user_id ?? null), rate, reviewed.has(b.id))),
         // Hidden/removed services come back as null: skip them
         favorites: (favs ?? []).flatMap((f) => {
             const s = f.services as unknown as { id: string; title: string; category: string; price: number; pricing_unit: string | null; location: string | null; image_url: string | null; gallery: string[] | null; images: string[] | null } | null
@@ -285,8 +285,8 @@ export async function getProviderDashboard(): Promise<ProviderDashboard | null> 
         ? await supabase.from('bookings').select(BOOKING_SELECT).in('service_id', serviceIds).order('date', { ascending: true }).limit(500)
         : { data: [] as unknown[] }
     const bookings = (rawBookings ?? []) as unknown as RawBooking[]
-    const people = await peopleById(supabase, bookings.map((b) => b.user_id))
-    const all = bookings.map((b) => toBooking(b, people.get(b.user_id) ?? unknownPerson(b.user_id), rate, false))
+    const people = await peopleById(supabase, bookings.map((b) => b.user_id ?? ''))
+    const all = bookings.map((b) => toBooking(b, (b.user_id && people.get(b.user_id)) || unknownPerson(b.user_id), rate, false))
 
     const sum = (list: DashboardBooking[]) => Math.round(list.reduce((n, b) => n + b.providerEarnings, 0) * 100) / 100
     const completed = all.filter((b) => b.status === 'completed')

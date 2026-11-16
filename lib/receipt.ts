@@ -44,12 +44,12 @@ const SELECT =
     'id, user_id, status, date, guests, quoted_price, amount_paid, paid_at, receipt_number, payment_method, payment_reference, verify_token, commission_amount, provider_earnings, dispute_reason, dispute_resolution, services(id, title, category, location, price, user_id)'
 
 type Row = {
-    id: string; user_id: string; status: string; date: string; guests: number | null
+    id: string; user_id: string | null; status: string; date: string; guests: number | null
     quoted_price: number | null; amount_paid: number | null; paid_at: string | null; receipt_number: string | null
     payment_method: string | null; payment_reference: string | null; verify_token: string
     commission_amount: number | null; provider_earnings: number | null
     dispute_reason: string | null; dispute_resolution: string | null
-    services: { id: string; title: string; category: string; location: string | null; price: number; user_id: string } | null
+    services: { id: string; title: string; category: string; location: string | null; price: number; user_id: string | null } | null
 }
 
 /** Public link encoded in the QR code and shared via WhatsApp/Telegram. */
@@ -71,8 +71,8 @@ async function build(row: Row, viewer: ReceiptViewer): Promise<EscrowReceiptData
     const customer = people?.find((p) => p.id === row.user_id)
     const provider = people?.find((p) => p.id === providerId)
 
-    const customerFull = customer?.full_name?.trim() || customer?.first_name || 'Eth-Links customer'
-    const customerName = viewer === 'public'
+    const customerFull = !row.user_id ? 'Deleted account' : customer?.full_name?.trim() || customer?.first_name || 'Eth-Links customer'
+    const customerName = viewer === 'public' && row.user_id
         ? [customer?.first_name || 'Customer', customer?.last_name ? `${customer.last_name[0]}.` : ''].filter(Boolean).join(' ')
         : customerFull
 
@@ -107,7 +107,7 @@ async function build(row: Row, viewer: ReceiptViewer): Promise<EscrowReceiptData
         },
         customerName,
         provider: {
-            name: provider?.full_name?.trim() || provider?.first_name || 'Provider',
+            name: !providerId ? 'Deleted account' : provider?.full_name?.trim() || provider?.first_name || 'Provider',
             businessName: provider?.business_name ?? null,
             isVerified: Boolean(provider?.is_verified),
             hasLicense: Boolean(provider?.has_business_license),
@@ -133,8 +133,8 @@ export async function getReceiptForViewer(bookingId: string): Promise<EscrowRece
     if (!row) return null
 
     let viewer: ReceiptViewer | null = null
-    if (row.user_id === userId) viewer = 'customer'
-    else if (row.services?.user_id === userId) viewer = 'provider'
+    if (row.user_id && row.user_id === userId) viewer = 'customer'
+    else if (row.services?.user_id && row.services.user_id === userId) viewer = 'provider'
     else if (await isAdmin()) viewer = 'admin'
     if (!viewer) return null
     return build(row, viewer)

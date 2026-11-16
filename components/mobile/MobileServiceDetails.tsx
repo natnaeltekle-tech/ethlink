@@ -146,10 +146,10 @@ export default function MobileServiceDetails({
                             <TrustBadges isVerified={activeProvider.is_verified} hasLicense={activeProvider.has_business_license} className="mt-1" />
                         </div>
                     </div>
-                    <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
+                    {service?.user_id && <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
                         <MessageSquare className="w-4 h-4 text-[#f5c619]" />
                         <span className="text-sm font-bold">Message</span>
-                    </button>
+                    </button>}
                 </div>
 
                 {/* Amenities Grid */}

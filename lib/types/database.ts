@@ -19,7 +19,8 @@ export type Database = {
                     category: string
                     location: string | null
                     image_url: string | null
-                    user_id: string
+                    user_id: string | null
+                    owner_deleted_at: string | null
                     created_at: string
                     updated_at: string
                     images: string[] | null
@@ -361,7 +362,8 @@ export type Database = {
                 Row: {
                     id: string
                     service_id: string
-                    user_id: string
+                    user_id: string | null
+                    customer_deleted_at: string | null
                     date: string
                     status: string
                     created_at: string
@@ -796,6 +798,8 @@ export type Database = {
             }
         }
         Functions: {
+            my_account_deletion_blockers: { Args: Record<string, never>; Returns: string[] }
+            delete_account_data: { Args: { p_user: string }; Returns: Json }
             get_my_conversations: {
                 Args: Record<string, never>
                 Returns: {

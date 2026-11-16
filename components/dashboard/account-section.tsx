@@ -5,7 +5,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Camera, ChevronRight, CreditCard, HelpCircle, Loader2, LogOut, ShieldCheck, Store, UserRound } from 'lucide-react'
+import { Camera, ChevronRight, CreditCard, HelpCircle, Loader2, LogOut, ShieldCheck, Store, Trash2, UserRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { updateAccount } from '@/lib/actions/dashboard'
 import { updateAvatarUrl } from '@/lib/actions/avatar'
@@ -149,6 +149,10 @@ export function AccountSection({ profile, isProvider }: { profile: AccountProfil
                     {loggingOut ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogOut className="h-5 w-5" />}Log out
                 </button>
             </section>
+
+            <Link href="/account/delete" className="flex min-h-[48px] items-center justify-center gap-2 rounded-2xl border border-red-500/30 text-sm font-medium text-red-500 hover:bg-red-500/10">
+                <Trash2 className="h-4 w-4" />Delete account
+            </Link>
         </div>
     )
 }
