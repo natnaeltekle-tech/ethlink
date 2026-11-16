@@ -53,7 +53,9 @@ export async function getThread(serviceId: string, otherUserId: string): Promise
         console.error('[chat] getThread failed:', error)
         return []
     }
-    return (data ?? []).reverse()
+    // Newest 200 were fetched; show them oldest → newest (sort explicitly
+    // rather than relying on reversing the response order)
+    return (data ?? []).sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id - b.id)
 }
 
 export type SendResult = { ok: true; message: ChatMessage } | { ok: false; error: string }
@@ -76,15 +78,17 @@ export async function sendChatMessage(serviceId: string, receiverId: string, con
         .select(MESSAGE_COLUMNS)
         .single()
 
-    if (error || !data) {
-        console.error('[chat] send failed:', error)
+    // Only trust a reply that is the saved row (never an empty/odd payload)
+    const saved = data as Partial<ChatMessage> | null
+    if (error || !saved || typeof saved.id !== 'number' || typeof saved.created_at !== 'string') {
+        console.error('[chat] send failed:', error ?? 'unexpected response')
         if (error?.code === '42501') {
             return { ok: false, error: 'You can only reply to customers who contacted you or booked this service' }
         }
         return { ok: false, error: 'Message not sent. Check your connection and try again.' }
     }
     // The database trigger creates the (grouped) notification for the receiver.
-    return { ok: true, message: data }
+    return { ok: true, message: saved as ChatMessage }
 }
 
 /** Mark everything the other person sent me in this conversation as read. */
