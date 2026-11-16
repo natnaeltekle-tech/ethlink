@@ -3,6 +3,7 @@ import {
   getRecentServices,
   getRecentBookings,
   getPendingPaymentBookings,
+  getEscrowQueues,
 } from '@/lib/admin-actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Briefcase, Calendar, Banknote } from 'lucide-react'
@@ -12,6 +13,7 @@ import Link from 'next/link'
 import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
 import { getPendingProviderApplications } from '@/lib/actions/provider-review'
 import { ProviderVerificationPanel } from '@/components/admin/provider-verification-panel'
+import { EscrowPanel } from '@/components/admin/escrow-panel'
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats()
@@ -19,6 +21,7 @@ export default async function AdminDashboard() {
   const recentBookings = await getRecentBookings()
   const pendingPayments = await getPendingPaymentBookings()
   const providerApplications = await getPendingProviderApplications()
+  const escrow = await getEscrowQueues()
   const simulation = isSimulationMode()
   const autoConfirm = isSimulationAutoConfirm()
 
@@ -29,6 +32,8 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       <ProviderVerificationPanel applications={providerApplications} />
+
+      {escrow && <EscrowPanel disputes={escrow.disputes} payouts={escrow.payouts} />}
 
       {simulation && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">

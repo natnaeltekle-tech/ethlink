@@ -92,7 +92,7 @@ export async function getPendingPaymentBookings() {
     const { data, error } = await adminSupabase
         .from('bookings')
         .select('id, status, date, created_at, user_id, services(id, title, price)')
-        .eq('status', 'pending')
+        .in('status', ['pending', 'confirmed'])
         .order('created_at', { ascending: false })
         .limit(30)
 
@@ -128,11 +128,11 @@ export async function adminConfirmBookingPayment(bookingId: string, note?: strin
         throw new Error('Booking not found')
     }
 
-    if (booking.status === 'paid' || booking.status === 'confirmed' || booking.status === 'completed') {
+    if (['paid', 'completed', 'disputed', 'refunded'].includes(booking.status)) {
         return { success: true, status: 'already_paid' as const }
     }
 
-    if (booking.status !== 'pending') {
+    if (booking.status !== 'pending' && booking.status !== 'confirmed') {
         throw new Error(`Cannot confirm payment for status: ${booking.status}`)
     }
 
@@ -234,7 +234,7 @@ export async function resolveEscrowDispute(input: {
 
     const { data: booking, error: fetchError } = await adminSupabase
         .from('bookings')
-        .select('id, status, user_id, service_id, services(user_id, title)')
+        .select('id, status, user_id, service_id, dispute_reason, services(user_id, title)')
         .eq('id', bookingId)
         .single()
 
@@ -251,7 +251,8 @@ export async function resolveEscrowDispute(input: {
         .from('bookings')
         .update({
             status: nextStatus,
-            dispute_reason: reason,
+            // Keep the customer's own description when they opened the dispute.
+            dispute_reason: booking.dispute_reason || reason,
             dispute_resolution: resolution,
             dispute_resolved_at: new Date().toISOString(),
         })
@@ -268,8 +269,8 @@ export async function resolveEscrowDispute(input: {
     const providerId = service?.user_id
     const content =
         resolution === 'release_to_provider'
-            ? `Escrow released to provider for ${title}.`
-            : `Escrow refund approved for ${title}.`
+            ? `Dispute resolved for ${title}: payment released to the provider. Note from Eth-Links: ${reason}`
+            : `Dispute resolved for ${title}: the customer is refunded. Note from Eth-Links: ${reason}`
 
     await adminSupabase.from('notifications').insert([
         {
@@ -333,4 +334,97 @@ export async function getProviderInfo(userId: string) {
     }
 
     return profileData || null
+}
+
+// ─── Escrow queues: disputes + provider payouts ─────────────────────────────
+export type EscrowQueueItem = {
+    id: string
+    status: string
+    date: string
+    amount: number
+    providerEarnings: number
+    disputeReason: string | null
+    serviceTitle: string
+    customer: { id: string; name: string }
+    provider: { id: string; name: string; telebirr: string | null; cbe: string | null; accountName: string | null }
+}
+
+export async function getEscrowQueues(): Promise<{ disputes: EscrowQueueItem[]; payouts: EscrowQueueItem[] } | null> {
+    if (!(await checkAdmin())) return null
+    const admin = createAdminClient()
+    const rate = await getCommissionRate()
+    const select = 'id, status, date, user_id, provider_earnings, commission_amount, dispute_reason, services(title, price, user_id)'
+    const [{ data: disputes }, { data: payouts }] = await Promise.all([
+        admin.from('bookings').select(select).eq('status', 'disputed').order('created_at', { ascending: true }).limit(50),
+        admin.from('bookings').select(select).eq('status', 'completed').eq('payout_status', 'unpaid').order('date', { ascending: true }).limit(100),
+    ])
+    type Row = { id: string; status: string; date: string; user_id: string; provider_earnings: number | null; commission_amount: number | null; dispute_reason: string | null; services: { title: string; price: number; user_id: string } | { title: string; price: number; user_id: string }[] | null }
+    const rows = [...((disputes ?? []) as unknown as Row[]), ...((payouts ?? []) as unknown as Row[])]
+    const svc = (r: Row) => (Array.isArray(r.services) ? r.services[0] : r.services)
+    const ids = [...new Set(rows.flatMap((r) => [r.user_id, svc(r)?.user_id].filter((x): x is string => !!x)))]
+    const [{ data: people }, { data: apps }] = ids.length
+        ? await Promise.all([
+            admin.from('profiles').select('id, first_name, last_name, full_name, business_name').in('id', ids),
+            admin.from('provider_verifications').select('user_id, payout_telebirr_phone, payout_cbe_account, payout_account_name').in('user_id', ids),
+        ])
+        : [{ data: [] }, { data: [] }]
+    const nameOf = (id: string) => {
+        const p = (people ?? []).find((x) => x.id === id)
+        return p?.business_name || [p?.first_name, p?.last_name].filter(Boolean).join(' ') || p?.full_name || 'Unknown user'
+    }
+    const toItem = (r: Row): EscrowQueueItem => {
+        const s = svc(r)
+        const price = Number(s?.price ?? 0)
+        const earnings = r.provider_earnings != null ? Number(r.provider_earnings) : Math.round(price * (1 - rate) * 100) / 100
+        const amount = r.provider_earnings != null && r.commission_amount != null ? Number(r.provider_earnings) + Number(r.commission_amount) : price
+        const app = (apps ?? []).find((a) => a.user_id === s?.user_id)
+        return {
+            id: r.id, status: r.status, date: r.date, amount, providerEarnings: earnings, disputeReason: r.dispute_reason,
+            serviceTitle: s?.title ?? 'Service',
+            customer: { id: r.user_id, name: nameOf(r.user_id) },
+            provider: {
+                id: s?.user_id ?? '', name: s?.user_id ? nameOf(s.user_id) : 'Unknown',
+                telebirr: app?.payout_telebirr_phone ?? null, cbe: app?.payout_cbe_account ?? null, accountName: app?.payout_account_name ?? null,
+            },
+        }
+    }
+    return { disputes: ((disputes ?? []) as unknown as Row[]).map(toItem), payouts: ((payouts ?? []) as unknown as Row[]).map(toItem) }
+}
+
+export async function markPayoutSent(input: { bookingId: string; method: 'telebirr' | 'cbe' | 'cash' | 'other'; reference: string }) {
+    if (!(await checkAdmin())) throw new Error('Unauthorized')
+    if (!uuidSchema.safeParse(input.bookingId).success) throw new Error('Invalid booking ID')
+    if (!['telebirr', 'cbe', 'cash', 'other'].includes(input.method)) throw new Error('Choose a payout method')
+    const reference = (input.reference ?? '').trim().slice(0, 100)
+    if (input.method !== 'cash' && reference.length < 3) throw new Error('Enter the transfer reference')
+
+    const admin = createAdminClient()
+    const { data: updated, error } = await admin
+        .from('bookings')
+        .update({ payout_status: 'paid_out', paid_out_at: new Date().toISOString(), payout_method: input.method, payout_reference: reference || null })
+        .eq('id', input.bookingId)
+        .eq('status', 'completed')
+        .eq('payout_status', 'unpaid')
+        .select('id, provider_earnings, services(title, user_id)')
+        .maybeSingle()
+    if (error) {
+        console.error('[Admin] markPayoutSent:', error)
+        throw new Error('Could not record the payout')
+    }
+    if (!updated) throw new Error('This booking is not awaiting a payout')
+
+    const service = Array.isArray(updated.services) ? updated.services[0] : updated.services
+    if (service?.user_id) {
+        const amount = updated.provider_earnings != null ? `${Number(updated.provider_earnings).toLocaleString()} ETB` : 'Your earnings'
+        const via = { telebirr: 'Telebirr', cbe: 'CBE', cash: 'cash', other: 'transfer' }[input.method]
+        await admin.from('notifications').insert({
+            user_id: service.user_id,
+            type: 'payment' as const,
+            content: `${amount} for ${service.title ?? 'your job'} was sent via ${via}${reference ? ` (ref ${reference})` : ''}.`,
+            link: '/dashboard?mode=provider&tab=overview',
+        })
+    }
+    revalidatePath('/admin')
+    revalidatePath('/dashboard')
+    return { success: true }
 }

@@ -92,8 +92,12 @@ export async function initiatePayment(bookingId: string) {
         throw new Error('Unauthorized')
     }
 
-    if (booking.status === 'paid' || booking.status === 'confirmed' || booking.status === 'completed') {
+    // Payable while requested (pending) or accepted by the provider (confirmed).
+    if (['paid', 'completed', 'disputed', 'refunded'].includes(booking.status)) {
         throw new Error('This booking is already paid')
+    }
+    if (booking.status !== 'pending' && booking.status !== 'confirmed') {
+        throw new Error('This booking can no longer be paid')
     }
 
     const price = booking.services.price

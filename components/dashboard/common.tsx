@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 export const etb = (n: number) => `${Math.round(n).toLocaleString()} ETB`
 
 export const STATUS: Record<string, { label: string; tone: string }> = {
-    pending: { label: 'Requested', tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+    pending: { label: 'Requested · not paid', tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     confirmed: { label: 'Accepted · awaiting payment', tone: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
     paid: { label: 'Paid · held in escrow', tone: 'bg-violet-500/15 text-violet-600 dark:text-violet-400' },
     completed: { label: 'Completed', tone: 'bg-green-500/15 text-green-600 dark:text-green-400' },

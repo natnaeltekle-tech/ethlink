@@ -115,7 +115,7 @@ export function CustomerBookings({ bookings }: { bookings: DashboardBooking[] })
                             <BookingFrame key={b.id} booking={b} who="Provider"
                                 footer={
                                     <>
-                                        {b.status === 'confirmed' && <Link href={`/payment/${b.id}`} className={cn(actionBtn, 'bg-primary text-primary-foreground')}><CreditCard className="h-4 w-4" />Pay now</Link>}
+                                        {(b.status === 'pending' || b.status === 'confirmed') && <Link href={`/payment/${b.id}`} className={cn(actionBtn, 'bg-primary text-primary-foreground')}><CreditCard className="h-4 w-4" />Pay now</Link>}
                                         {b.status === 'paid' && (
                                             <button className={cn(actionBtn, 'bg-green-600 text-white')} disabled={busy === b.id} onClick={() => markDone(b)}>
                                                 {busy === b.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}Mark completed
@@ -133,7 +133,8 @@ export function CustomerBookings({ bookings }: { bookings: DashboardBooking[] })
                                     </>
                                 }>
                                 <StatusTimeline status={b.status} />
-                                {b.status === 'pending' && <p className="mt-2 text-xs text-muted-foreground">Waiting for the provider to accept. You pay only after they accept.</p>}
+                                {b.status === 'pending' && <p className="mt-2 text-xs text-muted-foreground">Not paid yet. Pay to secure your slot; your money stays in escrow until you confirm the job is done.</p>}
+                                {b.status === 'confirmed' && <p className="mt-2 text-xs text-muted-foreground">The provider accepted. Pay to secure your slot; your money stays in escrow until the job is done.</p>}
                                 {b.status === 'paid' && <p className="mt-2 text-xs text-muted-foreground">Your payment is held safely in escrow. Mark the job completed once you are satisfied.</p>}
                                 {b.status === 'disputed' && <p className="text-sm text-red-600 dark:text-red-400">Dispute under review{b.disputeReason ? `: "${b.disputeReason}"` : ''}. Your payment stays in escrow.</p>}
                                 {b.status === 'refunded' && <p className="text-sm text-muted-foreground">Refunded to you after review.</p>}
