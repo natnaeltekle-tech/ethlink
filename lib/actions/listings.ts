@@ -2,11 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { serviceSchema, messageSchema, reviewSchema } from '@/lib/validations'
-import { sanitizeMessage, sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
+import { serviceSchema, reviewSchema } from '@/lib/validations'
+import { sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
 import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
-import { Service, ServiceView, Message, ReviewWithProfile } from '@/lib/types/database'
+import { Service, ServiceView, ReviewWithProfile } from '@/lib/types/database'
 import type { ServiceFilters } from '@/lib/service-filters'
 
 export async function searchServices(query: string): Promise<ServiceView[]> {
@@ -135,29 +135,6 @@ export async function getReviews(serviceId: string): Promise<any[]> {
         }
         return { ...r, profiles: formattedProfile }
     })
-}
-
-export async function getMessages(serviceId: string): Promise<Message[]> {
-    const supabase = await createClient()
-    let user = null
-    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
-    if (!user) return []
-    const { data: messages, error } = await supabase.from('messages').select('*').eq('service_id', serviceId).order('created_at').returns<Message[]>()
-    if (error) { console.error('Error fetching messages:', JSON.stringify(error, null, 2)); return [] }
-    return messages || []
-}
-
-export async function sendMessage(serviceId: string, receiverId: string, content: string): Promise<void> {
-    const parsed = messageSchema.safeParse({ serviceId, receiverId, content })
-    if (!parsed.success) throw new Error('Invalid message data')
-    const supabase = await createClient()
-    let user = null
-    try { const { data } = await supabase.auth.getUser(); user = data.user } catch { /* expired/corrupt session */ }
-    if (!user) throw new Error('Not authenticated')
-    const { error } = await supabase.from('messages').insert({ service_id: serviceId, sender_id: user.id, receiver_id: receiverId, content: sanitizeMessage(content) })
-    if (error) { console.error('Error sending message:', JSON.stringify(error, null, 2)); throw new Error(`Database Error: ${error.message || error.details || 'Unknown error'}`) }
-    const adminSupabase = createAdminClient()
-    await adminSupabase.from('notifications').insert({ user_id: receiverId, content: 'New Message', link: `/services/${serviceId}`, type: 'message' })
 }
 
 export async function createService(formData: FormData): Promise<void> {

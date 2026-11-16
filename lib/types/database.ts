@@ -217,32 +217,40 @@ export type Database = {
                 ]
             }
             messages: {
+                // Live schema + 20261117090000_chat_messaging.sql. Clients may only
+                // insert as themselves and (as receiver) set is_read = true.
                 Row: {
-                    id: string
+                    id: number
                     service_id: string
                     sender_id: string
                     receiver_id: string
                     content: string
                     created_at: string
                     is_read: boolean
+                    read_at: string | null
+                    listing_id: number | null
                 }
                 Insert: {
-                    id?: string
+                    id?: number
                     service_id: string
                     sender_id: string
                     receiver_id: string
                     content: string
                     created_at?: string
                     is_read?: boolean
+                    read_at?: string | null
+                    listing_id?: number | null
                 }
                 Update: {
-                    id?: string
+                    id?: number
                     service_id?: string
                     sender_id?: string
                     receiver_id?: string
                     content?: string
                     created_at?: string
                     is_read?: boolean
+                    read_at?: string | null
+                    listing_id?: number | null
                 }
                 Relationships: [
                     {
@@ -744,6 +752,27 @@ export type Database = {
             }
         }
         Functions: {
+            get_my_conversations: {
+                Args: Record<string, never>
+                Returns: {
+                    service_id: string
+                    service_title: string
+                    service_owner_id: string
+                    other_user_id: string
+                    other_name: string | null
+                    other_avatar: string | null
+                    other_is_verified: boolean
+                    other_has_license: boolean
+                    last_message: string
+                    last_sender_id: string
+                    last_at: string
+                    unread_count: number
+                }[]
+            }
+            can_message: {
+                Args: { p_service: string; p_sender: string; p_receiver: string }
+                Returns: boolean
+            }
             is_verified_provider: {
                 Args: { p_user_id: string }
                 Returns: boolean

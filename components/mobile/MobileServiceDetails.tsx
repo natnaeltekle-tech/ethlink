@@ -63,6 +63,9 @@ export default function MobileServiceDetails({
                     providerId={activeProvider.id} 
                     providerName={providerDisplayName} 
                     providerAvatar={activeProvider.avatar_url}
+                    providerIsVerified={activeProvider.is_verified}
+                    providerHasLicense={activeProvider.has_business_license}
+                    serviceTitle={service.title}
                     currentUserId={currentUser?.id || ''} 
                     onClose={() => setShowChat(false)} 
                 />

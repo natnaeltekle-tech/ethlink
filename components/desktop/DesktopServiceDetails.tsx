@@ -94,8 +94,10 @@ export default function DesktopServiceDetails({
 
                     <ChatBox
                         serviceId={service.id}
+                        serviceTitle={service.title}
                         providerId={service.user_id}
                         currentUserId={user?.id || null}
+                        provider={provider}
                     />
                 </div>
             </div>

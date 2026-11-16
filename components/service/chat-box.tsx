@@ -1,245 +1,84 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Send } from 'lucide-react'
-import { getMessages, sendMessage } from '@/lib/actions'
-import { toast } from 'sonner'
-
-interface Message {
-    id: string
-    content: string
-    sender_id: string
-    receiver_id: string
-    created_at: string
-}
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Inbox, LogIn, MessageCircle } from 'lucide-react'
+import { ChatThread } from '@/components/chat/chat-thread'
+import { ConversationList } from '@/components/chat/conversation-list'
+import { getMyConversations, type Conversation } from '@/lib/actions/chat-messages'
 
 interface ChatBoxProps {
     serviceId: string
+    serviceTitle?: string
     providerId: string
     currentUserId: string | null
+    provider?: {
+        full_name?: string | null
+        first_name?: string | null
+        avatar_url?: string | null
+        is_verified?: boolean
+        has_business_license?: boolean
+    } | null
 }
 
-export function ChatBox({ serviceId, providerId, currentUserId }: ChatBoxProps) {
-    const [messages, setMessages] = useState<Message[]>([])
-    const [newMessage, setNewMessage] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [isOnline, setIsOnline] = useState(false)
-    const messagesEndRef = useRef<HTMLDivElement>(null)
-
-    // Stable client instance
-    const [supabase] = useState(() => createClient())
-
-    // Presence State
-    const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
-
-    // Initial Fetch (History)
-    useEffect(() => {
-        const fetchMessages = async () => {
-            const initialMessages = await getMessages(serviceId)
-            if (initialMessages) {
-                setMessages(initialMessages as Message[])
-            }
-        }
-
-        if (currentUserId) {
-            fetchMessages()
-        }
-    }, [serviceId, currentUserId])
-
-    // Realtime & Presence Subscription
-    useEffect(() => {
-        if (!serviceId || !currentUserId) return
-
-        const msgChannel = supabase.channel(`chat-${serviceId}`)
-        const presenceChannel = supabase.channel(`presence-${serviceId}`)
-
-        msgChannel
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'messages',
-                filter: 'service_id=eq.' + serviceId
-            }, (payload) => {
-                console.log("Realtime Payload:", payload);
-                if (payload.eventType === 'INSERT') {
-                    const newMsg = payload.new as Message
-                    setMessages((prev) => {
-                        // Replace our optimistic placeholder (matched by sender +
-                        // content, since DB ids differ from temp ids) with the
-                        // persisted message.
-                        const tempIndex = prev.findIndex(
-                            (m) =>
-                                String(m.id).startsWith('temp-') &&
-                                m.sender_id === newMsg.sender_id &&
-                                m.content === newMsg.content
-                        )
-                        if (tempIndex !== -1) {
-                            const next = [...prev]
-                            next[tempIndex] = newMsg
-                            return next
-                        }
-                        // Otherwise dedupe against already-known real messages.
-                        if (prev.some(m => m.id === newMsg.id)) return prev
-                        return [...prev, newMsg]
-                    })
-                }
-            })
-            .subscribe()
-
-        presenceChannel
-            .on('presence', { event: 'sync' }, () => {
-                const newState = presenceChannel.presenceState()
-                const onlineIds = new Set<string>()
-                for (const key in newState) {
-                    const users = newState[key] as any[]
-                    users.forEach(u => {
-                        if (u.user_id) onlineIds.add(u.user_id)
-                    })
-                }
-                setOnlineUsers(onlineIds)
-            })
-            .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    await presenceChannel.track({ user_id: currentUserId })
-                }
-            })
-
-        return () => {
-            supabase.removeChannel(msgChannel)
-            supabase.removeChannel(presenceChannel)
-        }
-    }, [serviceId, supabase, currentUserId])
-
-    // Update isOnline based on Presence
-    useEffect(() => {
-        const isProviderOnline = onlineUsers.has(providerId)
-        setIsOnline(isProviderOnline)
-    }, [onlineUsers, providerId])
+/**
+ * Service-page chat.
+ * - Logged out: prompt to log in (returns here afterwards).
+ * - Customer: their own conversation with this provider.
+ * - Provider (owner): their conversations about this service — never a chat with themselves.
+ */
+export function ChatBox({ serviceId, serviceTitle, providerId, currentUserId, provider }: ChatBoxProps) {
+    const isOwner = Boolean(currentUserId && currentUserId === providerId)
+    const [conversations, setConversations] = useState<Conversation[] | null>(null)
 
     useEffect(() => {
-        // Scroll only the chat's own message list. scrollIntoView() also
-        // scrolls the page, which made service pages jump to the bottom on load.
-        const list = messagesEndRef.current?.closest('.overflow-y-auto')
-        if (list) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
-    }, [messages])
-
-    const handleSend = async () => {
-        if (!newMessage.trim() || !currentUserId) return
-
-        // Dynamic Receiver Logic:
-        // If I am the customer, I send to the provider.
-        // If I am the provider, I send to the customer (found by looking at the last message not from me).
-        const lastOtherMessage = [...messages].reverse().find(m => m.sender_id !== currentUserId);
-        const targetReceiverId = currentUserId === providerId 
-            ? (lastOtherMessage ? lastOtherMessage.sender_id : providerId) 
-            : providerId;
-
-        const tempId = `temp-${Date.now()}`
-        const tempMessage: Message = {
-            id: tempId,
-            content: newMessage,
-            sender_id: currentUserId,
-            receiver_id: targetReceiverId,
-            created_at: new Date().toISOString()
-        }
-
-        // Optimistic Update
-        setMessages((prev) => [...prev, tempMessage])
-        setNewMessage('')
-        setLoading(true)
-
-        try {
-            await sendMessage(serviceId, targetReceiverId, tempMessage.content)
-            // Realtime listener will handle the success case (replacing temp msg)
-        } catch (error: any) {
-            console.error('Failed to send message:', error)
-            setMessages((prev) => prev.filter(m => m.id !== tempId)) // Rollback
-            toast.error(`Send failed: ${error.message || 'Unknown error'}`)
-        } finally {
-            setLoading(false)
-        }
-    }
+        if (isOwner) void getMyConversations().then(setConversations)
+    }, [isOwner])
 
     if (!currentUserId) {
         return (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Chat with Provider</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground text-sm">Please log in to chat with this provider.</p>
-                </CardContent>
-            </Card>
+            <div className="rounded-xl border border-border bg-card p-5">
+                <p className="flex items-center gap-2 font-semibold"><MessageCircle className="h-5 w-5 text-primary" /> Chat with the provider</p>
+                <p className="mt-1 text-sm text-muted-foreground">Ask about availability, price or details before you book.</p>
+                <Link href={`/auth/login?next=/services/${serviceId}`}
+                    className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                    <LogIn className="h-4 w-4" /> Log in to message
+                </Link>
+            </div>
         )
     }
 
-    // Owner View Restriction REMOVED by request to make chat visible to everyone
-    // if (currentUserId === providerId) {
-    //     return (
-    //         <Card>
-    //             <CardHeader>
-    //                 <CardTitle className="text-lg">Owner View</CardTitle>
-    //             </CardHeader>
-    //             <CardContent>
-    //                 <p className="text-muted-foreground text-sm">You are the provider of this service. You cannot chat with yourself.</p>
-    //             </CardContent>
-    //         </Card>
-    //     )
-    // }
-
-    return (
-        <Card className="flex flex-col h-[50vh] min-h-[400px] shadow-sm">
-            <CardHeader className="py-3 border-b flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-lg">Direct Chat</CardTitle>
-                <div className="flex items-center gap-2">
-                    {currentUserId === providerId ? (
-                        <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                            <span className="text-sm font-medium text-green-500">You (Online)</span>
-                        </div>
-                    ) : (
-                        <>
-                            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`} />
-                            <span className={`text-sm font-medium ${isOnline ? 'text-green-500' : 'text-muted-foreground'}`}>
-                                {isOnline ? 'Online' : 'Offline'}
-                            </span>
-                        </>
-                    )}
+    if (isOwner) {
+        return (
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+                <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <p className="flex items-center gap-2 font-semibold"><Inbox className="h-5 w-5 text-primary" /> Customer messages</p>
+                    <Link href="/messages" className="text-sm font-medium text-primary">All messages</Link>
                 </div>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-                {messages.length === 0 && (
-                    <div className="flex-1" />
+                {conversations === null ? (
+                    <div className="space-y-2 p-4">{[0, 1].map((i) => <div key={i} className="h-14 animate-pulse rounded-lg bg-secondary" />)}</div>
+                ) : (
+                    <ConversationList initial={conversations} currentUserId={currentUserId} serviceId={serviceId}
+                        emptyText="Customers who message you about this service will appear here." />
                 )}
-                {messages.map((msg) => {
-                    const isOwnMessage = msg.sender_id === currentUserId
-                    return (
-                        <div key={msg.id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${isOwnMessage ? 'bg-yellow-500 text-black ml-auto text-right' : 'bg-gray-800 text-white mr-auto text-left'
-                                }`}>
-                                {msg.content}
-                            </div>
-                        </div>
-                    )
-                })}
-                <div ref={messagesEndRef} />
-            </CardContent>
-            <div className="p-3 border-t flex gap-2">
-                <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    disabled={loading}
-                />
-                <Button size="icon" onClick={handleSend} disabled={loading || !newMessage.trim()}>
-                    <Send className="h-4 w-4" />
-                </Button>
             </div>
-        </Card>
+        )
+    }
+
+    const name = provider?.full_name?.trim() || provider?.first_name || 'Provider'
+    return (
+        <ChatThread
+            serviceId={serviceId}
+            serviceTitle={serviceTitle}
+            currentUserId={currentUserId}
+            other={{
+                id: providerId,
+                name,
+                avatarUrl: provider?.avatar_url,
+                isVerified: provider?.is_verified,
+                hasLicense: provider?.has_business_license,
+            }}
+            quickReplies={['Are you available this week?', 'What does the price include?', 'Can you send more photos?']}
+        />
     )
 }

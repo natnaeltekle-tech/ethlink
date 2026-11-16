@@ -6,8 +6,6 @@ export {
     searchServicesGreedy,
     getServiceDetails,
     getReviews,
-    getMessages,
-    sendMessage,
     createService,
     submitReview,
     toggleFavorite,
@@ -21,6 +19,14 @@ export {
     deleteService,
     resetServiceImage,
 } from './actions/listings'
+
+export {
+    getThread,
+    sendChatMessage,
+    markThreadRead,
+    getMyConversations,
+    getUnreadMessageCount,
+} from './actions/chat-messages'
 
 export {
     getMyScreeningState,
