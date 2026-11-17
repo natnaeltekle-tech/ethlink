@@ -22,7 +22,7 @@ interface Message {
 }
 
 // Browsing controls, long forms and full-screen chats: no bubble on top of them.
-const HIDDEN_PREFIXES = ['/services/new', '/add', '/admin', '/messages', '/account']
+const HIDDEN_PREFIXES = ['/services/new', '/add', '/admin', '/messages', '/account', '/dashboard', '/receipt', '/r', '/payment', '/book']
 const HIDDEN_EXACT = ['/services', '/explore']
 
 /** Service detail page: the sticky "Price / Book & Pay" bar sits above the bottom nav. */

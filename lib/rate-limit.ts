@@ -7,11 +7,15 @@ import { Redis } from '@upstash/redis'
 
 type RateLimitBucket = 'auth' | 'api' | 'ai' | 'default'
 
+// Only requests that change something are limited (the middleware skips GET/HEAD/OPTIONS).
+// Limits are per IP address, and Ethiopian mobile networks put many subscribers
+// behind one shared IP, so they are deliberately generous. Supabase Auth applies
+// its own per-user limits to sign-in and sign-up.
 const RATE_LIMITS: Record<RateLimitBucket, { max: number; windowMs: number }> = {
-    auth: { max: 5, windowMs: 15 * 60 * 1000 },
-    api: { max: 20, windowMs: 15 * 60 * 1000 },
-    ai: { max: 10, windowMs: 15 * 60 * 1000 },
-    default: { max: 100, windowMs: 15 * 60 * 1000 },
+    auth: { max: 60, windowMs: 15 * 60 * 1000 },      // POSTs under /auth
+    api: { max: 300, windowMs: 15 * 60 * 1000 },       // POSTs to /api/* (signed webhooks exempt)
+    ai: { max: 10, windowMs: 15 * 60 * 1000 },         // AI concierge, keyed per user
+    default: { max: 1500, windowMs: 15 * 60 * 1000 },  // server actions (save, book, chat, …)
 }
 
 const upstashLimiters = new Map<RateLimitBucket, Ratelimit | null>()

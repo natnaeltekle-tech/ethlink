@@ -100,16 +100,16 @@ export function BookingFrame({ booking, who, children, footer }: {
         <article className="overflow-hidden rounded-xl border border-border bg-background">
             <div className="flex gap-3 p-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={booking.service.image} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-muted object-cover" loading="lazy" />
+                <img src={booking.service.image} alt="" className="h-14 w-14 shrink-0 rounded-lg bg-muted object-cover sm:h-16 sm:w-16" loading="lazy" />
                 <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                        <Link href={`/services/${booking.service.id}`} className="line-clamp-1 font-semibold hover:text-primary">{booking.service.title}</Link>
-                        <span className="shrink-0 text-sm font-bold">{etb(booking.amount)}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{formatBookingDateTime(booking.date)}{booking.guests > 1 ? ` · ${booking.guests} guests` : ''}</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Link href={`/services/${booking.service.id}`} className="line-clamp-2 font-semibold leading-snug [overflow-wrap:anywhere] hover:text-primary">{booking.service.title}</Link>
+                    <p className="mt-0.5 flex flex-wrap items-baseline justify-between gap-x-2 text-xs text-muted-foreground">
+                        <span>{formatBookingDateTime(booking.date)}{booking.guests > 1 ? ` · ${booking.guests} guests` : ''}</span>
+                        <span className="text-sm font-bold text-foreground">{etb(booking.amount)}</span>
+                    </p>
+                    <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <Avatar name={booking.counterpart.name} url={booking.counterpart.avatarUrl} size={16} />
-                        {who}: <span className="font-medium text-foreground">{booking.counterpart.name}</span>
+                        <span className="shrink-0">{who}:</span> <span className="truncate font-medium text-foreground">{booking.counterpart.name}</span>
                     </p>
                     <div className="mt-1.5"><StatusPill status={booking.status} /></div>
                 </div>

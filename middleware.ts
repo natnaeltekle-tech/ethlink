@@ -23,10 +23,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isSignedWebhook = isSignedWebhookRoute(pathname);
 
-  // 1. Rate limiting (per IP + route bucket).
-  //    Signed webhooks (HMAC-verified) are exempt so provider callbacks
-  //    are never dropped by IP throttling.
-  if (!isSignedWebhook) {
+  // 1. Rate limiting (per IP + route bucket) — only for requests that change
+  //    something. Page views, prefetches and data refreshes (GET/HEAD) are never
+  //    throttled: many users share one carrier IP, and blocking reads made the
+  //    app show a bare "Too many requests" page during normal use.
+  //    Signed webhooks are exempt so provider callbacks are never dropped.
+  const isRead = ["GET", "HEAD", "OPTIONS"].includes(request.method);
+  if (!isSignedWebhook && !isRead) {
     try {
       const result = await checkRateLimit(getClientIp(request), pathname);
       if (!result.allowed) {

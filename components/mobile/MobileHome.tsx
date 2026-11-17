@@ -116,7 +116,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
               onChange={(e) => setSearchText(e.target.value)}
               maxLength={200}
               className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-gray-500 px-4 text-base font-medium text-white"
-              placeholder="Search for luxury stays, cars, guides..."
+              placeholder="Search services…"
             />
           </form>
           <button
@@ -164,9 +164,6 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
                 className="absolute top-4 right-4 z-10"
                 onChange={(on) => fav.setIds((prev) => { const next = new Set(prev); if (on) next.add(service.id); else next.delete(service.id); return next })}
               />
-              <div className="absolute top-4 left-4 z-10 bg-[#f5c619] text-black text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
-                Premium
-              </div>
               <Link href={'/services/' + service.id} className="flex flex-col w-full h-full">
                 <ServiceCover
                   service={service}

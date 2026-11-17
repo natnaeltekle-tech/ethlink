@@ -113,8 +113,8 @@ export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jo
     }
 
     const tabs: { id: JobTab; label: string; count: number }[] = [
-        { id: 'requests', label: 'Requests', count: jobs.requests.length },
-        { id: 'upcoming', label: 'Upcoming', count: jobs.upcoming.length },
+        { id: 'requests', label: 'New', count: jobs.requests.length },
+        { id: 'upcoming', label: 'Active', count: jobs.upcoming.length },
         { id: 'history', label: 'History', count: jobs.history.length },
     ]
     const list = jobs[tab]
@@ -128,16 +128,16 @@ export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jo
             <div className="mb-3 grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1" role="tablist">
                 {tabs.map((t) => (
                     <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
-                        className={cn('flex min-h-[40px] items-center justify-center gap-1.5 rounded-lg text-sm font-medium', tab === t.id ? 'bg-background shadow-sm' : 'text-muted-foreground')}>
-                        {t.label}
-                        {t.count > 0 && <span className={cn('rounded-full px-1.5 text-[11px] font-bold', t.id === 'requests' ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20')}>{t.count}</span>}
+                        className={cn('flex min-h-[44px] min-w-0 items-center justify-center gap-1 rounded-lg px-1 text-[13px] font-medium sm:gap-1.5 sm:text-sm', tab === t.id ? 'bg-background shadow-sm' : 'text-muted-foreground')}>
+                        <span className="truncate">{t.label}</span>
+                        {t.count > 0 && <span className={cn('shrink-0 rounded-full px-1 text-[10px] font-bold leading-4 sm:px-1.5 sm:text-[11px]', t.id === 'requests' ? 'bg-primary text-primary-foreground' : 'bg-muted-foreground/20')}>{t.count}</span>}
                     </button>
                 ))}
             </div>
 
             {list.length === 0 ? (
                 <Empty icon={tab === 'requests' ? Inbox : tab === 'upcoming' ? CalendarClock : History}
-                    title={tab === 'requests' ? 'No new requests' : tab === 'upcoming' ? 'No upcoming jobs' : 'No past jobs yet'}
+                    title={tab === 'requests' ? 'No new requests' : tab === 'upcoming' ? 'No active jobs' : 'No past jobs yet'}
                     text={tab === 'requests' ? 'New booking requests show up here for you to accept or decline.' : undefined} />
             ) : (
                 <div className="space-y-3">

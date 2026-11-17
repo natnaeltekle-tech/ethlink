@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { chatInputSchema } from "@/lib/validations";
 import { sanitizeUserText } from "@/lib/sanitize";
+import { headers } from "next/headers";
 
 // Guard so a slow Gemini network call can never hang the request indefinitely.
 const AI_CALL_TIMEOUT_MS = 20_000;
@@ -42,7 +43,9 @@ export async function processUserMessage(userMessage: string): Promise<string> {
 
     // Per-user rate limiting via the shared rate-limit infrastructure.
     const supabase = await createClient();
-    let rateLimitKey = "anonymous";
+    // Signed-in users: per account. Signed-out: per IP (never one shared budget for everyone).
+    const forwarded = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim();
+    let rateLimitKey = `anon:${forwarded || "unknown"}`;
     try {
         const { data } = await supabase.auth.getUser();
         if (data.user) rateLimitKey = data.user.id;
