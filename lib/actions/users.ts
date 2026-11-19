@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { urlSchema, profileUpdateSchema, providerProfileSchema } from '@/lib/validations'
 import { Profile, PublicProviderInfo } from '@/lib/types/database'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export async function updateProfile(formData: FormData): Promise<{ success: boolean; error?: string }> {
     const supabase = await createClient()
@@ -47,7 +48,7 @@ export async function updateProfile(formData: FormData): Promise<{ success: bool
             return { success: false, error: error.message }
         }
 
-        revalidatePath('/dashboard')
+        revalidateWorkspaces()
         revalidatePath('/profile')
         revalidatePath('/', 'layout')
         revalidatePath('/services/[id]')
@@ -228,7 +229,7 @@ export async function updateAvatarUrl(avatarUrl: string): Promise<void> {
         throw new Error(`Failed to update avatar: ${error.message}`)
     }
 
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     revalidatePath('/profile')
     revalidatePath('/services/[id]')
 }

@@ -6,6 +6,8 @@ import { Capacitor } from '@capacitor/core'
 import { createClient } from '@/lib/supabase/client'
 import { savePushToken } from '@/lib/actions/push'
 import { PUSH_CHANNEL_ID, rememberPushToken, safeNotificationLink } from '@/lib/native/push'
+import { useAppMode } from '@/context/AppModeContext'
+import { MODE_PROFILE, modeForLink, type AppMode } from '@/lib/app-mode'
 
 /**
  * Android push notifications (FCM via @capacitor/push-notifications).
@@ -18,6 +20,9 @@ export function PushNotificationsManager() {
     const router = useRouter()
     const routerRef = useRef(router)
     routerRef.current = router
+    const { setMode } = useAppMode()
+    const setModeRef = useRef(setMode)
+    setModeRef.current = setMode
 
     useEffect(() => {
         if (!Capacitor.isNativePlatform() || !Capacitor.isPluginAvailable('PushNotifications')) return
@@ -58,7 +63,11 @@ export function PushNotificationsManager() {
             // Fired for taps, including the tap that launched the app.
             await add(PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
                 const link = safeNotificationLink(notification?.data?.link)
-                routerRef.current.push(link ?? '/dashboard')
+                // Open the right workspace first (data.role, or derived from the link for older pushes).
+                const raw = notification?.data?.role
+                const role: AppMode | null = raw === 'provider' || raw === 'customer' ? raw : modeForLink(link)
+                if (role) setModeRef.current(role, { navigate: false })
+                routerRef.current.push(link ?? MODE_PROFILE[role ?? 'customer'])
             }))
             // While the app is open: refresh so badges/bookings update right away.
             await add(PushNotifications.addListener('pushNotificationReceived', () => routerRef.current.refresh()))

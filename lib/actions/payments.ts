@@ -15,6 +15,7 @@ import { sendReceiptEmail } from '@/lib/receipt-email'
 import { formatBookingDateTime } from '@/lib/booking-time'
 import { revalidatePath } from 'next/cache'
 import { getRequestBaseUrl } from '@/lib/base-url'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 /** The price locked when the booking was made (falls back to the live price for old rows). */
 function bookingPrice(booking: { quoted_price?: number | null; services: { price: number } }): number {
@@ -179,7 +180,7 @@ export async function initiatePayment(bookingId: string) {
                 scheduledAt: booking.date,
             })
 
-            revalidatePath('/dashboard')
+            revalidateWorkspaces()
             revalidatePath('/admin')
 
             return {
@@ -352,7 +353,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
         })
         if (result.status === 'error') throw new Error('Failed to update booking status')
         await recordPaymentDetails(bookingId, 'test', tx_ref)
-        revalidatePath('/dashboard')
+        revalidateWorkspaces()
         return { success: true }
     }
 
@@ -409,7 +410,7 @@ export async function verifyPayment(bookingId: string, tx_ref: string) {
     }
     await recordPaymentDetails(bookingId, verifyResult.data?.method, verifyResult.data?.reference ?? tx_ref)
 
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { success: true }
 }
 
@@ -444,7 +445,7 @@ export async function reconcileBookingPayment(
     }
 
     if (booking.status === 'paid') {
-        revalidatePath('/dashboard')
+        revalidateWorkspaces()
         return { status: 'paid' }
     }
 
@@ -494,7 +495,7 @@ export async function reconcileBookingPayment(
             })
             if (result.status === 'success' || result.status === 'already_processed') {
                 await recordPaymentDetails(bookingId, 'test', candidate)
-                revalidatePath('/dashboard')
+                revalidateWorkspaces()
                 return { status: 'paid' }
             }
         }
@@ -531,7 +532,7 @@ export async function reconcileBookingPayment(
 
             if (result.status === 'success' || result.status === 'already_processed') {
                 await recordPaymentDetails(bookingId, verifyResult.data?.method, verifyResult.data?.reference ?? candidate)
-                revalidatePath('/dashboard')
+                revalidateWorkspaces()
                 return { status: 'paid' }
             }
         } catch {
@@ -546,7 +547,7 @@ export async function reconcileBookingPayment(
         .single()
 
     if (refreshed?.status === 'paid') {
-        revalidatePath('/dashboard')
+        revalidateWorkspaces()
         return { status: 'paid' }
     }
 

@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
 import { Service, ServiceView, ReviewWithProfile } from '@/lib/types/database'
 import type { ServiceFilters } from '@/lib/service-filters'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export async function searchServices(query: string): Promise<ServiceView[]> {
     const supabase = await createClient()
@@ -152,7 +153,7 @@ export async function createService(formData: FormData): Promise<void> {
         if (amenities.length > 0) insertPayload.amenities = amenities
         const { data, error } = await supabase.from('services').insert(insertPayload as never).select().single()
         if (error) { console.error('Error creating service:', error); throw new Error('Failed to create service') }
-        revalidatePath('/services'); revalidatePath('/dashboard'); redirect(`/services/${data.id}`)
+        revalidatePath('/services'); revalidateWorkspaces(); redirect(`/services/${data.id}`)
     } catch (error) {
         if (error instanceof Error) { console.error('Validation/Creation Error:', error.message); throw error }
         throw new Error('An unexpected error occurred')
@@ -249,7 +250,7 @@ export async function deleteService(serviceId: string): Promise<void> {
     if (!service || service.user_id !== user.id) throw new Error('Unauthorized')
     const { error } = await supabase.from('services').delete().eq('id', serviceId)
     if (error) throw new Error('Failed to delete service')
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
 }
 
 export async function resetServiceImage(serviceId: string): Promise<void> {
@@ -261,5 +262,5 @@ export async function resetServiceImage(serviceId: string): Promise<void> {
     if (!service || service.user_id !== user.id) throw new Error('Unauthorized')
     const { error } = await supabase.from('services').update({ image_url: null, gallery: [] }).eq('id', serviceId)
     if (error) { console.error('Error resetting service image:', error); throw new Error('Failed to reset service image') }
-    revalidatePath('/dashboard'); revalidatePath(`/services/${serviceId}`)
+    revalidateWorkspaces(); revalidatePath(`/services/${serviceId}`)
 }

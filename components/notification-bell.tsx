@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,13 +19,26 @@ import { cn } from '@/lib/utils'
 import { Database } from '@/lib/types/database'
 import { uniqueChannel } from '@/lib/realtime'
 import { useBackHandler } from '@/lib/native/back-handler'
+import { useAppMode } from '@/context/AppModeContext'
+import { modeForLink, type AppMode } from '@/lib/app-mode'
 
 type Notification = Database['public']['Tables']['notifications']['Row']
 
+/** Shared notifications (messages, account) show in both workspaces. */
+const inMode = (n: Notification, mode: AppMode) => {
+    const role = modeForLink(n.link)
+    return role === null || role === mode
+}
+
 export function NotificationBell({ userId }: { userId: string | null }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
-    const [unreadCount, setUnreadCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
+    // Workspace isolation: customer mode never shows provider job alerts (and vice versa).
+    const { mode } = useAppMode()
+    const modeRef = useRef(mode)
+    modeRef.current = mode
+    const visible = notifications.filter((n) => inMode(n, mode))
+    const unreadCount = visible.filter((n) => !n.is_read).length
     useBackHandler(() => setIsOpen(false), isOpen)
     const router = useRouter()
     const [supabase] = useState(() => createClient())
@@ -45,7 +58,6 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
             if (notificationsData) {
                 setNotifications(notificationsData)
-                setUnreadCount(notificationsData.filter(n => !n.is_read).length)
             }
         }
 
@@ -67,9 +79,10 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                 (payload) => {
                     const newNotification = payload.new as Notification
                     setNotifications(prev => [newNotification, ...prev].slice(0, 30))
-                    setUnreadCount(prev => prev + 1)
-                    // Don't toast a message for the conversation already on screen
+                    // Don't toast a message for the conversation already on screen,
+                    // or a job alert while in customer mode (and vice versa).
                     if (newNotification.link && newNotification.link === window.location.pathname) return
+                    if (!inMode(newNotification, modeRef.current)) return
                     toast.info(newNotification.content ?? newNotification.title ?? 'New notification', {
                         action: newNotification.link
                             ? { label: 'Open', onClick: () => router.push(newNotification.link as string) }
@@ -88,7 +101,6 @@ export function NotificationBell({ userId }: { userId: string | null }) {
     const handleMarkAsRead = async (notificationId: string, link?: string) => {
         // Optimistic update
         setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n))
-        setUnreadCount(prev => Math.max(0, prev - 1))
         setIsOpen(false) // Close dropdown
 
         // Database update
@@ -104,13 +116,14 @@ export function NotificationBell({ userId }: { userId: string | null }) {
 
     const handleMarkAllRead = async () => {
         if (!userId) return
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-        setUnreadCount(0)
+        const ids = visible.filter(n => !n.is_read).map(n => n.id)
+        if (!ids.length) return
+        setNotifications(prev => prev.map(n => ids.includes(n.id) ? { ...n, is_read: true } : n))
 
         await supabase
             .from('notifications')
             .update({ is_read: true })
-            .eq('user_id', userId)
+            .in('id', ids)
     }
 
     if (!userId) return null
@@ -143,13 +156,13 @@ export function NotificationBell({ userId }: { userId: string | null }) {
                     )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {notifications.length === 0 ? (
+                {visible.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
                         No notifications yet
                     </div>
                 ) : (
                     <div className="max-h-[300px] overflow-y-auto">
-                        {notifications.map((notification) => (
+                        {visible.map((notification) => (
                             <DropdownMenuItem
                                 key={notification.id}
                                 className={cn(

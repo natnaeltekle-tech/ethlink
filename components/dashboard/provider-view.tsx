@@ -90,7 +90,7 @@ export function PayoutHistory({ payouts }: { payouts: DashboardBooking[] }) {
 }
 
 // ─── Jobs ───────────────────────────────────────────────────────────────────
-type JobTab = 'requests' | 'upcoming' | 'history'
+export type JobTab = 'requests' | 'upcoming' | 'history'
 
 export function ProviderJobs({ jobs, initialTab }: { jobs: ProviderDashboard['jobs']; initialTab?: JobTab }) {
     const router = useRouter()

@@ -86,7 +86,7 @@ export async function notifyProviderOfBooking(serviceId: string, content: string
         user_id: service.user_id,
         content,
         type: 'booking',
-        link: '/dashboard',
+        link: '/provider/jobs?tab=new',
     })
 }
 

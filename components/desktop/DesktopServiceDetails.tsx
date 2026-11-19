@@ -3,6 +3,7 @@ import { ServiceHeader } from '@/components/service/service-header'
 import { ServiceGallery } from '@/components/service/service-gallery'
 import { ProviderCard } from '@/components/service/provider-card'
 import { ServiceBookingInfo } from '@/components/service/service-booking-info'
+import { OwnListingNotice } from '@/components/service/own-listing-notice'
 import { ChatBox } from '@/components/service/chat-box'
 import { ReviewsList } from '@/components/service/reviews-list'
 import { ReviewForm } from '@/components/review-form'
@@ -90,6 +91,7 @@ export default function DesktopServiceDetails({
                 {/* Right Column: The Deal Zone */}
                 <div className="space-y-6">
                     <ServiceBookingInfo service={service} />
+                    {user?.id && service.user_id === user.id && <OwnListingNotice className="mt-4" />}
                     <ProviderCard provider={provider || { id: service.user_id }} />
 
                     <ChatBox

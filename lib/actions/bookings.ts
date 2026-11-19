@@ -6,6 +6,7 @@ import { bookingSchema, bookingStatusSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCommissionRate } from './payments'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export async function checkServiceAvailability(serviceId: string, date: string): Promise<boolean> {
     const supabase = await createClient()
@@ -70,6 +71,12 @@ export async function getAvailableServices(date: string, category?: string) {
     return services || []
 }
 
+/** True when the signed-in user owns the service (providers can't book themselves). */
+async function isOwnService(supabase: Awaited<ReturnType<typeof createClient>>, serviceId: string, userId: string) {
+    const { data } = await supabase.from('services').select('user_id').eq('id', serviceId).maybeSingle()
+    return data?.user_id === userId
+}
+
 export async function createBooking(formData: FormData) {
     const supabase = await createClient()
     let user = null
@@ -87,6 +94,10 @@ export async function createBooking(formData: FormData) {
     try {
         // Basic validation first
         const { serviceId, date } = bookingSchema.omit({ guests: true }).parse(rawData);
+
+        if (await isOwnService(supabase, serviceId, user.id)) {
+            throw new Error('You can’t book your own service. Switch to provider mode to manage it.')
+        }
 
         // Atomic Check: Availability
         // Note: The unique constraint in DB on (service_id, date) is the ultimate safeguard.
@@ -134,13 +145,13 @@ export async function createBooking(formData: FormData) {
                     user_id: service.user_id,
                     content: `New booking request for ${service.title}`,
                     type: 'booking',
-                    link: '/dashboard'
+                    link: '/provider/jobs?tab=new'
                 })
                 .select()
                 .single() // We don't really use the result but good practice
         }
 
-        revalidatePath('/dashboard');
+        revalidateWorkspaces();
         redirect(`/payment/${data.id}`)
 
     } catch (error: any) {
@@ -190,6 +201,10 @@ export async function createBookingJson(formData: FormData) {
 
     const { serviceId, date, guests } = parsed.data;
 
+    if (await isOwnService(supabase, serviceId, user.id)) {
+        return { error: 'You can’t book your own service. Switch to provider mode to manage it.' }
+    }
+
     // Validate the date is valid
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) {
@@ -236,13 +251,13 @@ export async function createBookingJson(formData: FormData) {
             .insert({
                 user_id: service.user_id,
                 content: `New booking request for ${service.title}`,
-                link: '/dashboard',
+                link: '/provider/jobs?tab=new',
                 type: 'booking'
             })
             .select()
     }
 
-    revalidatePath('/dashboard');
+    revalidateWorkspaces();
     return { success: true, bookingId: data.id }
 }
 
@@ -430,7 +445,7 @@ export async function updateBookingStatus(bookingId: string, status: 'confirmed'
         }
     }
 
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
 }
 
 export async function completeJob(bookingId: string) {
@@ -477,5 +492,5 @@ export async function completeJob(bookingId: string) {
         throw new Error(`Failed to complete job: ${error.message}`)
     }
 
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
 }

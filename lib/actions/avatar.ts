@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 import { urlSchema } from '@/lib/validations'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export async function updateAvatarUrl(avatarUrl: string) {
     // Validate URL
@@ -31,6 +32,6 @@ export async function updateAvatarUrl(avatarUrl: string) {
         throw new Error(`Failed to update avatar: ${error.message}`)
     }
 
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     revalidatePath('/services/[id]')
 }

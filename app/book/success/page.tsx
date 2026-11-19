@@ -23,7 +23,7 @@ export default async function SuccessPage({
     const { bookingId, tx_ref } = await searchParams;
 
     if (!bookingId) {
-        return redirect("/dashboard");
+        return redirect("/bookings");
     }
 
     const booking = await getBookingDetails(bookingId);
@@ -77,7 +77,7 @@ export default async function SuccessPage({
                         </div>
 
                         <Button asChild variant="outline" className="w-full h-12">
-                            <Link href="/dashboard">Go to Dashboard</Link>
+                            <Link href="/bookings">Go to my bookings</Link>
                         </Button>
                     </div>
                 </Card>
@@ -102,7 +102,7 @@ export default async function SuccessPage({
                     </div>
                     <div className="p-6 sm:p-8">
                         <Button asChild className="w-full h-12 bg-blue-600 hover:bg-blue-700">
-                            <Link href="/dashboard">Go to Dashboard</Link>
+                            <Link href="/bookings">Go to my bookings</Link>
                         </Button>
                     </div>
                 </Card>

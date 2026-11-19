@@ -169,7 +169,7 @@ export default function NewServicePage() {
                     ? 'Listing published!'
                     : 'Submitted! We will review your application and notify you.'
             )
-            router.push(result.status === 'verified' ? `/services/${result.serviceId}` : '/dashboard?submitted=1')
+            router.push(result.status === 'verified' ? `/services/${result.serviceId}` : '/provider/overview?submitted=1')
         } catch {
             toast.error('Could not submit. Check your connection and try again.')
         } finally {

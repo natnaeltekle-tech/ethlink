@@ -13,6 +13,7 @@ import MobileChatRoom from './MobileChatRoom';
 import MobileReviewForm from './MobileReviewForm';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { OwnListingNotice } from '@/components/service/own-listing-notice';
 
 interface MobileServiceDetailsProps {
     service: any;
@@ -34,6 +35,8 @@ export default function MobileServiceDetails({
     currentUser
 }: MobileServiceDetailsProps) {
     const router = useRouter();
+    // You can't book your own service (manage it in provider mode instead).
+    const isOwnListing = Boolean(currentUser?.id && service?.user_id && currentUser.id === service.user_id);
     const [showChat, setShowChat] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
@@ -146,7 +149,7 @@ export default function MobileServiceDetails({
                             <TrustBadges isVerified={activeProvider.is_verified} hasLicense={activeProvider.has_business_license} className="mt-1" />
                         </div>
                     </div>
-                    {service?.user_id && <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
+                    {service?.user_id && !isOwnListing && <button onClick={() => setShowChat(true)} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-colors">
                         <MessageSquare className="w-4 h-4 text-[#f5c619]" />
                         <span className="text-sm font-bold">Message</span>
                     </button>}
@@ -228,17 +231,21 @@ export default function MobileServiceDetails({
             </main>
 
             {/* Sticky Bottom Action Bar — compact to fit above mobile nav */}
-            <div className="fixed bottom-16 left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-5 py-3 flex items-center justify-between gap-4 safe-area-pb">
+            <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-50 bg-[#0B0C15]/95 backdrop-blur-xl border-t border-white/10 px-5 py-3 flex items-center justify-between gap-4">
                 <div className="flex flex-col min-w-0">
                     <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider leading-none">Price</span>
                     <span className="mt-0.5 text-lg font-bold leading-none text-[#f5c619]">{formatPrice(service.price, service.pricing_unit)}</span>
                 </div>
-                <Link
-                    href={'/book/' + service?.id}
-                    className="bg-[#f5c619] flex min-h-[44px] items-center justify-center whitespace-nowrap text-[#121212] px-7 py-2.5 rounded-full font-bold text-sm shadow-[0_0_12px_rgba(245,198,25,0.25)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
-                >
-                    Book & Pay
-                </Link>
+                {isOwnListing ? (
+                    <OwnListingNotice compact className="shrink-0" />
+                ) : (
+                    <Link
+                        href={'/book/' + service?.id}
+                        className="bg-[#f5c619] flex min-h-[44px] items-center justify-center whitespace-nowrap text-[#121212] px-7 py-2.5 rounded-full font-bold text-sm shadow-[0_0_12px_rgba(245,198,25,0.25)] hover:scale-[1.02] active:scale-95 transition-all shrink-0"
+                    >
+                        Book & Pay
+                    </Link>
+                )}
             </div>
         </div>
     );

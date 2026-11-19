@@ -29,7 +29,7 @@ export default async function ListingsPage({ searchParams }: { searchParams: Pro
     return (
         <div className="flex flex-col min-h-screen bg-muted/40">
             <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px]">
-                <Link href="/dashboard" className="font-bold text-lg">
+                <Link href="/profile" className="font-bold text-lg">
                     Eth-Links
                 </Link>
                 <div className="ml-auto">

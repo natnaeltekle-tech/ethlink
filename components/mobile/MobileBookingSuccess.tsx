@@ -97,7 +97,7 @@ export default function MobileBookingSuccess({
 
             {/* Bottom Actions */}
             <div className="fixed bottom-20 left-0 w-full p-5 bg-gradient-to-t from-[#0B0C15] via-[#0B0C15]/95 to-transparent backdrop-blur-md z-40 flex flex-col gap-3">
-                <Link href="/dashboard"
+                <Link href="/bookings"
                     className="w-full bg-[#f5c619] text-[#221e10] font-bold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(245,198,25,0.3)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
                     View Booking Details <ArrowRight className="w-5 h-5" />
                 </Link>

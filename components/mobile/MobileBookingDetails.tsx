@@ -64,7 +64,7 @@ export default function MobileBookingDetails({ booking, service, provider }: Mob
         <div className="min-h-screen bg-[#221e10] font-sans text-white pb-44">
             {/* Header */}
             <header className="sticky top-0 z-50 flex items-center justify-between p-4 bg-[#221e10]/95 backdrop-blur-md border-b border-white/5">
-                <Link href="/dashboard" className="flex size-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+                <Link href="/bookings" className="flex size-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>
                 <h1 className="text-lg font-bold tracking-tight">Booking Details</h1>

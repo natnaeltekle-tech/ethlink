@@ -7,6 +7,7 @@ import { getCommissionRate } from '@/lib/actions/payments'
 import { getServiceImageUrl } from '@/lib/service-image'
 import { sanitizeDescription, sanitizeReviewComment } from '@/lib/sanitize'
 import { ADDIS_ZONES, SERVICE_MODES, normalizeEthiopianPhone, type VerificationStatus } from '@/lib/provider-screening'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 // ─── Shared shapes ──────────────────────────────────────────────────────────
 export type Person = { id: string; name: string; avatarUrl: string | null; isVerified: boolean; hasLicense: boolean }
@@ -166,7 +167,7 @@ export async function cancelMyBooking(bookingId: string): Promise<ActionResult> 
     const { data, error } = await supabase.from('bookings').update({ status: 'cancelled' })
         .eq('id', bookingId).eq('user_id', user.id).in('status', ['pending', 'confirmed']).select('id')
     if (error || !data?.length) return { ok: false, error: 'This booking can no longer be cancelled here' }
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { ok: true }
 }
 
@@ -182,7 +183,7 @@ export async function reportDispute(bookingId: string, reason: string): Promise<
         console.error('[dashboard] dispute failed:', error)
         return { ok: false, error: 'Disputes can only be opened while the payment is held in escrow' }
     }
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { ok: true }
 }
 
@@ -200,7 +201,7 @@ export async function reviewBooking(bookingId: string, rating: number, comment: 
         console.error('[dashboard] review failed:', error)
         return { ok: false, error: 'Could not save your review. Please try again.' }
     }
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     revalidatePath(`/services/${booking.service_id}`)
     return { ok: true }
 }
@@ -234,7 +235,7 @@ export async function clearRecentSearches(): Promise<void> {
     const { supabase, user } = await session()
     if (!user) return
     await supabase.from('saved_searches').delete().eq('user_id', user.id)
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
 }
 
 const accountSchema = z.object({
@@ -263,7 +264,7 @@ export async function updateAccount(input: { firstName: string; lastName: string
         console.error('[dashboard] updateAccount failed:', error)
         return { ok: false, error: 'Could not save your details' }
     }
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { ok: true }
 }
 
@@ -352,6 +353,6 @@ export async function updateServiceArea(input: { zones: string[]; modes: string[
         console.error('[dashboard] updateServiceArea failed:', error)
         return { ok: false, error: 'Service area can be edited once your application is approved' }
     }
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { ok: true }
 }

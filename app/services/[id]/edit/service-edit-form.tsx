@@ -73,13 +73,13 @@ export function ServiceEditForm({ userId, service }: { userId: string; service: 
         setSaving(false)
         if (!r.ok) return toast.error(r.error)
         toast.success('Listing updated')
-        router.push('/dashboard?mode=provider&tab=services')
+        router.push('/provider/services')
         router.refresh()
     }
 
     return (
         <div className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4 md:pt-8">
-            <Link href="/dashboard?mode=provider&tab=services" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <Link href="/provider/services" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4" /> Back to my services
             </Link>
             <h1 className="mb-1 text-2xl font-bold">Edit listing</h1>

@@ -10,6 +10,7 @@ import {
     logPaymentEvent,
 } from '@/lib/services/payments'
 import { getCommissionRate } from '@/lib/actions/payments'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 async function checkAdmin() {
     return isAdmin()
@@ -201,7 +202,7 @@ export async function adminConfirmBookingPayment(
     }
 
     revalidatePath('/admin')
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     revalidatePath('/book/success')
     revalidatePath(`/receipt/${bookingId}`)
 
@@ -293,7 +294,7 @@ export async function resolveEscrowDispute(input: {
             user_id: booking.user_id,
             content,
             type: 'payment' as const,
-            link: '/dashboard',
+            link: '/bookings',
         },
         ...(providerId
             ? [
@@ -301,14 +302,14 @@ export async function resolveEscrowDispute(input: {
                       user_id: providerId,
                       content,
                       type: 'payment' as const,
-                      link: '/dashboard',
+                      link: '/provider/jobs?tab=history',
                   },
               ]
             : []),
     ])
 
     revalidatePath('/admin')
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
 
     return { success: true, status: nextStatus }
 }
@@ -437,10 +438,10 @@ export async function markPayoutSent(input: { bookingId: string; method: 'telebi
             user_id: service.user_id,
             type: 'payment' as const,
             content: `${amount} for ${service.title ?? 'your job'} was sent via ${via}${reference ? ` (ref ${reference})` : ''}.`,
-            link: '/dashboard?mode=provider&tab=overview',
+            link: '/provider/overview',
         })
     }
     revalidatePath('/admin')
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { success: true }
 }

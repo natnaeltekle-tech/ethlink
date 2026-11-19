@@ -1,55 +1,28 @@
-import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { Navbar } from '@/components/navbar'
-import { getCustomerDashboard, getProviderDashboard } from '@/lib/actions/dashboard'
-import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 
-export const dynamic = 'force-dynamic'
+/**
+ * The old combined dashboard. Kept only as a redirect: notifications already
+ * stored in the database, receipt emails and older app builds link here.
+ *   /dashboard?mode=provider&tab=jobs|requests|upcoming|history|services|profile|overview
+ *   /dashboard?tab=bookings|saved|account
+ */
+const PROVIDER: Record<string, string> = {
+    overview: '/provider/overview',
+    jobs: '/provider/jobs',
+    requests: '/provider/jobs?tab=new',
+    upcoming: '/provider/jobs?tab=active',
+    history: '/provider/jobs?tab=history',
+    services: '/provider/services',
+    profile: '/provider/profile',
+}
+const CUSTOMER: Record<string, string> = {
+    bookings: '/bookings',
+    saved: '/saved',
+    account: '/profile/settings',
+}
 
-export default async function DashboardPage() {
-    const supabase = await createClient()
-    let user = null
-    try {
-        const { data } = await supabase.auth.getUser()
-        user = data.user
-    } catch {
-        // Expired/corrupt session — treat as logged out
-    }
-    if (!user) redirect('/auth/login?next=/dashboard')
-
-    const [{ data: profile }, { count: serviceCount }, customer] = await Promise.all([
-        supabase.from('profiles').select('first_name, last_name, phone, bio, avatar_url, role, verification_status').eq('id', user.id).maybeSingle(),
-        supabase.from('services').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        getCustomerDashboard(),
-    ])
-
-    const role = profile?.role ?? 'user'
-    const verificationStatus = profile?.verification_status ?? 'unsubmitted'
-    const isProvider = role === 'provider' || role === 'admin' || (serviceCount ?? 0) > 0 || verificationStatus !== 'unsubmitted'
-    const provider = isProvider ? await getProviderDashboard() : null
-
-    return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Navbar hideSearch />
-            <Suspense>
-                <DashboardShell
-                    isProvider={isProvider}
-                    provider={provider}
-                    customer={customer ?? { bookings: [], favorites: [], recentSearches: [] }}
-                    profile={{
-                        id: user.id,
-                        email: user.email ?? null,
-                        firstName: profile?.first_name ?? '',
-                        lastName: profile?.last_name ?? '',
-                        phone: profile?.phone ?? '',
-                        bio: profile?.bio ?? '',
-                        avatarUrl: profile?.avatar_url ?? null,
-                        role,
-                        verificationStatus,
-                    }}
-                />
-            </Suspense>
-        </div>
-    )
+export default async function DashboardRedirect({ searchParams }: { searchParams: Promise<{ mode?: string; tab?: string }> }) {
+    const { mode, tab = '' } = await searchParams
+    if (mode === 'provider') redirect(PROVIDER[tab] ?? PROVIDER.overview)
+    redirect(CUSTOMER[tab] ?? '/profile')
 }

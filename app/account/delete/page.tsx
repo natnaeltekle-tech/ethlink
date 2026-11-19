@@ -37,7 +37,7 @@ export default async function DeleteAccountPage() {
             <Navbar hideSearch />
             <main className="mx-auto w-full max-w-xl space-y-5 px-4 pb-28 pt-4 md:pb-12 md:pt-8">
                 {signedIn && (
-                    <Link href="/dashboard?tab=account" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                    <Link href="/profile/settings" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
                         <ArrowLeft className="h-4 w-4" />Back to my account
                     </Link>
                 )}

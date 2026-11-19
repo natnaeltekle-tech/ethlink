@@ -18,6 +18,7 @@ import {
     type VerificationStatus,
 } from '@/lib/provider-screening'
 import type { Profile, ProviderVerification } from '@/lib/types/database'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export type ScreeningState = {
     userId: string
@@ -278,7 +279,7 @@ export async function submitProviderListing(formData: FormData): Promise<SubmitR
             await notifyAdmins(`New provider application to review (${service.category})`)
         }
 
-        revalidatePath('/dashboard')
+        revalidateWorkspaces()
         revalidatePath('/admin')
         return { ok: true, serviceId: created.id, status: finalStatus }
     } catch (e) {

@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { diagnoseServiceAccount, loadServiceAccount, sendToDevice } from '@/lib/push/fcm'
+import { modeForLink } from '@/lib/app-mode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -74,7 +75,13 @@ export async function POST(req: NextRequest) {
     const msg = {
         title: n.title?.trim() || TITLES[n.type ?? 'info'] || 'Eth-Links',
         body: text.length > 180 ? `${text.slice(0, 177)}…` : text,
-        data: { link: n.link && n.link.startsWith('/') ? n.link : '/dashboard', notification_id: n.id, type: n.type ?? 'info' },
+        data: {
+            link: n.link && n.link.startsWith('/') ? n.link : '/profile',
+            notification_id: n.id,
+            type: n.type ?? 'info',
+            // Which workspace to open: the app switches mode before navigating.
+            role: modeForLink(n.link) ?? '',
+        },
         tag: n.id,
     }
 

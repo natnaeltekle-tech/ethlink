@@ -143,7 +143,7 @@ export async function approveProvider(userId: string, opts: { licenseApproved: b
         throw new Error('Could not approve provider')
     }
     await admin.from('provider_verifications').update({ reviewed_at: new Date().toISOString(), reviewed_by: reviewer }).eq('user_id', userId)
-    await notify(userId, '✔ You are verified! Your listings are now live and customers can book you.', '/dashboard')
+    await notify(userId, '✔ You are verified! Your listings are now live and customers can book you.', '/provider/overview')
 
     revalidatePath('/admin')
     revalidatePath('/services')

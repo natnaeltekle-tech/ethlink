@@ -25,9 +25,9 @@ export default async function ReceiptPage({ params, searchParams }: {
     if (r === 'login') redirect(`/auth/login?next=/receipt/${id}`)
     if (!r) notFound()
 
-    const back = r.viewer === 'provider' ? { href: '/dashboard?mode=provider&tab=jobs', label: 'Back to jobs' }
+    const back = r.viewer === 'provider' ? { href: '/provider/jobs', label: 'Back to jobs' }
         : r.viewer === 'admin' ? { href: '/admin', label: 'Back to admin' }
-        : { href: '/dashboard?tab=bookings', label: 'Back to my bookings' }
+        : { href: '/bookings', label: 'Back to my bookings' }
 
     const paid = (RECEIPT_STATUSES as readonly string[]).includes(r.status)
 

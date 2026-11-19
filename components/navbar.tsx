@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { Handshake, User, LayoutDashboard, LogOut } from 'lucide-react'
+import { Handshake, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/server'
 import { SearchBar } from '@/components/search-bar'
 import { NavbarInbox } from '@/components/navbar-inbox'
+import { WorkspaceButton } from '@/components/workspace-button'
 
 interface NavbarProps {
     hideSearch?: boolean
@@ -48,12 +49,7 @@ export async function Navbar({ hideSearch = false }: NavbarProps) {
                     {user ? (
                         <div className="flex items-center gap-2">
                             <NavbarInbox userId={user.id} />
-                            <Link href="/dashboard">
-                                <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-                                    <LayoutDashboard className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Dashboard</span>
-                                </Button>
-                            </Link>
+                            <WorkspaceButton />
                             {/* Optionally show user email or avatar */}
                             <span className="hidden md:inline text-xs text-muted-foreground ml-2 max-w-[120px] truncate">{user?.email || user?.user_metadata?.email || 'User'}</span>
                         </div>

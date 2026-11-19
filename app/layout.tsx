@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
-import { MobileNav } from "@/components/mobile-nav";
+import { BottomNav } from "@/components/BottomNav";
+import { AppModeProvider } from "@/context/AppModeContext";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { AppInitializer } from "@/components/app-initializer";
@@ -97,6 +98,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            <AppModeProvider>
             <CapacitorBackButton />
             <PushNotificationsManager />
             <AppInitializer>
@@ -104,9 +106,9 @@ export default function RootLayout({
                 <PresenceTracker />
                 <OfflineBanner />
                 <div className="flex flex-col min-h-screen">{children}</div>
-                <ErrorBoundary name="Mobile Navigation">
+                <ErrorBoundary name="Bottom Navigation">
                   <Suspense fallback={null}>
-                    <MobileNav />
+                    <BottomNav />
                   </Suspense>
                 </ErrorBoundary>
 
@@ -116,6 +118,7 @@ export default function RootLayout({
                 <Toaster />
               </AuthGate>
             </AppInitializer>
+            </AppModeProvider>
           </ThemeProvider>
         </ClientErrorBoundary>
       </body>

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { serviceSchema } from '@/lib/validations'
 import { sanitizeDescription } from '@/lib/sanitize'
 import { PRICING_UNITS, WEEK_DAYS } from '@/lib/provider-screening'
+import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export type EditableService = {
     id: string
@@ -155,6 +156,6 @@ export async function updateMyService(serviceId: string, formData: FormData): Pr
 
     revalidatePath(`/services/${serviceId}`)
     revalidatePath('/services')
-    revalidatePath('/dashboard')
+    revalidateWorkspaces()
     return { ok: true }
 }
