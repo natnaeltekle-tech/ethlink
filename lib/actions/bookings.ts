@@ -6,6 +6,7 @@ import { bookingSchema, bookingStatusSchema } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCommissionRate } from './payments'
+import { releaseBooking } from '@/lib/escrow/service'
 import { revalidateWorkspaces } from '@/lib/revalidate'
 
 export async function checkServiceAvailability(serviceId: string, date: string): Promise<boolean> {
@@ -482,15 +483,9 @@ export async function completeJob(bookingId: string) {
         throw new Error('Only paid bookings can be marked as completed')
     }
 
-    // Use standard authenticated client - now protected by RLS
-    const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'completed' })
-        .eq('id', bookingId)
-
-    if (error) {
-        throw new Error(`Failed to complete job: ${error.message}`)
-    }
+    // Release escrow to the provider's balance (ledger + push), idempotent.
+    const result = await releaseBooking(bookingId, 'customer')
+    if (result === 'not_releasable') throw new Error('Only paid bookings can be marked as completed')
 
     revalidateWorkspaces()
 }

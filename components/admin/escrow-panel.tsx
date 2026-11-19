@@ -3,12 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { AlertTriangle, Banknote, Loader2 } from 'lucide-react'
-import { markPayoutSent, resolveEscrowDispute, type EscrowQueueItem } from '@/lib/admin-actions'
+import { AlertTriangle, Loader2 } from 'lucide-react'
+import { resolveEscrowDispute, type EscrowQueueItem } from '@/lib/admin-actions'
 import { formatBookingDateTime } from '@/lib/booking-time'
 
 const etb = (n: number) => `${Math.round(n).toLocaleString()} ETB`
-const input = 'h-10 w-full rounded-md border border-input bg-background px-3 text-sm'
 
 function DisputeRow({ item }: { item: EscrowQueueItem }) {
     const router = useRouter()
@@ -52,72 +51,16 @@ function DisputeRow({ item }: { item: EscrowQueueItem }) {
     )
 }
 
-function PayoutRow({ item }: { item: EscrowQueueItem }) {
-    const router = useRouter()
-    const p = item.provider
-    const [method, setMethod] = useState<'telebirr' | 'cbe' | 'cash' | 'other'>(p.telebirr ? 'telebirr' : p.cbe ? 'cbe' : 'other')
-    const [reference, setReference] = useState('')
-    const [busy, setBusy] = useState(false)
-    const send = async () => {
-        setBusy(true)
-        try {
-            await markPayoutSent({ bookingId: item.id, method, reference })
-            toast.success(`Payout recorded for ${p.name}`)
-            router.refresh()
-        } catch (e) {
-            toast.error(e instanceof Error ? e.message : 'Could not record payout')
-        } finally {
-            setBusy(false)
-        }
-    }
+/** Open disputes. Provider payouts now go through the ledger (see RevenuePanel). */
+export function EscrowPanel({ disputes }: { disputes: EscrowQueueItem[] }) {
     return (
-        <li className="space-y-2 rounded-xl border border-border bg-background p-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="font-semibold">{p.name}</p>
-                <span className="text-sm font-bold text-green-600 dark:text-green-400">{etb(item.providerEarnings)}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">{item.serviceTitle} · completed job on {formatBookingDateTime(item.date)} · <a href={`/receipt/${item.id}`} className="text-primary underline">Receipt</a></p>
-            <p className="text-xs">
-                {p.telebirr && <>Telebirr <b>{p.telebirr}</b> </>}
-                {p.cbe && <>· CBE <b>{p.cbe}</b> </>}
-                {p.accountName && <>· {p.accountName}</>}
-                {!p.telebirr && !p.cbe && <span className="text-amber-600">No payout details on file</span>}
-            </p>
-            <div className="grid grid-cols-[auto_1fr_auto] gap-2">
-                <select value={method} onChange={(e) => setMethod(e.target.value as typeof method)} className={input} aria-label="Payout method">
-                    <option value="telebirr">Telebirr</option>
-                    <option value="cbe">CBE</option>
-                    <option value="cash">Cash</option>
-                    <option value="other">Other</option>
-                </select>
-                <input value={reference} onChange={(e) => setReference(e.target.value)} maxLength={100} placeholder={method === 'cash' ? 'Reference (optional)' : 'Transfer reference'} className={input} aria-label="Transfer reference" />
-                <button type="button" onClick={send} disabled={busy || (method !== 'cash' && reference.trim().length < 3)}
-                    className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-                    {busy && <Loader2 className="h-4 w-4 animate-spin" />}Mark paid out
-                </button>
-            </div>
-        </li>
-    )
-}
-
-export function EscrowPanel({ disputes, payouts }: { disputes: EscrowQueueItem[]; payouts: EscrowQueueItem[] }) {
-    const owed = payouts.reduce((n, p) => n + p.providerEarnings, 0)
-    return (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div>
             <section id="disputes" className="scroll-mt-20 rounded-2xl border border-border bg-card p-4">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
                     <AlertTriangle className="h-5 w-5 text-red-500" />Disputes <span className="text-sm font-normal text-muted-foreground">({disputes.length})</span>
                 </h2>
                 {disputes.length === 0 ? <p className="text-sm text-muted-foreground">No open disputes.</p> : (
                     <ul className="space-y-3">{disputes.map((d) => <DisputeRow key={d.id} item={d} />)}</ul>
-                )}
-            </section>
-            <section id="payouts" className="scroll-mt-20 rounded-2xl border border-border bg-card p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                    <Banknote className="h-5 w-5 text-green-600" />Provider payouts <span className="text-sm font-normal text-muted-foreground">({payouts.length} · {etb(owed)} owed)</span>
-                </h2>
-                {payouts.length === 0 ? <p className="text-sm text-muted-foreground">Nothing waiting to be paid out.</p> : (
-                    <ul className="space-y-3">{payouts.map((p) => <PayoutRow key={p.id} item={p} />)}</ul>
                 )}
             </section>
         </div>

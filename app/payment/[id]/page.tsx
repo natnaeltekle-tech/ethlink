@@ -1,13 +1,14 @@
 import { getBookingDetails } from '@/lib/actions';
 import { notFound } from 'next/navigation';
-import { ShieldCheck, Calendar, MapPin } from 'lucide-react';
+import { ShieldCheck, Calendar, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PaymentMethods } from '@/components/payment/payment-methods';
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
 import { formatBookingDateTime, BOOKING_TIME_ZONE_LABEL } from '@/lib/booking-time';
 
-export default async function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PaymentPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ failed?: string }> }) {
     const { id } = await params;
+    const { failed } = await searchParams;
     const booking = await getBookingDetails(id);
 
     if (!booking) {
@@ -15,6 +16,8 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
     }
 
     const service = booking.services;
+    // The price locked when the booking was made — exactly what checkout charges.
+    const amount = Number(booking.quoted_price ?? service.price);
 
     return (
         <div className="min-h-screen bg-background py-8 px-4 sm:p-6 lg:p-8 flex items-center justify-center">
@@ -44,17 +47,24 @@ export default async function PaymentPage({ params }: { params: Promise<{ id: st
                                         <span>{formatBookingDateTime(booking.date)} ({BOOKING_TIME_ZONE_LABEL})</span>
                                     </div>
                                     <div className="mt-2 text-3xl font-bold text-primary">
-                                        {service.price} ETB
+                                        {amount.toLocaleString()} ETB
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <PaymentMethods bookingId={booking.id} amount={service.price} />
+                        {failed && (
+                            <div role="alert" className="mb-5 flex gap-2 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm">
+                                <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                                <p>Your last payment did not go through and you were not charged. You can try again.</p>
+                            </div>
+                        )}
+
+                        <PaymentMethods bookingId={booking.id} amount={amount} />
 
                         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground/60 mt-6">
                             <ShieldCheck className="h-4 w-4 text-green-500" />
-                            <span>Secure SSL Encrypted Transaction</span>
+                            <span>Held in escrow until your job is done</span>
                         </div>
                     </div>
                 </div>

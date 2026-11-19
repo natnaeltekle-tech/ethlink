@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Briefcase, CalendarCheck, Home, LayoutGrid, Search, UserRound, Wrench, type LucideIcon } from 'lucide-react'
+import { Briefcase, CalendarCheck, Home, LayoutGrid, Search, UserRound, Wallet, Wrench, type LucideIcon } from 'lucide-react'
 import { useAppMode } from '@/context/AppModeContext'
 import { useHaptics } from '@/lib/hooks/useHaptics'
 import { isChatThreadPath } from '@/lib/hooks/use-unread-messages'
@@ -23,6 +23,7 @@ export const CUSTOMER_TABS: Tab[] = [
 export const PROVIDER_TABS: Tab[] = [
     { href: '/provider/overview', label: 'Overview', icon: LayoutGrid },
     { href: '/provider/jobs', label: 'Jobs', icon: Briefcase, badge: 'newJobs' },
+    { href: '/provider/earnings', label: 'Earnings', icon: Wallet },
     { href: '/provider/services', label: 'Services', icon: Wrench },
     { href: '/provider/profile', label: 'Profile', icon: UserRound },
 ]

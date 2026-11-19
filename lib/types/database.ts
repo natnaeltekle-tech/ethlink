@@ -391,6 +391,13 @@ export type Database = {
                     payment_method: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
                     payment_reference: string | null
                     verify_token: string
+                    tx_ref: string | null
+                    gross_amount_cents: number | null
+                    commission_rate_bps: number | null
+                    commission_amount_cents: number | null
+                    seller_net_amount_cents: number | null
+                    escrow_status: EscrowStatus
+                    released_at: string | null
                 }
                 Insert: {
                     id?: string
@@ -417,6 +424,13 @@ export type Database = {
                     payment_method?: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
                     payment_reference?: string | null
                     verify_token?: string
+                    tx_ref?: string | null
+                    gross_amount_cents?: number | null
+                    commission_rate_bps?: number | null
+                    commission_amount_cents?: number | null
+                    seller_net_amount_cents?: number | null
+                    escrow_status?: EscrowStatus
+                    released_at?: string | null
                 }
                 Update: {
                     id?: string
@@ -443,6 +457,13 @@ export type Database = {
                     payment_method?: 'telebirr' | 'cbe' | 'chapa' | 'card' | 'cash' | 'other' | 'test' | null
                     payment_reference?: string | null
                     verify_token?: string
+                    tx_ref?: string | null
+                    gross_amount_cents?: number | null
+                    commission_rate_bps?: number | null
+                    commission_amount_cents?: number | null
+                    seller_net_amount_cents?: number | null
+                    escrow_status?: EscrowStatus
+                    released_at?: string | null
                 }
                 Relationships: [
                     {
@@ -562,6 +583,56 @@ export type Database = {
                         referencedColumns: ["id"]
                     }
                 ]
+            }
+            commission_rules: {
+                Row: { id: string; scope: 'default' | 'category' | 'vendor'; category: string | null; vendor_id: string | null; rate_bps: number; note: string | null; created_at: string; updated_at: string }
+                Insert: { id?: string; scope: 'default' | 'category' | 'vendor'; category?: string | null; vendor_id?: string | null; rate_bps: number; note?: string | null; created_at?: string; updated_at?: string }
+                Update: { rate_bps?: number; note?: string | null; updated_at?: string }
+                Relationships: []
+            }
+            payment_attempts: {
+                Row: {
+                    id: string; tx_ref: string; booking_id: string; customer_id: string | null; amount_cents: number
+                    commission_rate_bps: number; commission_amount_cents: number; seller_net_amount_cents: number
+                    currency: 'ETB'; provider: 'chapa' | 'sandbox' | 'manual'
+                    status: 'initialized' | 'succeeded' | 'failed' | 'duplicate' | 'orphaned'
+                    checkout_url: string | null; provider_reference: string | null; failure_reason: string | null
+                    created_at: string; paid_at: string | null
+                }
+                Insert: { tx_ref: string; booking_id: string; amount_cents: number; commission_rate_bps: number; commission_amount_cents: number; seller_net_amount_cents: number; customer_id?: string | null; provider?: 'chapa' | 'sandbox' | 'manual' }
+                Update: { status?: 'initialized' | 'succeeded' | 'failed' | 'duplicate' | 'orphaned'; checkout_url?: string | null; provider_reference?: string | null; failure_reason?: string | null }
+                Relationships: []
+            }
+            payout_accounts: {
+                Row: {
+                    id: string; user_id: string; method: 'bank' | 'telebirr'; bank_code: string; bank_name: string
+                    account_name: string; account_number: string; is_default: boolean; cooldown_until: string
+                    created_at: string; updated_at: string
+                }
+                Insert: { user_id: string; method: 'bank' | 'telebirr'; bank_code: string; bank_name: string; account_name: string; account_number: string; is_default?: boolean; cooldown_until?: string }
+                Update: { is_default?: boolean; bank_code?: string; bank_name?: string; account_name?: string; account_number?: string; method?: 'bank' | 'telebirr'; cooldown_until?: string; updated_at?: string }
+                Relationships: []
+            }
+            payout_requests: {
+                Row: {
+                    id: string; user_id: string | null; payout_account_id: string | null; amount_cents: number; currency: 'ETB'
+                    reference: string; status: 'pending' | 'completed' | 'failed'; provider: 'chapa' | 'sandbox' | 'legacy'
+                    provider_reference: string | null; failure_reason: string | null; account_snapshot: Json
+                    requested_at: string; approved_at: string | null; completed_at: string | null; failed_at: string | null
+                }
+                Insert: { reference: string; amount_cents: number; user_id?: string | null }
+                Update: { provider_reference?: string | null }
+                Relationships: []
+            }
+            wallet_transactions: {
+                Row: {
+                    id: number; created_at: string; event_type: LedgerEventType; reference_id: string; user_id: string | null
+                    booking_id: string | null; payout_request_id: string | null; amount_cents: number; currency: 'ETB'
+                    status: 'posted' | 'pending' | 'completed' | 'failed'; description: string | null
+                }
+                Insert: never
+                Update: never
+                Relationships: []
             }
             processed_payments: {
                 Row: {
@@ -804,6 +875,27 @@ export type Database = {
             }
         }
         Functions: {
+            commission_bps_for: { Args: { p_service: string }; Returns: number }
+            create_payment_attempt: {
+                Args: { p_booking: string; p_customer: string | null; p_provider: string; p_tx_ref: string }
+                Returns: Database['public']['Tables']['payment_attempts']['Row']
+            }
+            confirm_escrow_payment: {
+                Args: { p_tx_ref: string; p_amount_cents: number | null; p_provider_reference: string | null; p_method: string | null }
+                Returns: Json
+            }
+            release_escrow: { Args: { p_booking: string }; Returns: string }
+            release_due_escrow: { Args: { p_hours?: number }; Returns: string[] }
+            request_payout: {
+                Args: { p_user: string; p_amount_cents: number; p_account: string; p_reference: string; p_provider: string; p_min_cents?: number }
+                Returns: Database['public']['Tables']['payout_requests']['Row']
+            }
+            approve_payout: { Args: { p_reference: string }; Returns: boolean }
+            finalize_payout: { Args: { p_reference: string; p_success: boolean; p_provider_reference: string | null; p_reason: string | null }; Returns: string }
+            seller_available_cents: { Args: { p_user: string }; Returns: number }
+            wallet_summary_for: { Args: { p_user: string }; Returns: Json }
+            my_wallet_summary: { Args: Record<string, never>; Returns: Json }
+            platform_revenue_summary: { Args: Record<string, never>; Returns: Json }
             register_push_token: { Args: { p_token: string; p_platform?: string }; Returns: undefined }
             unregister_push_token: { Args: { p_token: string }; Returns: undefined }
             my_account_deletion_blockers: { Args: Record<string, never>; Returns: string[] }
@@ -905,3 +997,6 @@ export interface ReviewWithProfile extends Review {
     profiles: ReviewProfile | null
 }
 export type ProviderVerification = Database["public"]["Tables"]["provider_verifications"]["Row"]
+
+export type EscrowStatus = 'unpaid' | 'held_in_escrow' | 'released' | 'disputed' | 'refunded'
+export type LedgerEventType = 'escrow_deposit' | 'commission_earned' | 'seller_credit' | 'payout_requested' | 'payout_completed' | 'payout_failed' | 'refund_issued'

@@ -10,10 +10,12 @@ import { Users, Briefcase, Calendar, Banknote } from 'lucide-react'
 import { DeleteServiceButton } from '@/components/admin/delete-service-button'
 import { ConfirmPaymentButton } from '@/components/admin/confirm-payment-button'
 import Link from 'next/link'
-import { isSimulationMode, isSimulationAutoConfirm } from '@/lib/payment-mode'
+import { isSimulationMode } from '@/lib/payment-mode'
 import { getPendingProviderApplications } from '@/lib/actions/provider-review'
 import { ProviderVerificationPanel } from '@/components/admin/provider-verification-panel'
 import { EscrowPanel } from '@/components/admin/escrow-panel'
+import { RevenuePanel } from '@/components/admin/revenue-panel'
+import { getRevenueDashboard } from '@/lib/actions/earnings'
 
 export default async function AdminDashboard() {
   const stats = await getAdminStats()
@@ -22,9 +24,9 @@ export default async function AdminDashboard() {
   const pendingPayments = await getPendingPaymentBookings()
   const providerApplications = await getPendingProviderApplications()
   const escrow = await getEscrowQueues()
+  const revenue = await getRevenueDashboard()
   const simulation = isSimulationMode()
-  const autoConfirm = isSimulationAutoConfirm()
-
+  
   if (!stats) {
     return <div className="p-8 text-center">Loading admin data...</div>
   }
@@ -33,25 +35,16 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       <ProviderVerificationPanel applications={providerApplications} />
 
-      {escrow && <EscrowPanel disputes={escrow.disputes} payouts={escrow.payouts} />}
+      {revenue && <RevenuePanel data={revenue} />}
+
+      {escrow && <EscrowPanel disputes={escrow.disputes} />}
 
       {simulation && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
-          <strong>Payment mode: simulation.</strong>{' '}
-          {autoConfirm ? (
-            <>
-              Users complete <em>Pay now</em> themselves — bookings are marked paid
-              automatically. You do not need to confirm each payment. Admin
-              confirm below is only a backup for stuck pending rows.
-            </>
-          ) : (
-            <>
-              Auto-confirm is off. Use <em>Confirm paid</em> for each pending
-              transfer.
-            </>
-          )}{' '}
-          When regs are ready: set <code className="text-xs">PAYMENT_MODE=live</code>{' '}
-          + Chapa keys.
+          <strong>Payments: Chapa sandbox.</strong>{' '}
+          No <code className="text-xs">CHAPA_SECRET_KEY</code> is set, so checkout opens the test page
+          (open the push notification or the booking&apos;s sandbox link to simulate the result) and
+          withdrawals go to a simulated bank. Paste the Chapa keys in Vercel to go live — no code changes.
         </div>
       )}
 

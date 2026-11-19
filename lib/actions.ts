@@ -47,10 +47,10 @@ export {
 
 export {
     initiatePayment,
-    verifyPayment,
     reconcileBookingPayment,
     getCommissionRate,
     getPublicPaymentMode,
+    simulateSandboxPayment,
 } from './actions/payments'
 
 export {

@@ -37,6 +37,10 @@ export function verifyRequestOrigin(request: NextRequest): boolean {
  */
 export function isSignedWebhookRoute(pathname: string): boolean {
     return pathname.startsWith('/api/payment/callback')
+        // Chapa payment/payout webhooks + transfer approval (HMAC-verified in the route)
+        || pathname.startsWith('/api/webhooks/chapa')
+        // Vercel Cron, verified by Authorization: Bearer CRON_SECRET
+        || pathname.startsWith('/api/cron/')
         // Supabase Database Webhook, verified by the x-push-webhook-secret header
         || pathname === '/api/push/dispatch'
 }

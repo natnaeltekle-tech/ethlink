@@ -5,10 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { escrowResolutionSchema, uuidSchema } from '@/lib/validations'
 import { isAdmin } from '@/lib/admin-auth'
-import {
-    confirmBookingPaymentAtomic,
-    logPaymentEvent,
-} from '@/lib/services/payments'
+import { logPaymentEvent } from '@/lib/services/payments'
+import { confirmManualPayment } from '@/lib/escrow/service'
 import { getCommissionRate } from '@/lib/actions/payments'
 import { revalidateWorkspaces } from '@/lib/revalidate'
 
@@ -106,7 +104,7 @@ export async function getPendingPaymentBookings() {
 
 /**
  * Manually confirm a pending booking as paid.
- * Uses the same idempotent process_payment_confirmation RPC as Chapa webhooks.
+ * Uses the same idempotent escrow functions as Chapa webhooks.
  */
 export async function adminConfirmBookingPayment(
     bookingId: string,
@@ -141,72 +139,29 @@ export async function adminConfirmBookingPayment(
         throw new Error(`Cannot confirm payment for status: ${booking.status}`)
     }
 
-    const service = Array.isArray(booking.services) ? booking.services[0] : booking.services
-    // Charge the price locked when the booking was made, not today's listing price.
-    const price = Number(booking.quoted_price ?? service?.price ?? 0)
-    if (!price || price <= 0) {
-        throw new Error('Invalid service price')
+    // Same escrow path as a Chapa payment: attempt with the cents split, then
+    // confirm_escrow_payment (escrow held, ledger row, push to both sides).
+    const method = details && ['telebirr', 'cbe', 'cash', 'other'].includes(details.method) ? details.method : 'other'
+    const reference = (details?.reference ?? '').trim().slice(0, 120) || null
+    let status: string
+    try {
+        status = await confirmManualPayment({ bookingId, method, reference })
+    } catch (e) {
+        throw new Error(e instanceof Error ? e.message : 'Failed to confirm payment')
     }
-
-    const commissionRate = await getCommissionRate()
-    const commission = price * commissionRate
-    const earnings = price - commission
-    const txRef = `tx-ethlink-${bookingId}-${Date.now()}-adm${crypto.randomUUID().slice(0, 6)}`
-
-    const result = await confirmBookingPaymentAtomic({
-        txRef,
-        bookingId,
-        provider: 'chapa',
-        commission,
-        providerEarnings: earnings,
-    })
-
-    if (result.status === 'error') {
-        throw new Error(result.message || 'Failed to confirm payment')
-    }
-
-    // What the admin verified: shown as the payment method + reference on the receipt.
-    if (details && ['telebirr', 'cbe', 'cash', 'other'].includes(details.method)) {
-        const reference = (details.reference ?? '').trim().slice(0, 120)
-        await adminSupabase
-            .from('bookings')
-            .update({ payment_method: details.method, ...(reference ? { payment_reference: reference } : {}) })
-            .eq('id', bookingId)
-    }
+    if (status !== 'success') throw new Error(`Payment not recorded (${status})`)
 
     await logPaymentEvent({
-        txRef,
+        txRef: null,
         bookingId,
         provider: 'chapa',
         status: 'processed',
         message: 'admin_manual_confirm',
-        payload: {
-            note: note?.slice(0, 500) || null,
-            amount: price,
-            source: 'adminConfirmBookingPayment',
-        },
+        payload: { note: note?.slice(0, 500) || null, method, source: 'adminConfirmBookingPayment' },
     })
-
-    // Notify customer — deep-link to receipt page so they can print/save it
-    try {
-        const title = service?.title ?? 'your booking'
-        if (!booking.user_id) throw new Error('customer account deleted')
-        await adminSupabase.from('notifications').insert({
-            user_id: booking.user_id,
-            content: `Payment confirmed for ${title} (${price} ETB). Tap to view your receipt.`,
-            type: 'payment',
-            link: `/receipt/${bookingId}`,
-        })
-    } catch (e) {
-        console.warn('[Admin] customer notify skipped:', e)
-    }
-
     revalidatePath('/admin')
     revalidateWorkspaces()
-    revalidatePath('/book/success')
-    revalidatePath(`/receipt/${bookingId}`)
-
-    return { success: true, status: result.status }
+    return { success: true, status: 'confirmed' as const }
 }
 
 export async function adminDeleteService(id: string) {
