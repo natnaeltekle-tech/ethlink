@@ -65,6 +65,7 @@ export async function createBookingRecord(params: {
             return { data: null, error: 'This service is already booked. Please explore our other available services.' }
         }
         console.error('[Bookings] Create failed:', error)
+        if (error.code === '42501') return { data: null, error: 'This provider hasn’t completed Eth-Links verification yet, so this service can’t be booked right now.' }
         return { data: null, error: 'Failed to create booking' }
     }
 

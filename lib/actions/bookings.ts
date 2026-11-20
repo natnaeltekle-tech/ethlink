@@ -127,6 +127,7 @@ export async function createBooking(formData: FormData) {
             if (result.error.code === '23505') {
                 throw new Error('This service is already booked. Please explore our other available services.')
             }
+            if (result.error.code === '42501') throw new Error('This provider hasn’t completed Eth-Links verification yet, so this service can’t be booked right now.')
             throw result.error
         }
         const data = result.data
@@ -241,6 +242,8 @@ export async function createBookingJson(formData: FormData) {
             return { error: 'This service is already booked. Please explore our other available services.' }
         }
         console.error('Error creating booking:', error)
+        // 42501 = a booking rule in the database (e.g. provider not verified yet): say so.
+        if (error.code === '42501') return { error: 'This provider hasn’t completed Eth-Links verification yet, so this service can’t be booked right now.' }
         return { error: 'Failed to create booking' }
     }
 
