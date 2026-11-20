@@ -8,7 +8,8 @@ import { Map, List, MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { LocationAlertBanner } from '@/components/service/LocationAlertBanner';
-import { LocationRecoveryModal } from '@/components/service/LocationRecoveryModal';
+import { LocationRecoveryModal, type LocationProblem } from '@/components/service/LocationRecoveryModal';
+import { getCurrentLocation, getLocationPermission, isNativeApp } from '@/lib/location';
 
 const ServiceMap = dynamic(() => import('@/components/map/service-map'), {
     ssr: false,
@@ -43,6 +44,9 @@ export function ServiceListing({ services }: { services: any[] }) {
     const [sortedServices, setSortedServices] = useState<any[]>(services);
     const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
     const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+    const [recoveryReason, setRecoveryReason] = useState<LocationProblem>('denied');
+    const statusRef = useRef<LocationStatus>('idle');
+    statusRef.current = locationStatus;
     const autoRequestedRef = useRef(false);
     const recoveryShownRef = useRef(false);
     const deniedToastShownRef = useRef(false);
@@ -79,127 +83,102 @@ export function ServiceListing({ services }: { services: any[] }) {
     );
 
     const requestLocation = useCallback(
-        (opts?: { silent?: boolean }) => {
+        async (opts?: { silent?: boolean; prompt?: boolean }) => {
             if (typeof window === 'undefined') return;
+            const native = isNativeApp();
+            setLocationStatus('loading');
 
-            if (!navigator.geolocation) {
-                setLocationStatus('unsupported');
-                if (!opts?.silent) {
-                    toast.error('Geolocation is not supported by your browser.');
-                }
+            // Android app: native permission dialog via @capacitor/geolocation.
+            // Browser: navigator.geolocation. Both with an indoor (low-accuracy) fallback.
+            const r = await getCurrentLocation({ prompt: opts?.prompt ?? true });
+
+            if (r.ok) {
+                setUserLocation({ lat: r.lat, lng: r.lng });
+                setLocationStatus('granted');
+                setShowRecoveryModal(false);
+                applyLocationSort(r.lat, r.lng);
+                if (!opts?.silent) toast.success('Location on — services sorted by nearest.');
                 return;
             }
 
-            setLocationStatus('loading');
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-                    setUserLocation({ lat: userLat, lng: userLng });
-                    setLocationStatus('granted');
-                    applyLocationSort(userLat, userLng);
-                    if (!opts?.silent) {
-                        toast.success('Location on — services sorted by nearest.');
-                    }
-                },
-                (error) => {
-                    // Once the browser has denied location, it will NOT show the
-                    // system prompt again until the user changes site settings.
-                    if (error.code === error.PERMISSION_DENIED) {
-                        setLocationStatus('denied');
-                        if (!recoveryShownRef.current) {
-                            recoveryShownRef.current = true;
-                            setShowRecoveryModal(true);
-                        }
-                        if (!opts?.silent && !deniedToastShownRef.current) {
-                            deniedToastShownRef.current = true;
-                            toast.message('Location is off. Follow the steps to enable it.');
-                        }
-                    } else {
-                        setLocationStatus('prompt');
-                        if (!opts?.silent) {
-                            toast.error('Could not get location. Tap Enable location to try again.');
-                        }
-                    }
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 12000,
-                    maximumAge: 60000,
+            const showHelp = (problem: LocationProblem) => {
+                setRecoveryReason(problem);
+                // In the app only explain when the user asked; in browsers once per visit.
+                if (!opts?.silent || (!native && !recoveryShownRef.current)) {
+                    recoveryShownRef.current = true;
+                    setShowRecoveryModal(true);
                 }
-            );
+            };
+
+            switch (r.reason) {
+                case 'denied':
+                    setLocationStatus('denied');
+                    showHelp('denied');
+                    if (!opts?.silent && !native && !deniedToastShownRef.current) {
+                        deniedToastShownRef.current = true;
+                        toast.message('Location is off. Follow the steps to enable it.');
+                    }
+                    break;
+                case 'services_off':
+                    setLocationStatus('prompt');
+                    showHelp('services_off');
+                    break;
+                case 'app_outdated':
+                    setLocationStatus('prompt');
+                    showHelp('app_outdated');
+                    break;
+                case 'unsupported':
+                    setLocationStatus('unsupported');
+                    if (!opts?.silent) toast.error('Location is not supported on this device.');
+                    break;
+                default:
+                    setLocationStatus('prompt');
+                    if (!opts?.silent) toast.error('Could not get your location. Move near a window or try again.');
+            }
         },
         [applyLocationSort]
     );
 
-    // Detect permission state + auto-ask once when still "prompt"
+    // On open: use an existing grant silently, or ask once if the user hasn't decided yet.
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        if (!navigator.geolocation) {
-            setLocationStatus('unsupported');
-            return;
-        }
-
         let cancelled = false;
-
-        const maybeAutoRequest = (state: LocationStatus) => {
-            if (cancelled) return;
-            setLocationStatus(state);
-            if (state === 'prompt' && !autoRequestedRef.current) {
-                autoRequestedRef.current = true;
-                // Slight delay so the page paints first, then native prompt appears
-                setTimeout(() => {
-                    if (!cancelled) requestLocation({ silent: true });
-                }, 500);
+        getLocationPermission().then((perm) => {
+            if (cancelled || autoRequestedRef.current) return;
+            autoRequestedRef.current = true;
+            if (perm === 'unsupported') return setLocationStatus('unsupported');
+            if (perm === 'granted') return void requestLocation({ silent: true, prompt: false });
+            if (perm === 'prompt') {
+                // Let the page paint first, then the system / browser prompt appears
+                setTimeout(() => { if (!cancelled) void requestLocation({ silent: true }); }, 500);
+                return;
             }
-            if (state === 'granted' && !autoRequestedRef.current) {
-                autoRequestedRef.current = true;
-                requestLocation({ silent: true });
-            }
-            if (state === 'denied' && !recoveryShownRef.current) {
+            setLocationStatus('denied');
+            setRecoveryReason('denied');
+            if (!isNativeApp() && !recoveryShownRef.current) {
                 recoveryShownRef.current = true;
                 setShowRecoveryModal(true);
             }
-        };
-
-        if (navigator.permissions?.query) {
-            navigator.permissions
-                .query({ name: 'geolocation' as PermissionName })
-                .then((permissionStatus) => {
-                    const mapState = (s: PermissionState): LocationStatus => {
-                        if (s === 'granted') return 'granted';
-                        if (s === 'denied') return 'denied';
-                        return 'prompt';
-                    };
-
-                    maybeAutoRequest(mapState(permissionStatus.state));
-
-                    permissionStatus.onchange = () => {
-                        const next = mapState(permissionStatus.state);
-                        setLocationStatus(next);
-                        if (next === 'granted') {
-                            requestLocation({ silent: true });
-                        }
-                        if (next !== 'granted') {
-                            setUserLocation(null);
-                            setSortedServices(services);
-                        }
-                    };
-                })
-                .catch(() => {
-                    maybeAutoRequest('prompt');
-                });
-        } else {
-            maybeAutoRequest('prompt');
-        }
-
-        return () => {
-            cancelled = true;
-        };
+        });
+        return () => { cancelled = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Coming back from Settings (app) or changing the site permission (browser): re-check silently.
+    useEffect(() => {
+        const recheck = () => {
+            if (document.visibilityState !== 'visible') return;
+            if (statusRef.current === 'granted' || statusRef.current === 'loading') return;
+            getLocationPermission().then((perm) => {
+                if (perm === 'granted') void requestLocation({ silent: true, prompt: false });
+            });
+        };
+        document.addEventListener('visibilitychange', recheck);
+        window.addEventListener('focus', recheck);
+        return () => {
+            document.removeEventListener('visibilitychange', recheck);
+            window.removeEventListener('focus', recheck);
+        };
+    }, [requestLocation]);
 
     useEffect(() => {
         if (userLocation) {
@@ -332,7 +311,9 @@ export function ServiceListing({ services }: { services: any[] }) {
 
             <LocationRecoveryModal
                 isOpen={showRecoveryModal}
+                reason={recoveryReason}
                 onClose={() => setShowRecoveryModal(false)}
+                onRetry={() => { setShowRecoveryModal(false); void requestLocation(); }}
             />
         </div>
     );

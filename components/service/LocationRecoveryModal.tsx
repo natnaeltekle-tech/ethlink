@@ -11,14 +11,114 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Compass, Chrome, Settings, X, Shield, RefreshCw } from 'lucide-react';
+import { Compass, Chrome, Settings, X, Shield, RefreshCw, MapPin, Smartphone } from 'lucide-react';
+import { canOpenAppSettings, isNativeApp, openAppSettings, openLocationSettings } from '@/lib/location';
+
+export type LocationProblem = 'denied' | 'services_off' | 'app_outdated';
 
 interface LocationRecoveryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Why location failed; decides which help is shown. */
+  reason?: LocationProblem;
+  /** Re-check location (e.g. after the user comes back from Settings). */
+  onRetry?: () => void;
 }
 
-export function LocationRecoveryModal({ isOpen, onClose }: LocationRecoveryModalProps) {
+export function LocationRecoveryModal({ isOpen, onClose, reason = 'denied', onRetry }: LocationRecoveryModalProps) {
+  // Android app: real Settings buttons instead of browser instructions.
+  if (isNativeApp()) {
+    return <NativeLocationHelp isOpen={isOpen} onClose={onClose} reason={reason} onRetry={onRetry} />;
+  }
+  return <BrowserLocationHelp isOpen={isOpen} onClose={onClose} />;
+}
+
+const SHEET =
+  'max-sm:fixed max-sm:bottom-0 max-sm:top-auto max-sm:left-0 max-sm:right-0 max-sm:translate-x-0 max-sm:translate-y-0 ' +
+  'max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-w-full max-sm:border-t max-sm:border-x-0 max-sm:border-b-0 ' +
+  'max-h-[85vh] flex flex-col gap-4 overflow-y-auto duration-300 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-background border border-border sm:rounded-xl shadow-xl';
+
+function NativeLocationHelp({ isOpen, onClose, reason, onRetry }: Required<Pick<LocationRecoveryModalProps, 'isOpen' | 'onClose' | 'reason'>> & { onRetry?: () => void }) {
+  const [opened, setOpened] = useState(false);
+  const servicesOff = reason === 'services_off';
+  const outdated = reason === 'app_outdated';
+  const canOpen = !outdated && canOpenAppSettings();
+
+  const title = outdated ? 'Update Eth-Links to use location'
+    : servicesOff ? 'Turn on your phone\'s Location'
+      : 'Allow Eth-Links to use your location';
+  const text = outdated
+    ? 'This version of the app can\'t ask for location. Install the latest Eth-Links app, then try again.'
+    : servicesOff
+      ? 'Your phone\'s Location switch is off. Turn it on so we can show services near you.'
+      : 'Location permission for Eth-Links is turned off. Turn it on in Settings so we can sort services by distance.';
+
+  const open = () => {
+    const ok = servicesOff ? openLocationSettings() : openAppSettings();
+    setOpened(ok);
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <AlertDialogContent className={SHEET}>
+        <AlertDialogHeader className="relative pr-6">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="p-2 bg-primary/15 text-primary rounded-full">
+              {outdated ? <Smartphone className="h-5 w-5" /> : <MapPin className="h-5 w-5" />}
+            </div>
+            <AlertDialogTitle className="text-lg font-bold tracking-tight text-left">{title}</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className="text-sm text-muted-foreground text-left">{text}</AlertDialogDescription>
+          <button onClick={onClose} aria-label="Close dialog" className="absolute top-0 right-0 p-1.5 rounded-full hover:bg-secondary transition-colors">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </AlertDialogHeader>
+
+        {!outdated && (
+          <ol className="space-y-2 list-decimal list-inside pl-1 text-sm">
+            {servicesOff ? (
+              <>
+                <li>Tap <span className="font-semibold">Open Location Settings</span>.</li>
+                <li>Turn <span className="font-semibold">Use location</span> on.</li>
+                <li>Come back to Eth-Links — we&apos;ll find you automatically.</li>
+              </>
+            ) : (
+              <>
+                <li>Tap <span className="font-semibold">Open App Settings</span>.</li>
+                <li>Tap <span className="font-semibold">Permissions</span> → <span className="font-semibold">Location</span>.</li>
+                <li>Choose <span className="font-semibold text-primary">Allow only while using the app</span>.</li>
+                <li>Come back to Eth-Links — we&apos;ll find you automatically.</li>
+              </>
+            )}
+          </ol>
+        )}
+        {!canOpen && !outdated && !servicesOff && (
+          <p className="text-xs text-muted-foreground">Or open your phone&apos;s Settings → Apps → Eth-Links → Permissions → Location.</p>
+        )}
+
+        <AlertDialogFooter className="flex flex-col gap-2 mt-2 max-sm:w-full sm:flex-col">
+          {!outdated && (canOpen || servicesOff) && (
+            <Button onClick={open} className="h-12 w-full gap-2 bg-[#f5c619] text-black hover:bg-[#f5c619]/90 font-bold">
+              <Settings className="h-4 w-4" />
+              {servicesOff ? 'Open Location Settings' : 'Open App Settings'}
+            </Button>
+          )}
+          {onRetry && (
+            <Button variant="outline" onClick={onRetry} className="h-12 w-full gap-2">
+              <RefreshCw className="h-4 w-4" />
+              {opened ? 'I turned it on — try again' : 'Try again'}
+            </Button>
+          )}
+          <AlertDialogCancel asChild>
+            <Button variant="ghost" onClick={onClose} className="h-11 w-full mt-0">Not now</Button>
+          </AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function BrowserLocationHelp({ isOpen, onClose }: Pick<LocationRecoveryModalProps, 'isOpen' | 'onClose'>) {
   const [activeTab, setActiveTab] = useState<'safari' | 'chrome' | 'general'>('safari');
 
   const handleReload = () => {
