@@ -24,6 +24,7 @@ export type Database = {
                     price: number // NOT NULL: 20261115100100_services_price_not_null.sql
                     category: string
                     location: string | null
+                    landmark: string | null
                     image_url: string | null
                     user_id: string | null
                     owner_deleted_at: string | null
@@ -48,6 +49,7 @@ export type Database = {
                     price: number
                     category: string
                     location?: string | null
+                    landmark?: string | null
                     image_url?: string | null
                     user_id: string
                     created_at?: string
@@ -71,6 +73,7 @@ export type Database = {
                     price?: number
                     category?: string
                     location?: string | null
+                    landmark?: string | null
                     image_url?: string | null
                     user_id?: string
                     created_at?: string
@@ -370,6 +373,7 @@ export type Database = {
                     service_id: string
                     user_id: string | null
                     customer_deleted_at: string | null
+                    landmark: string | null
                     date: string
                     status: string
                     created_at: string
@@ -402,6 +406,7 @@ export type Database = {
                 Insert: {
                     id?: string
                     service_id: string
+                    landmark?: string | null
                     user_id: string
                     date: string
                     status?: string
@@ -435,6 +440,7 @@ export type Database = {
                 Update: {
                     id?: string
                     service_id?: string
+                    landmark?: string | null
                     user_id?: string
                     date?: string
                     status?: string

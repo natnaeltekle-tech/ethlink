@@ -107,3 +107,10 @@ export const uuidSchema = z.string().uuid();
 export const chatInputSchema = z.object({
     message: safeString(500).min(1, 'Message cannot be empty'),
 });
+
+/** Optional "Landmark / Sefer" text (e.g. "Bole Medhanialem, behind Edna Mall"). Empty → null. */
+export function cleanLandmark(value: FormDataEntryValue | null | undefined): string | null {
+    if (typeof value !== 'string') return null
+    const v = value.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 150)
+    return v || null
+}

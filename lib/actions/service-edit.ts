@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { serviceSchema } from '@/lib/validations'
+import { cleanLandmark, serviceSchema } from '@/lib/validations'
 import { sanitizeDescription } from '@/lib/sanitize'
 import { PRICING_UNITS, WEEK_DAYS } from '@/lib/provider-screening'
 import { revalidateWorkspaces } from '@/lib/revalidate'
@@ -13,6 +13,7 @@ export type EditableService = {
     title: string
     category: string
     location: string
+    landmark: string
     price: number
     pricingUnit: string
     description: string
@@ -41,7 +42,7 @@ export async function getMyServiceForEdit(serviceId: string): Promise<{ userId: 
     if (!user) return null
     const { data: s } = await supabase
         .from('services')
-        .select('id, title, category, location, price, pricing_unit, description, whats_included, working_days, opens_at, closes_at, amenities, gallery, images, image_url, latitude, longitude, is_active, user_id')
+        .select('id, title, category, location, landmark, price, pricing_unit, description, whats_included, working_days, opens_at, closes_at, amenities, gallery, images, image_url, latitude, longitude, is_active, user_id')
         .eq('id', serviceId)
         .eq('user_id', user.id)
         .maybeSingle()
@@ -54,6 +55,7 @@ export async function getMyServiceForEdit(serviceId: string): Promise<{ userId: 
             title: s.title,
             category: s.category,
             location: s.location ?? '',
+            landmark: s.landmark ?? '',
             price: Number(s.price),
             pricingUnit: s.pricing_unit ?? 'fixed',
             description: s.description ?? '',
@@ -132,6 +134,7 @@ export async function updateMyService(serviceId: string, formData: FormData): Pr
         .update({
             title: base.title,
             location: base.location,
+            landmark: cleanLandmark(formData.get('landmark')),
             price: base.price,
             description: base.description,
             latitude: base.latitude ?? existing.latitude,

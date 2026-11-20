@@ -127,6 +127,9 @@ export default function MobileServiceDetails({
                                 {service.location || 'Location not specified'}
                             </span>
                         </div>
+                        {service.landmark && (
+                            <p className="ml-6 -mt-1 text-sm text-slate-500 dark:text-slate-400">{service.landmark}</p>
+                        )}
                         <div className="flex items-center gap-1">
                             <Star className="w-5 h-5 text-[#f5c619] fill-[#f5c619]" />
                             <span className="text-sm font-bold text-slate-900 dark:text-white">

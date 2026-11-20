@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { bookingSchema, bookingStatusSchema } from '@/lib/validations'
+import { bookingSchema, bookingStatusSchema, cleanLandmark } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { getCommissionRate } from './payments'
@@ -116,6 +116,7 @@ export async function createBooking(formData: FormData) {
                 user_id: user.id,
                 // Ensure we save the literal time as UTC to avoid shifts
                 date: new Date(date).toISOString().endsWith('Z') ? date : `${date}:00Z`,
+                landmark: cleanLandmark(formData.get('landmark')),
                 status: 'pending'
             })
             .select()
@@ -228,6 +229,7 @@ export async function createBookingJson(formData: FormData) {
             // Date is already a proper ISO string from the form
             date: parsedDate.toISOString(),
             guests,
+            landmark: cleanLandmark(formData.get('landmark')),
             status: 'pending'
         })
         .select()

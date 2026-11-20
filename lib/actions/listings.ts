@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { serviceSchema, reviewSchema } from '@/lib/validations'
+import { serviceSchema, reviewSchema, cleanLandmark } from '@/lib/validations'
 import { sanitizeReviewComment, sanitizeDescription } from '@/lib/sanitize'
 import { revalidatePath } from 'next/cache'
 import { redirect, unstable_rethrow } from 'next/navigation'
@@ -149,7 +149,7 @@ export async function createService(formData: FormData): Promise<void> {
         const validatedData = serviceSchema.parse(rawData)
         const sanitizedData = { ...validatedData, description: sanitizeDescription(validatedData.description) }
         // amenities is not on generated Insert type → caused Type 'string[] | null' is not assignable to type 'never'
-        const insertPayload: Record<string, unknown> = { ...sanitizedData, user_id: user.id }
+        const insertPayload: Record<string, unknown> = { ...sanitizedData, landmark: cleanLandmark(formData.get('landmark')), user_id: user.id }
         if (amenities.length > 0) insertPayload.amenities = amenities
         const { data, error } = await supabase.from('services').insert(insertPayload as never).select().single()
         if (error) { console.error('Error creating service:', error); throw new Error('Failed to create service') }

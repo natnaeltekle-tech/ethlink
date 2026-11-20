@@ -50,6 +50,7 @@ export default function DesktopServiceDetails({
                 price={service.price}
                 pricingUnit={service.pricing_unit}
                 location={service.location || 'Location not specified'}
+                landmark={service.landmark}
                 category={service.category}
                 serviceId={service.id}
                 isFavorite={isFavorite}

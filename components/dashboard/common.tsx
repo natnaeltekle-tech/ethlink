@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Check, type LucideIcon } from 'lucide-react'
+import { Check, MapPin, type LucideIcon } from 'lucide-react'
 import type { DashboardBooking } from '@/lib/actions/dashboard'
 import { formatBookingDateTime } from '@/lib/booking-time'
 import { cn } from '@/lib/utils'
@@ -107,6 +107,11 @@ export function BookingFrame({ booking, who, children, footer }: {
                         <span>{formatBookingDateTime(booking.date)}{booking.guests > 1 ? ` · ${booking.guests} guests` : ''}</span>
                         <span className="text-sm font-bold text-foreground">{etb(booking.amount)}</span>
                     </p>
+                    {booking.where && (
+                        <p className="mt-0.5 flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{booking.where}</span>
+                        </p>
+                    )}
                     <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                         <Avatar name={booking.counterpart.name} url={booking.counterpart.avatarUrl} size={16} />
                         <span className="shrink-0">{who}:</span> <span className="truncate font-medium text-foreground">{booking.counterpart.name}</span>

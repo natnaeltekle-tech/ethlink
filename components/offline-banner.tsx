@@ -87,7 +87,7 @@ export function OfflineBanner() {
         <p className="max-w-xs text-sm text-slate-400">Check your mobile data or Wi-Fi. Your bookings and payments are safe — we&apos;ll reconnect automatically.</p>
         <button type="button" onClick={retry} disabled={checking}
           className="inline-flex min-h-[52px] w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-[#f5c619] font-bold text-[#0B0C15] disabled:opacity-70">
-          {checking && <Loader2 className="h-4 w-4 animate-spin" />}Try again
+          {checking && <Loader2 className="h-4 w-4 animate-spin" />}Tap to Retry
         </button>
       </div>
     )

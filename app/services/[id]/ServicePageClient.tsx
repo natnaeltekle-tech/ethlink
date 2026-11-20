@@ -48,6 +48,7 @@ export function ServicePageClient({
                 title={service.title}
                 price={service.price}
                 location={service.location || 'Location not specified'}
+                landmark={service.landmark}
                 category={service.category}
                 serviceId={service.id}
                 isFavorite={isFavorite}

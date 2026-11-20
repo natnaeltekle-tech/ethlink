@@ -13,6 +13,8 @@ interface ServiceHeaderProps {
     price: number | null
     pricingUnit?: string | null
     location: string | null
+    /** Landmark / Sefer, e.g. "behind Edna Mall" */
+    landmark?: string | null
     category: string
     serviceId: string
     isFavorite: boolean
@@ -27,6 +29,7 @@ export function ServiceHeader({
     price,
     pricingUnit,
     location,
+    landmark,
     category,
     serviceId,
     isFavorite,
@@ -63,7 +66,7 @@ export function ServiceHeader({
                 {location && (
                     <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        <span>{location}</span>
+                        <span>{location}{landmark ? <span className="text-foreground/80"> · {landmark}</span> : null}</span>
                     </div>
                 )}
 

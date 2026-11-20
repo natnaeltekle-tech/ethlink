@@ -1,6 +1,6 @@
 import { getBookingDetails } from '@/lib/actions';
 import { notFound } from 'next/navigation';
-import { ShieldCheck, Calendar, XCircle } from 'lucide-react';
+import { ShieldCheck, Calendar, MapPin, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { PaymentMethods } from '@/components/payment/payment-methods';
 import { DEFAULT_SERVICE_IMAGE } from '@/lib/constants';
@@ -46,6 +46,12 @@ export default async function PaymentPage({ params, searchParams }: { params: Pr
                                         <Calendar className="h-3 w-3" />
                                         <span>{formatBookingDateTime(booking.date)} ({BOOKING_TIME_ZONE_LABEL})</span>
                                     </div>
+                                    {(booking.landmark || service.landmark) && (
+                                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                                            <MapPin className="h-3 w-3" />
+                                            <span>{booking.landmark || service.landmark}</span>
+                                        </div>
+                                    )}
                                     <div className="mt-2 text-3xl font-bold text-primary">
                                         {amount.toLocaleString()} ETB
                                     </div>

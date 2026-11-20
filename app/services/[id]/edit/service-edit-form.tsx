@@ -142,6 +142,11 @@ export function ServiceEditForm({ userId, service }: { userId: string; service: 
                         <Label htmlFor="location">Area / address</Label>
                         <Input id="location" name="location" required value={location} onChange={(e) => setLocation(e.target.value)} className="h-11" />
                     </div>
+                    <div className="space-y-1.5">
+                        <Label htmlFor="landmark">Landmark / Sefer <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                        <Input id="landmark" name="landmark" maxLength={150} autoComplete="off" defaultValue={service.landmark}
+                            placeholder="e.g. Bole Medhanialem, behind Edna Mall" className="h-11" />
+                    </div>
                     <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <MapPin className="h-4 w-4" />
                         {coords ? 'New pin set' : service.latitude != null ? 'Map pin saved' : 'No map pin yet'}

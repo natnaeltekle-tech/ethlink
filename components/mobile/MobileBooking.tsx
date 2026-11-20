@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ChevronLeft, Star, User, Calendar, ArrowRight, CheckCircle, Users } from 'lucide-react';
+import { ChevronLeft, Star, User, Calendar, ArrowRight, CheckCircle, MapPin, Users } from 'lucide-react';
 import { createBookingJson } from '@/lib/actions';
 import { TrustBadges } from '@/components/provider/trust-badges';
 
@@ -121,6 +121,25 @@ export default function MobileBooking({ service }: { service: any }) {
                                 required
                             />
                             <Calendar className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none bg-white dark:bg-[#2d291e] pr-2 box-content" />
+                        </div>
+                    </div>
+
+                    {/* Landmark / Sefer */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium ml-1 text-slate-700 dark:text-slate-200" htmlFor="landmark">
+                            Landmark / Sefer <span className="text-slate-400">(optional)</span>
+                        </label>
+                        <div className="relative">
+                            <input
+                                className="w-full rounded-full border border-slate-200 dark:border-[#544f3b] bg-white dark:bg-[#2d291e] h-14 px-5 pl-12 text-base placeholder:text-slate-400 dark:placeholder:text-[#bab39c] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f5c619]/50 focus:border-[#f5c619] transition-all shadow-sm"
+                                id="landmark"
+                                name="landmark"
+                                type="text"
+                                maxLength={150}
+                                autoComplete="off"
+                                placeholder="e.g. Bole Medhanialem, behind Edna Mall"
+                            />
+                            <MapPin className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                         </div>
                     </div>
 

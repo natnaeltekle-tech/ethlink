@@ -431,6 +431,11 @@ export default function NewServicePage() {
                                     placeholder="e.g. Bole, near Edna Mall" className="h-11" />
                             </div>
                             <div className="space-y-1.5">
+                                <Label htmlFor="landmark">Landmark / Sefer <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                                <Input id="landmark" name="landmark" maxLength={150} autoComplete="off"
+                                    placeholder="e.g. Bole Medhanialem, behind Edna Mall" className="h-11" />
+                            </div>
+                            <div className="space-y-1.5">
                                 <Label>Pin on map <span className="text-xs text-muted-foreground">(optional, helps customers find you)</span></Label>
                                 {currentStep === 3 && (
                                     <LocationPicker onLocationSelect={(lat, lng, address) => {

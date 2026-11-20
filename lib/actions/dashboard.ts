@@ -28,6 +28,8 @@ export type DashboardBooking = {
     paidOutAt: string | null
     payoutMethod: string | null
     payoutReference: string | null
+    /** Where the job happens: the customer's landmark, else the listing's area + landmark */
+    where: string | null
     service: { id: string; title: string; category: string; image: string; pricingUnit: string | null; price: number }
     /** The other party: provider (customer view) or customer (provider view) */
     counterpart: Person
@@ -81,11 +83,12 @@ type RawBooking = {
     quoted_price: number | null; amount_paid: number | null
     dispute_reason: string | null; dispute_resolution: string | null
     payout_status: 'unpaid' | 'paid_out'; paid_out_at: string | null; payout_method: string | null; payout_reference: string | null
-    services: { id: string; title: string; category: string; price: number; pricing_unit: string | null; image_url: string | null; gallery: string[] | null; images: string[] | null; user_id: string } | null
+    landmark: string | null
+    services: { id: string; title: string; category: string; price: number; pricing_unit: string | null; image_url: string | null; gallery: string[] | null; images: string[] | null; user_id: string; location: string | null; landmark: string | null } | null
 }
 
 const BOOKING_SELECT =
-    'id, status, date, created_at, guests, user_id, commission_amount, provider_earnings, quoted_price, amount_paid, dispute_reason, dispute_resolution, payout_status, paid_out_at, payout_method, payout_reference, services(id, title, category, price, pricing_unit, image_url, gallery, images, user_id)'
+    'id, status, date, created_at, guests, user_id, commission_amount, provider_earnings, quoted_price, amount_paid, dispute_reason, dispute_resolution, payout_status, paid_out_at, payout_method, payout_reference, landmark, services(id, title, category, price, pricing_unit, image_url, gallery, images, user_id, location, landmark)'
 
 async function peopleById(supabase: Awaited<ReturnType<typeof createClient>>, ids: string[]): Promise<Map<string, Person>> {
     const unique = [...new Set(ids.filter(Boolean))]
@@ -118,6 +121,7 @@ function toBooking(b: RawBooking, counterpart: Person, rate: number, reviewed: b
         amount, providerEarnings: num(earnings),
         disputeReason: b.dispute_reason, disputeResolution: b.dispute_resolution,
         payoutStatus: b.payout_status ?? 'unpaid', paidOutAt: b.paid_out_at, payoutMethod: b.payout_method, payoutReference: b.payout_reference,
+        where: b.landmark || [b.services?.location, b.services?.landmark].filter(Boolean).join(' · ') || null,
         service: {
             id: b.services?.id ?? '', title: b.services?.title ?? 'Service', category: b.services?.category ?? '',
             image: getServiceImageUrl(b.services ?? undefined), pricingUnit: b.services?.pricing_unit ?? null, price,

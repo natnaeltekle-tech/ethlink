@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { serviceSchema } from '@/lib/validations'
+import { cleanLandmark, serviceSchema } from '@/lib/validations'
 import { sanitizeDescription } from '@/lib/sanitize'
 import {
     ADDIS_ZONES,
@@ -246,6 +246,7 @@ export async function submitProviderListing(formData: FormData): Promise<SubmitR
             .from('services')
             .insert({
                 ...service,
+                landmark: cleanLandmark(formData.get('landmark')),
                 user_id: user.id,
                 image_url: gallery[0],
                 gallery,

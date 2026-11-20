@@ -5,7 +5,7 @@ import { formatPrice } from '@/lib/provider-screening'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Calendar, CheckCircle, Users } from 'lucide-react'
+import { Calendar, CheckCircle, MapPin, Users } from 'lucide-react'
 import { createBookingJson } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -90,6 +90,24 @@ export function BookingForm({ serviceId, price, pricingUnit, category }: Booking
                             min={new Date().toISOString().slice(0, 16)}
                         />
                         <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                    <label htmlFor="landmark" className="block text-xs font-medium text-foreground">
+                        Landmark / Sefer <span className="text-muted-foreground">(optional)</span>
+                    </label>
+                    <div className="relative">
+                        <Input
+                            type="text"
+                            name="landmark"
+                            id="landmark"
+                            maxLength={150}
+                            autoComplete="off"
+                            placeholder="e.g. Bole Medhanialem, behind Edna Mall"
+                            className="pl-9 h-10 w-full text-sm bg-background border-2 border-border rounded-xl focus:border-primary shadow-sm"
+                        />
+                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     </div>
                 </div>
 

@@ -9,6 +9,8 @@
   Bundled inside the Android app (Capacitor server.errorPath). Shown instead of
   the WebView error page when the live site can't be reached. No network needed.
   Keep APP_URL in sync with server.url in capacitor.config.ts.
+  An identical copy is served by the site at /offline.html (public/offline.html);
+  tests/offline-page.test.ts fails if the two drift apart.
 -->
 <style>
   :root { --bg:#0B0C15; --card:#151827; --brand:#F5C619; --text:#F1F5F9; --muted:#94A3B8; }
@@ -37,7 +39,7 @@
   </div>
   <h1>No internet connection</h1>
   <p>Check your mobile data or Wi-Fi. Your bookings and payments are safe — we'll reconnect as soon as you're back online.</p>
-  <button id="retry" type="button">Try again</button>
+  <button id="retry" type="button">Tap to Retry</button>
   <div class="status" id="status" aria-live="polite"></div>
 </main>
 <script>
