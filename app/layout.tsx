@@ -12,6 +12,7 @@ import { AppInitializer } from "@/components/app-initializer";
 import { PresenceTracker } from "@/components/presence-tracker";
 import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 import { CapacitorBackButton } from "@/components/capacitor-back-button";
+import { NativeOAuthListener } from "@/components/native-oauth-listener";
 import { PushNotificationsManager } from "@/components/push-notifications";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SWCleaner } from "@/components/sw-cleaner";
@@ -100,6 +101,7 @@ export default function RootLayout({
           >
             <AppModeProvider>
             <CapacitorBackButton />
+            <NativeOAuthListener />
             <PushNotificationsManager />
             <AppInitializer>
               <AuthGate>

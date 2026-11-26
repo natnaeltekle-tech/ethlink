@@ -14,7 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { GoogleButton } from "@/components/auth/google-button";
+import { safeNextPath } from "@/lib/auth/profile-sync-path";
 import { useState } from "react";
 
 export function LoginForm({
@@ -26,6 +28,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const next = safeNextPath(useSearchParams().get("next"));
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +51,7 @@ export function LoginForm({
       // Success: show notification and redirect
       toast.success("Login successful!");
       router.refresh(); // Clear cache and sync session
-      router.push("/"); // Navigate to home
+      router.push(next); // Back to where they were going (or home)
     } catch (error: any) {
       const message = error.message || "An unexpected error occurred";
       toast.error(message);
@@ -68,7 +71,8 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin}>
+          <GoogleButton next={next} />
+          <form onSubmit={handleLogin} className="mt-4">
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>

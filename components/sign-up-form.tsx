@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { GoogleButton } from "@/components/auth/google-button";
 import { useState } from "react";
 import { SERVICE_CATEGORIES } from "@/lib/service-filters";
 import { normalizeEthiopianPhone, type AccountType } from "@/lib/provider-screening";
@@ -123,7 +124,9 @@ export function SignUpForm({
             </Button>
           </div>
 
-          <form onSubmit={handleSignUp}>
+          {/* Providers continue to the listing wizard, which completes their provider profile */}
+          <GoogleButton next={role === "provider" ? "/services/new" : "/"} label="Sign up with Google" />
+          <form onSubmit={handleSignUp} className="mt-4">
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="full-name">Full Name</Label>

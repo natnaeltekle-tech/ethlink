@@ -20,6 +20,8 @@ public class MainActivity extends BridgeActivity {
      *  - openAppSettings(): opens Settings → Apps → Eth-Links, so a user who tapped
      *    "Don't allow" on the location prompt can turn it back on in one tap.
      *  - openLocationSettings(): opens the device Location (GPS) switch.
+     *  - oauthReady(): true in builds that handle the com.ethlink.app://login-callback
+     *    deep link, so the web app only offers "Continue with Google" where it can return.
      */
     public static class NativeInfo {
         private final boolean pushReady;
@@ -33,6 +35,11 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean pushReady() {
             return pushReady;
+        }
+
+        @JavascriptInterface
+        public boolean oauthReady() {
+            return true;
         }
 
         @JavascriptInterface

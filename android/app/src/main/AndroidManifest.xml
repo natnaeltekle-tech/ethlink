@@ -22,6 +22,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Continue with Google: Supabase returns here after the Chrome Custom Tab
+                 (com.ethlink.app://login-callback?code=…), handled by NativeOAuthListener. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.ethlink.app" android:host="login-callback" />
+            </intent-filter>
         </activity>
 
         <!-- Push notifications (FCM): default icon, colour and channel -->
