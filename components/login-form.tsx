@@ -71,8 +71,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GoogleButton next={next} />
-          <form onSubmit={handleLogin} className="mt-4">
+          <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -110,6 +109,8 @@ export function LoginForm({
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
+
+              <GoogleButton next={next} />
 
 
             </div>

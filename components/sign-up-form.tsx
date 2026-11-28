@@ -124,9 +124,7 @@ export function SignUpForm({
             </Button>
           </div>
 
-          {/* Providers continue to the listing wizard, which completes their provider profile */}
-          <GoogleButton next={role === "provider" ? "/services/new" : "/"} label="Sign up with Google" />
-          <form onSubmit={handleSignUp} className="mt-4">
+          <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="full-name">Full Name</Label>
@@ -283,6 +281,9 @@ export function SignUpForm({
               <Button type="submit" className="w-full" disabled={isLoading || !agreedToTerms}>
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
+
+              {/* Providers continue to the listing wizard, which completes their provider profile */}
+              <GoogleButton next={role === "provider" ? "/services/new" : "/"} label="Sign up with Google" />
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}

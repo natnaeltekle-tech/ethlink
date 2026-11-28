@@ -17,7 +17,7 @@ function GoogleG() {
     )
 }
 
-/** "Continue with Google" + an "or" divider. Hidden in old app builds that can't return from Google. */
+/** "Or" divider + "Continue with Google" (placed below the email form). Hidden in old app builds that can't return from Google. */
 export function GoogleButton({ next = '/', label = 'Continue with Google' }: { next?: string; label?: string }) {
     const [available, setAvailable] = useState(true)
     const [busy, setBusy] = useState(false)
@@ -36,14 +36,14 @@ export function GoogleButton({ next = '/', label = 'Continue with Google' }: { n
 
     return (
         <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" />
+            </div>
             <button type="button" onClick={go} disabled={busy}
                 className="flex h-11 w-full items-center justify-center gap-3 rounded-md border border-white/15 bg-[#121214] px-4 text-sm font-medium text-white transition-colors hover:border-[#FACC15]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FACC15] disabled:opacity-70">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleG />}
                 {label}
             </button>
-            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" />
-            </div>
         </div>
     )
 }
