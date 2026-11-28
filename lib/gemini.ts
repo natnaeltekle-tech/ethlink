@@ -1,37 +1,44 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerationConfig } from "@google/generative-ai";
 import { CONFIG } from '@/lib/constants';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-const apiKey = process.env.GOOGLE_API_KEY;
+/**
+ * Gemini client. Lazy: without GOOGLE_API_KEY nothing calls Google (no failing
+ * requests, no error spam) and the assistant uses its built-in search instead.
+ */
+const apiKey = (process.env.GOOGLE_API_KEY ?? '').trim();
 
-if (!apiKey) {
-    console.error("CRITICAL: Missing GOOGLE_API_KEY environment variable. AI features will not work.");
-}
-
-// Configuration from environment variables with defaults
-export const GEMINI_MODEL_VERSION = process.env.GEMINI_MODEL_VERSION || CONFIG.GEMINI_DEFAULT_MODEL;
+// Stale names from older setups (Gemini 1.x / "gemini-pro") no longer exist at Google.
+const RETIRED_MODEL = /^gemini-(pro|1\.0|1\.5)/;
+const configuredModel = (process.env.GEMINI_MODEL_VERSION ?? '').trim();
+export const GEMINI_MODEL_VERSION = configuredModel && !RETIRED_MODEL.test(configuredModel) ? configuredModel : CONFIG.GEMINI_DEFAULT_MODEL;
 export const AI_TEMPERATURE = parseFloat(process.env.AI_TEMPERATURE || '0.7');
 export const AI_MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS || '2048', 10);
 export const AI_TOP_P = parseFloat(process.env.AI_TOP_P || '0.9');
 export const AI_TOP_K = parseInt(process.env.AI_TOP_K || '40', 10);
 
-const genAI = new GoogleGenerativeAI(apiKey || "dummy_key_to_prevent_crash_on_init");
+export function isAIConfigured(): boolean {
+    return apiKey.length > 10 && apiKey !== 'changeme';
+}
 
-// Get model with configuration
-export const getModel = () => {
-    return genAI.getGenerativeModel({
+let client: GoogleGenerativeAI | null = null;
+
+/** Model with the given settings (defaults from env). Throws if AI isn't configured. */
+export const getModel = (overrides: Partial<GenerationConfig> = {}, systemInstruction?: string) => {
+    if (!isAIConfigured()) throw new Error('AI is not configured (GOOGLE_API_KEY missing)');
+    client ??= new GoogleGenerativeAI(apiKey);
+    return client.getGenerativeModel({
         model: GEMINI_MODEL_VERSION,
+        systemInstruction,
         generationConfig: {
             temperature: AI_TEMPERATURE,
             maxOutputTokens: AI_MAX_TOKENS,
             topP: AI_TOP_P,
             topK: AI_TOP_K,
+            ...overrides,
         },
     });
 };
-
-// Legacy export for backward compatibility
-export const model = getModel();
 
 interface AIRequestLogOptions {
     inputTokens?: number | null;

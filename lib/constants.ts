@@ -1,6 +1,7 @@
 export const CONFIG = {
     COMMISSION_RATE: 0.10, // 10%
-    GEMINI_DEFAULT_MODEL: 'gemini-1.5-pro',
+    // Google's alias for the current Flash model (fast, cheap); override with GEMINI_MODEL_VERSION.
+    GEMINI_DEFAULT_MODEL: 'gemini-flash-latest',
     SUPPORTED_CURRENCIES: ['ETB'],
 
     // Add other constants as needed
