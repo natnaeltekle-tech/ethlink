@@ -6,6 +6,7 @@ import { Star, MapPin } from 'lucide-react'
 import { Haptics } from '@/lib/haptics'
 import { useState } from 'react'
 import { getServiceImageUrl } from '@/lib/service-image'
+import { NewBadge } from '@/components/service/new-badge'
 
 interface FeaturedCardProps {
   service: any
@@ -42,6 +43,7 @@ export function FeaturedCard({ service, onBookNow }: FeaturedCardProps) {
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <NewBadge createdAt={service.created_at} reviewCount={service.review_count} className="absolute left-4 top-4 z-10" />
 
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
           {service.avg_rating && service.avg_rating > 0 && (

@@ -1,5 +1,6 @@
 'use client'
 
+import { NewBadge } from '@/components/service/new-badge';
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -157,6 +158,7 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
               key={service.id || index}
               className="flex flex-col items-stretch justify-start rounded-3xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/5 group relative"
             >
+              <NewBadge createdAt={service.created_at} reviewCount={service.review_count} className="absolute left-4 top-4 z-10" />
               <FavoriteHeart
                 serviceId={service.id}
                 saved={fav.ids.has(service.id)}
@@ -181,14 +183,12 @@ export default function MobileHome({ services = [] }: { services?: any[] }) {
                         {service.title}
                       </h3>
                     </div>
-                    <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
-                      <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
-                      <span className="text-white font-bold text-sm">
-                        {Number(service.avg_rating) > 0
-                          ? Number(service.avg_rating).toFixed(1)
-                          : 'New'}
-                      </span>
-                    </div>
+                    {Number(service.avg_rating) > 0 && (
+                      <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg">
+                        <Star className="w-[18px] h-[18px] text-[#f5c619] fill-[#f5c619]" />
+                        <span className="text-white font-bold text-sm">{Number(service.avg_rating).toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-gray-400 text-sm line-clamp-2">{service.description}</p>
                   <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">

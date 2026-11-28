@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ServiceCover } from '@/components/service/service-cover'
 import { formatPrice } from '@/lib/provider-screening'
+import { NewBadge } from '@/components/service/new-badge'
 
 interface ServiceCardProps {
     service: {
@@ -24,6 +25,7 @@ interface ServiceCardProps {
         // services_view columns
         avg_rating?: number | null
         review_count?: number | null
+        created_at?: string | null
         pricing_unit?: string | null
     }
     className?: string
@@ -47,6 +49,8 @@ export function ServiceCard({ service, className, distance, priority = false }: 
                 <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group">
                     <ServiceCover service={service} priority={priority}>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+
+                        <NewBadge createdAt={service.created_at} reviewCount={service.review_count} className="absolute left-3 top-3" />
 
                         <Badge
                             variant="secondary"

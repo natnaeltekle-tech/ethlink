@@ -1,5 +1,6 @@
 'use client'
 
+import { NewBadge } from '@/components/service/new-badge'
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -218,7 +219,7 @@ export function ServicesManager({ services }: { services: ProviderDashboard['ser
                             <img src={s.image} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-muted object-cover" loading="lazy" />
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-start justify-between gap-2">
-                                    <p className="line-clamp-1 font-semibold">{s.title}</p>
+                                    <p className="flex min-w-0 items-center gap-2 font-semibold"><span className="line-clamp-1">{s.title}</span><NewBadge createdAt={s.createdAt} reviewCount={s.reviewCount} className="shrink-0" /></p>
                                     <Switch checked={state[s.id]} disabled={busy === s.id} onCheckedChange={() => toggle(s.id)} aria-label={state[s.id] ? 'Pause listing' : 'Activate listing'} />
                                 </div>
                                 <p className="text-xs text-muted-foreground">{s.category} · {formatPrice(s.price, s.pricingUnit)}</p>

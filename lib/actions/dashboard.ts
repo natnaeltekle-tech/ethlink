@@ -49,6 +49,7 @@ export type ProviderDashboard = {
     services: {
         id: string; title: string; category: string; price: number; pricingUnit: string | null; image: string
         isActive: boolean; avgRating: number; reviewCount: number; bookingCount: number; openBookings: number
+        createdAt: string
     }[]
     verification: {
         status: VerificationStatus
@@ -316,7 +317,7 @@ export async function getProviderDashboard(): Promise<ProviderDashboard | null> 
             return {
                 id: s.id, title: s.title, category: s.category, price: num(s.price), pricingUnit: s.pricing_unit,
                 image: getServiceImageUrl(s), isActive: Boolean(s.is_active),
-                avgRating: num(r?.avg_rating), reviewCount: num(r?.review_count),
+                avgRating: num(r?.avg_rating), reviewCount: num(r?.review_count), createdAt: s.created_at,
                 bookingCount: forService.filter((b) => b.status !== 'cancelled').length,
                 openBookings: forService.filter((b) => ['pending', 'confirmed', 'paid'].includes(b.status)).length,
             }
